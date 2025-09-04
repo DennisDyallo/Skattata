@@ -70,7 +70,20 @@ public class SieDocumentWriter
 
     private void WriteVoucher(SieVoucher voucher)
     {
-        WriteLine("#VER", voucher.Series, voucher.Number, voucher.Date.ToString(SieDocument.SieDateFormat), voucher.Text);
+        // Build voucher parameters - include registration date and sign if they exist
+        var parameters = new List<object> { "#VER", voucher.Series, voucher.Number, voucher.Date.ToString(SieDocument.SieDateFormat), voucher.Text };
+        
+        if (voucher.RegistrationDate != DateTime.MinValue)
+        {
+            parameters.Add(voucher.RegistrationDate.ToString(SieDocument.SieDateFormat));
+            
+            if (!string.IsNullOrEmpty(voucher.RegistrationSign))
+            {
+                parameters.Add(voucher.RegistrationSign);
+            }
+        }
+        
+        WriteLine(parameters.ToArray());
         WriteLine("{");
         foreach (var row in voucher.Rows)
         {

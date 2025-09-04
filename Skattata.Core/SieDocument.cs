@@ -265,6 +265,13 @@ public partial class SieDocument
                     Date = DateTime.ParseExact(command[3], "yyyyMMdd", CultureInfo.InvariantCulture),
                     Text = command.Count > 4 ? command[4] : ""
                 };
+                
+                // Handle extended voucher format with registration date and signature
+                if (command.Count > 5 && DateTime.TryParseExact(command[5], "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var regDate))
+                {
+                    voucher.RegistrationDate = regDate;
+                    voucher.RegistrationSign = command.Count > 6 ? command[6] : "";
+                }
 
                 string? line;
                 while ((line = reader.ReadLine()) != null && line.Trim() != "}")
@@ -282,36 +289,41 @@ public partial class SieDocument
 
         private void ParseVoucherRow(List<string> command, SieVoucher voucher)
         {
-            // Handle the case where the line wasn't split correctly
-            // If we have 3 elements and the 3rd contains multiple parts, try to re-split carefully
-            List<string> actualCommand = command;
-            if (command.Count == 3 && command[2].Contains(' '))
+            // More robust parsing approach
+            // Find the positions of key elements regardless of splitting issues
+            List<string> actualCommand = new List<string>();
+            
+            // Handle various splitting scenarios
+            if (command.Count >= 2)
             {
-                // The third element contains: {1 "100"} 500.00 20240101 ""
-                // We need to extract these as separate elements
-                var remaining = command[2];
-                actualCommand = new List<string> { command[0], command[1] };
+                actualCommand.Add(command[0]); // #TRANS
+                actualCommand.Add(command[1]); // Account number
                 
-                // Find the closing brace for the object part
-                var braceEnd = remaining.IndexOf('}');
-                if (braceEnd >= 0)
+                // Find the object part and amount in the remaining elements
+                var remainingElements = command.Skip(2).ToList();
+                var flatContent = string.Join(" ", remainingElements);
+                
+                // Find object notation {...}
+                var braceStart = flatContent.IndexOf('{');
+                var braceEnd = flatContent.IndexOf('}');
+                
+                if (braceStart >= 0 && braceEnd >= braceStart)
                 {
-                    var objectPart = remaining.Substring(0, braceEnd + 1);
+                    var objectPart = flatContent.Substring(braceStart, braceEnd - braceStart + 1);
                     actualCommand.Add(objectPart);
                     
-                    // Split the rest normally
-                    var restPart = remaining.Substring(braceEnd + 1).Trim();
-                    if (!string.IsNullOrEmpty(restPart))
+                    // Process what comes after the object notation
+                    var afterBrace = flatContent.Substring(braceEnd + 1).Trim();
+                    if (!string.IsNullOrEmpty(afterBrace))
                     {
-                        var restParts = restPart.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        var restParts = afterBrace.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                         actualCommand.AddRange(restParts);
                     }
                 }
                 else
                 {
-                    // Fallback to simple splitting
-                    var parts = remaining.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                    actualCommand.AddRange(parts);
+                    // No braces found, add remaining elements as-is
+                    actualCommand.AddRange(remainingElements);
                 }
             }
             
@@ -321,6 +333,10 @@ public partial class SieDocument
                 {
                     AccountNumber = actualCommand[1],
                     Amount = decimal.Parse(actualCommand[3], CultureInfo.InvariantCulture),
+                    TransactionDate = actualCommand.Count > 4 && DateTime.TryParseExact(actualCommand[4], "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var transDate) 
+                        ? transDate 
+                        : voucher.Date, // Default to voucher date if no transaction date
+                    RowText = actualCommand.Count > 5 ? actualCommand[5] : ""
                 };
                 var objectText = GetObjectText(actualCommand[2]);
                 if (!string.IsNullOrEmpty(objectText))
