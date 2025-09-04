@@ -1,7 +1,7 @@
 ﻿using Skattata.Core;
 using System.Diagnostics;
 
-Console.WriteLine("Starting jsiSIE Test Runner...");
+Console.WriteLine("Starting Test Runner...");
 
 var baseDirectory = AppContext.BaseDirectory;
 var testFilesPath = Path.Combine(baseDirectory, "sie_test_files");
