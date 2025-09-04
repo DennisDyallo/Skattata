@@ -35,13 +35,13 @@ public class SieDocumentComparer
 
         foreach (var aAcc in _a.Accounts.Values)
         {
-            if (!_b.Accounts.TryGetValue(aAcc.AccountNumber, out var bAcc))
+            if (!_b.Accounts.TryGetValue(aAcc.AccountId, out var bAcc))
             {
-                _errors.Add($"Account {aAcc.AccountNumber} not found in B");
+                _errors.Add($"Account {aAcc.AccountId} not found in B");
                 continue;
             }
 
-            CompareValue($"Account {aAcc.AccountNumber} Name", aAcc.AccountName, bAcc.AccountName);
+            CompareValue($"Account {aAcc.AccountId} Name", aAcc.Name, bAcc.Name);
         }
     }
     
@@ -58,12 +58,12 @@ public class SieDocumentComparer
             var aVer = _a.Vouchers[i];
             var bVer = _b.Vouchers[i];
 
-            var context = $"Voucher {aVer.VoucherSeries}{aVer.VoucherNumber}";
+            var context = $"Voucher {aVer.Series}{aVer.Number}";
 
-            CompareValue($"{context} VoucherSeries", aVer.VoucherSeries, bVer.VoucherSeries);
-            CompareValue($"{context} VoucherNumber", aVer.VoucherNumber, bVer.VoucherNumber);
-            CompareValue($"{context} VoucherDate", aVer.VoucherDate, bVer.VoucherDate);
-            CompareValue($"{context} VoucherText", aVer.VoucherText, bVer.VoucherText);
+            CompareValue($"{context} VoucherSeries", aVer.Series, bVer.Series);
+            CompareValue($"{context} VoucherNumber", aVer.Number, bVer.Number);
+            CompareValue($"{context} VoucherDate", aVer.Date, bVer.Date);
+            CompareValue($"{context} VoucherText", aVer.Text, bVer.Text);
         }
     }
 

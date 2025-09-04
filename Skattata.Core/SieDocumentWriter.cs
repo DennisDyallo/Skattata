@@ -21,7 +21,7 @@ public class SieDocumentWriter
         writer.Write();
     }
     
-    private void Write()
+    internal void Write()
     {
         WriteLine("#FLAGGA", 0);
         WriteLine("#PROGRAM", "jsiSIE", "1.0");
@@ -37,12 +37,12 @@ public class SieDocumentWriter
             WriteLine("#RAR", year.Id, year.StartDate.ToString(SieDocument.SieDateFormat), year.EndDate.ToString(SieDocument.SieDateFormat));
         }
 
-        foreach (var account in _doc.Accounts.Values.OrderBy(a => a.AccountNumber))
+        foreach (var account in _doc.Accounts.Values.OrderBy(a => a.AccountId))
         {
-            WriteLine("#KONTO", account.AccountNumber, account.AccountName);
+            WriteLine("#KONTO", account.AccountId, account.Name);
         }
 
-        foreach (var voucher in _doc.Vouchers.OrderBy(v => v.VoucherDate))
+        foreach (var voucher in _doc.Vouchers.OrderBy(v => v.Date))
         {
             WriteVoucher(voucher);
         }
@@ -50,7 +50,7 @@ public class SieDocumentWriter
 
     private void WriteVoucher(SieVoucher voucher)
     {
-        WriteLine("#VER", voucher.VoucherSeries, voucher.VoucherNumber, voucher.VoucherDate.ToString(SieDocument.SieDateFormat), voucher.VoucherText);
+        WriteLine("#VER", voucher.Series, voucher.Number, voucher.Date.ToString(SieDocument.SieDateFormat), voucher.Text);
         WriteLine("{");
         foreach (var row in voucher.Rows)
         {

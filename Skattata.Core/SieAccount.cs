@@ -31,12 +31,12 @@ public class SieAccount
     /// <summary>
     /// Gets or sets the account number.
     /// </summary>
-    public string AccountNumber { get; set; } = "";
+    public string AccountId { get; set; } = "";
     
     /// <summary>
     /// Gets or sets the name of the account.
     /// </summary>
-    public string AccountName { get; set; } = "";
+    public string Name { get; set; } = "";
     
     /// <summary>
     /// Gets or sets the unit for the account (e.g., "st" for pieces).
@@ -46,7 +46,7 @@ public class SieAccount
     /// <summary>
     /// Gets or sets the type of the account.
     /// </summary>
-    public string AccountType { get; set; } = "";
+    public string Type { get; set; } = "";
     
     /// <summary>
     /// Gets the list of period-based balance values for this account.

@@ -6,10 +6,10 @@ public class SieVoucher
     {
         Rows = new List<SieVoucherRow>();
     }
-    public string VoucherSeries { get; set; } = "";
-    public string VoucherNumber { get; set; } = "";
-    public DateTime VoucherDate { get; set; }
-    public string VoucherText { get; set; } = "";
+    public string Series { get; set; } = "";
+    public string Number { get; set; } = "";
+    public DateTime Date { get; set; }
+    public string Text { get; set; } = "";
     public DateTime RegistrationDate { get; set; }
     public string RegistrationSign { get; set; } = "";
 

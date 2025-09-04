@@ -6,7 +6,7 @@ public class SieDimension
     {
         Objects = new List<SieObject>();
     }
-    public string DimensionNumber { get; set; } = "";
-    public string DimensionName { get; set; } = "";
+    public string Number { get; set; } = "";
+    public string Name { get; set; } = "";
     public List<SieObject> Objects { get; }
 }

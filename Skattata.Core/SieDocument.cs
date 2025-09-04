@@ -1,375 +1,398 @@
+using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace Skattata.Core;
 
-/// <summary>
-/// Represents a SIE (Standard Import och Export) document.
-/// This class can be used to load, parse, and represent the data from a SIE file.
-/// </summary>
 public partial class SieDocument
 {
-    /// <summary>
-    /// The date format used in SIE files.
-    /// </summary>
-    public const string SieDateFormat = "yyyyMMdd";
+    public List<string> Errors { get; private set; } = new List<string>();
+    public string CompanyName { get; set; }
+    public string OrganizationNumber { get; set; }
+    public List<SieBookingYear> BookingYears { get; set; } = new List<SieBookingYear>();
+    public List<SieVoucher> Vouchers { get; set; } = new List<SieVoucher>();
+    public Dictionary<string, SieAccount> Accounts { get; set; } = new Dictionary<string, SieAccount>();
+    public List<SieDimension> Dimensions { get; set; } = new List<SieDimension>();
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SieDocument"/> class.
-    /// </summary>
-    public SieDocument()
+    public static SieDocument Load(string fileName, SieCallbacks callbacks = null)
     {
-        Accounts = new Dictionary<string, SieAccount>();
-        Dimensions = new Dictionary<string, SieDimension>();
-        Vouchers = new List<SieVoucher>();
-        BookingYears = new List<SieBookingYear>();
-        Errors = new List<SieException>();
+        using var stream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+        return ReadStream(stream, callbacks);
     }
 
-    /// <summary>
-    /// Gets the accounts defined in the SIE document, indexed by account number.
-    /// </summary>
-    public Dictionary<string, SieAccount> Accounts { get; }
-    /// <summary>
-    /// Gets the dimensions defined in the SIE document, indexed by dimension number.
-    /// </summary>
-    public Dictionary<string, SieDimension> Dimensions { get; }
-    /// <summary>
-    /// Gets the list of vouchers in the SIE document.
-    /// </summary>
-    public List<SieVoucher> Vouchers { get; }
-    /// <summary>
-    /// Gets the list of booking years (fiscal years) in the SIE document.
-    /// </summary>
-    public List<SieBookingYear> BookingYears { get; }
-
-    /// <summary>
-    /// Gets a list of errors that occurred during parsing.
-    /// </summary>
-    public List<SieException> Errors { get; }
-
-    /// <summary>
-    /// Gets the name of the program that generated the SIE file.
-    /// </summary>
-    public string? ProgramName { get; private set; }
-    /// <summary>
-    /// Gets the version of the program that generated the SIE file.
-    /// </summary>
-    public string? ProgramVersion { get; private set; }
-    /// <summary>
-    /// Gets the format of the SIE file.
-    /// </summary>
-    public string? Format { get; private set; }
-    /// <summary>
-    /// Gets the date the SIE file was generated.
-    /// </summary>
-    public DateTime GeneratedDate { get; private set; }
-    /// <summary>
-    /// Gets the name of the company.
-    /// </summary>
-    public string? CompanyName { get; private set; }
-    /// <summary>
-    /// Gets the company's registration number.
-    /// </summary>
-    public string? RegistrationNumber { get; private set; }
-
-    /// <summary>
-    /// Loads a SIE document from the specified file.
-    /// </summary>
-    /// <param name="fileName">The path to the SIE file.</param>
-    /// <returns>A new <see cref="SieDocument"/> instance.</returns>
-    public static SieDocument Load(string fileName)
+    public static SieDocument ReadStream(Stream stream, SieCallbacks callbacks = null)
     {
-        return Load(fileName, null);
-    }
+        var reader = new StreamReader(stream, Encoding.Default, true);
+        var firstLine = reader.ReadLine();
+        stream.Position = 0;
 
-    /// <summary>
-    /// Loads a SIE document from the specified file, using the provided callbacks.
-    /// </summary>
-    /// <param name="fileName">The path to the SIE file.</param>
-    /// <param name="callbacks">Callbacks to invoke during parsing.</param>
-    /// <returns>A new <see cref="SieDocument"/> instance.</returns>
-    public static SieDocument Load(string fileName, SieCallbacks? callbacks)
-    {
-        var doc = new SieDocument();
-        doc.ReadFile(fileName, callbacks);
-        return doc;
-    }
-
-
-    private void ReadFile(string fileName, SieCallbacks? callbacks)
-    {
-        EncodingHelper.Register();
-        using var reader = new StreamReader(fileName, EncodingHelper.GetSieEncoding());
-        ReadStream(reader, callbacks);
-    }
-    
-    /// <summary>
-    /// Reads and parses SIE data from a <see cref="TextReader"/>.
-    /// </summary>
-    /// <param name="reader">The TextReader to read from.</param>
-    /// <param name="callbacks">Callbacks to invoke during parsing.</param>
-    public void ReadStream(TextReader reader, SieCallbacks? callbacks)
-    {
-        string? line;
-        SieVoucher? currentVer = null;
-        var inBrace = false;
-
-        while ((line = reader.ReadLine()) != null)
+        if (firstLine != null && firstLine.Trim().StartsWith("<?xml", StringComparison.OrdinalIgnoreCase))
         {
-            if (string.IsNullOrWhiteSpace(line)) continue;
+            var xmlParser = new SieXmlParser();
+            return xmlParser.Parse(stream, callbacks);
+        }
+        else
+        {
+            var tagParser = new SieTagParser();
+            return tagParser.Parse(stream, callbacks);
+        }
+    }
 
-            if (line.StartsWith('{'))
-            {
-                inBrace = true;
-                continue;
-            }
+    private class SieTagParser
+    {
+        private static readonly Regex Splitter = new Regex("(?<=^[^{}\"]*(\"[^{}\"]*\"[^{}\"]*)*) (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", RegexOptions.Compiled);
+        private SieDocument _doc;
+        private SieCallbacks _callbacks;
 
-            if (line.StartsWith('}'))
+        public SieDocument Parse(Stream stream, SieCallbacks callbacks)
+        {
+            _callbacks = callbacks;
+            _doc = new SieDocument();
+            string line;
+
+            var reader = new StreamReader(stream, EncodingHelper.GetSieEncoding());
+
+            while ((line = reader.ReadLine()) != null)
             {
-                inBrace = false;
-                if (currentVer != null)
+                if (string.IsNullOrWhiteSpace(line)) continue;
+
+                var command = SplitLine(line);
+                if (command.Count == 0) continue;
+
+                var tag = command[0].ToUpper();
+
+                try
                 {
-                    if (callbacks is null || callbacks.ReadVoucher is null)
+                    switch (tag)
                     {
-                        Vouchers.Add(currentVer);
-                    }
-                    else if (callbacks.ReadVoucher(currentVer))
-                    {
-                        Vouchers.Add(currentVer);
+                        case "#FNAMN":
+                            _doc.CompanyName = command[1];
+                            break;
+                        case "#ORGNR":
+                            _doc.OrganizationNumber = command[1];
+                            break;
+                        case "#KONTO":
+                            ParseAccount(command);
+                            break;
+                        case "#DIM":
+                            ParseDimension(command);
+                            break;
+                        case "#OBJEKT":
+                            ParseObject(command);
+                            break;
+                        case "#RAR":
+                            ParseBookingYear(command);
+                            break;
+                        case "#IB":
+                        case "#UB":
+                        case "#RES":
+                            ParseBalance(command, tag);
+                            break;
+                        case "#OIB":
+                        case "#OUB":
+                            ParseObjectBalance(command, tag);
+                            break;
+                        case "#PSALDO":
+                            ParsePeriodValue(command, (acc) => acc.PeriodValues);
+                            break;
+                        case "#VER":
+                            ParseVoucher(command, reader);
+                            break;
                     }
                 }
-                currentVer = null;
-                continue;
-            }
-            
-            var item = SplitLine(line);
-            var command = item[0].ToUpper();
-            
-            try
-            {
-                switch (command)
+                catch (Exception ex)
                 {
-                    case "#ADRESS": break;
-                    case "#BTRANS": break;
-                    case "#DIM": ParseDimension(item); break;
-                    case "#ENDRAR": break;
-                    case "#FLAGGA": break;
-                    case "#FNAMN": CompanyName = item[1]; break;
-                    case "#FORDER": break;
-                    case "#FORMAT": Format = item[1]; break;
-                    case "#FTYP": break;
-                    case "#GEN": GeneratedDate = DateTime.ParseExact(item[1], SieDateFormat, CultureInfo.InvariantCulture); break;
-                    case "#IB": ParsePeriodValue(item, acc => acc.PeriodValues, 0); break;
-                    case "#KONTO": ParseAccount(item); break;
-                    case "#KPTYP": break;
-                    case "#KRSTYPKOD": break;
-                    case "#KUNDLEVFODRINGAR": break;
-                    case "#KTYP": break;
-                    case "#OB": ParsePeriodValue(item, acc => acc.PeriodValues); break;
-                    case "#OBJECT": ParseObject(item); break;
-                    case "#OMFATTN": break;
-                    case "#ORGNR": RegistrationNumber = item[1]; break;
-                    case "#PBUDGET": break;
-                    case "#PERIOD": break;
-                    case "#PROGRAM": ProgramName = item[1]; ProgramVersion = item.Length > 2 ? item[2] : null; break;
-                    case "#PROSA": break;
-                    case "#PSALDO": ParsePeriodValue(item, acc => acc.ObjectValues); break;
-                    case "#RAR": ParseBookingYear(item); break;
-                    case "#RES": ParsePeriodValue(item, acc => acc.PeriodValues); break;
-                    case "#SIETYP": break;
-                    case "#SRU": break;
-                    case "#TAXAR": break;
-                    case "#TRANS": ParseVoucherRow(item, currentVer); break;
-                    case "#UB": ParsePeriodValue(item, acc => acc.PeriodValues); break;
-                    case "#UNDERDIM": break;
-                    case "#VALUTA": break;
-                    case "#VER": currentVer = ParseVoucher(item); break;
-                    default:
-                        if (command.StartsWith('#'))
-                        {
-                            throw new SieInvalidCommandException($"Unknown command: {command}");
-                        }
-                        break;
+                    _doc.Errors.Add($"Error parsing line: {line}. Error: {ex.Message}");
                 }
             }
-            catch(Exception ex)
-            {
-                var newEx = new SieException($"Error parsing line: {line}", ex);
-                Errors.Add(newEx);
-            }
+            return _doc;
         }
-    }
-    
-    private void ParseAccount(string[] item)
-    {
-        var acc = new SieAccount
-        {
-            AccountNumber = item[1],
-            AccountName = item[2]
-        };
-        Accounts[acc.AccountNumber] = acc;
-    }
-    
-    private void ParseBookingYear(string[] item)
-    {
-        var year = new SieBookingYear();
-        var idx = 0;
-        if (item.Length > 1 && int.TryParse(item[1], out var i))
-        {
-            year.Id = i;
-            idx = 1;
-        }
-
-        if (item.Length > idx + 1)
-        {
-            year.StartDate = DateTime.ParseExact(item[idx + 1], SieDateFormat, CultureInfo.InvariantCulture);
-        }
-        if (item.Length > idx + 2)
-        {
-            year.EndDate = DateTime.ParseExact(item[idx + 2], SieDateFormat, CultureInfo.InvariantCulture);
-        }
-        BookingYears.Add(year);
-    }
-    
-    private SieVoucher ParseVoucher(string[] item)
-    {
-        var voucher = new SieVoucher
-        {
-            VoucherSeries = item[1],
-            VoucherNumber = item[2]
-        };
-        if (item.Length > 3)
-        {
-            voucher.VoucherDate = DateTime.ParseExact(item[3], SieDateFormat, CultureInfo.InvariantCulture);
-        }
-        if (item.Length > 4)
-        {
-            voucher.VoucherText = item[4];
-        }
-        if (item.Length > 5)
-        {
-            voucher.RegistrationDate = DateTime.ParseExact(item[5], SieDateFormat, CultureInfo.InvariantCulture);
-        }
-        if (item.Length > 6)
-        {
-            voucher.RegistrationSign = item[6];
-        }
-        return voucher;
-    }
-
-    private void ParseVoucherRow(string[] item, SieVoucher? voucher)
-    {
-        if(voucher is null) throw new SieException("Voucher row found outside a voucher context.");
         
-        var row = new SieVoucherRow
+        private void ParseAccount(List<string> command)
         {
-            AccountNumber = item[1]
-        };
+            var acc = new SieAccount() { AccountId = command[1], Name = command[2] };
+            _doc.Accounts.Add(acc.AccountId, acc);
+        }
 
-        var objectData = GetObjectText(item[2]);
-        if (objectData.Length > 0)
+        private void ParseDimension(List<string> command)
         {
-            for(var i = 0; i < objectData.Length; i+= 2)
+            var dim = new SieDimension() { Number = command[1], Name = command[2] };
+            _doc.Dimensions.Add(dim);
+        }
+
+        private void ParseObject(List<string> command)
+        {
+            var dim = _doc.Dimensions.FirstOrDefault(d => d.Number == command[1]);
+            if (dim != null)
             {
-                var dimNo = objectData[i];
-                var objNo = objectData[i + 1];
-                var obj = new SieObject
+                var obj = new SieObject() { DimensionNumber = command[1], Number = command[2], Name = command[3] };
+                dim.Objects.Add(obj.Number, obj);
+            }
+        }
+        
+        private void ParseBookingYear(List<string> command)
+        {
+            var year = new SieBookingYear
+            {
+                Id = int.Parse(command[1]),
+                StartDate = DateTime.ParseExact(command[2], "yyyyMMdd", CultureInfo.InvariantCulture),
+                EndDate = DateTime.ParseExact(command[3], "yyyyMMdd", CultureInfo.InvariantCulture)
+            };
+            _doc.BookingYears.Add(year);
+        }
+        
+        private void ParseBalance(List<string> command, string tag)
+        {
+            var accountId = command[2];
+            if (_doc.Accounts.TryGetValue(accountId, out var acc))
+            {
+                var balance = decimal.Parse(command[3], CultureInfo.InvariantCulture);
+                if (tag == "#IB") acc.OpeningBalance = balance;
+                else if (tag == "#UB") acc.ClosingBalance = balance;
+                else if (tag == "#RES") acc.Result = balance;
+            }
+        }
+        
+        private void ParseObjectBalance(List<string> command, string tag)
+        {
+            // Format: #OIB yearNo accountNo {dimNo objNo} balance
+            var objectText = GetObjectText(command[3]);
+            var objectCommands = SplitLine(objectText);
+            var dimNo = objectCommands[0];
+            var objNo = objectCommands[1];
+
+            var dim = _doc.Dimensions.FirstOrDefault(d => d.Number == dimNo);
+            if (dim != null && dim.Objects.TryGetValue(objNo, out var obj))
+            {
+                var balance = decimal.Parse(command[4], CultureInfo.InvariantCulture);
+                if (tag == "#OIB") obj.OpeningBalance = balance;
+                else if (tag == "#OUB") obj.ClosingBalance = balance;
+            }
+        }
+        
+        private void ParsePeriodValue(List<string> command, Func<SieAccount, List<SiePeriodValue>> listSelector)
+        {
+            // Format: #PSALDO yearNo period accountNo balance
+            var accountId = command[3];
+            if (_doc.Accounts.TryGetValue(accountId, out var acc))
+            {
+                var list = listSelector(acc);
+                list.Add(new SiePeriodValue
                 {
-                    DimensionNumber = dimNo,
-                    ObjectNumber = objNo
-                    // Note: ObjectName is not available on the #TRANS line,
-                    // it must be looked up from the #OBJECT definitions if needed.
+                    Period = command[2],
+                    Value = decimal.Parse(command[4], CultureInfo.InvariantCulture)
+                });
+            }
+        }
+
+        private void ParseVoucher(List<string> command, StreamReader reader)
+        {
+            var voucher = new SieVoucher
+            {
+                Series = command[1],
+                Number = command[2],
+                Date = DateTime.ParseExact(command[3], "yyyyMMdd", CultureInfo.InvariantCulture),
+                Text = command.Count > 4 ? command[4] : ""
+            };
+
+            string line;
+            while ((line = reader.ReadLine()) != null && line.Trim() != "}")
+            {
+                if (line.Trim() == "{") continue;
+                var rowCommand = SplitLine(line);
+                if (rowCommand.Count > 0 && rowCommand[0].ToUpper() == "#TRANS")
+                {
+                    ParseVoucherRow(rowCommand, voucher);
+                }
+            }
+            _doc.Vouchers.Add(voucher);
+        }
+
+        private void ParseVoucherRow(List<string> command, SieVoucher voucher)
+        {
+            var row = new SieVoucherRow
+            {
+                AccountNumber = command[1],
+                Amount = decimal.Parse(command[3], CultureInfo.InvariantCulture),
+            };
+            var objectText = GetObjectText(command[2]);
+            if (!string.IsNullOrEmpty(objectText))
+            {
+                var objectCommands = SplitLine(objectText);
+                for (int i = 0; i < objectCommands.Count; i += 2)
+                {
+                    row.Objects.Add(new SieObject() { DimensionNumber = objectCommands[i], Number = objectCommands[i + 1] });
+                }
+            }
+            voucher.Rows.Add(row);
+        }
+        
+        private static string GetObjectText(string text)
+        {
+            return text.TrimStart('{').TrimEnd('}');
+        }
+
+        private static List<string> SplitLine(string line)
+        {
+            var result = new List<string>();
+            var items = Splitter.Split(line.Trim());
+            foreach (var item in items)
+            {
+                if (!string.IsNullOrEmpty(item) && item.StartsWith("\"") && item.EndsWith("\""))
+                    result.Add(item.Substring(1, item.Length - 2));
+                else
+                    result.Add(item);
+            }
+            return result;
+        }
+    }
+
+    private class SieXmlParser
+    {
+        private SieCallbacks _callbacks;
+
+        public SieDocument Parse(Stream stream, SieCallbacks callbacks)
+        {
+            _callbacks = callbacks;
+            var doc = new SieDocument();
+            var xml = XDocument.Load(stream);
+
+            var sieEntry = xml.Root?.Element("SieEntry");
+            if (sieEntry == null)
+            {
+                doc.Errors.Add("Could not find required root element <SieEntry>.");
+                return doc;
+            }
+
+            ParseCompany(sieEntry.Element("Company"), doc);
+            ParseFinancialYears(sieEntry.Elements("FinancialYear"), doc);
+            ParseVouchers(sieEntry.Element("Journal"), doc);
+
+            return doc;
+        }
+
+        private void ParseCompany(XElement companyElement, SieDocument doc)
+        {
+            if (companyElement == null) return;
+            doc.CompanyName = companyElement.Element("Name")?.Value;
+            doc.OrganizationNumber = companyElement.Element("CorporateIdentityNumber")?.Value;
+        }
+
+        private void ParseFinancialYears(IEnumerable<XElement> yearElements, SieDocument doc)
+        {
+            foreach (var yearElement in yearElements)
+            {
+                var year = new SieBookingYear
+                {
+                    StartDate = GetDate(yearElement.Element("StartDate")?.Value),
+                    EndDate = GetDate(yearElement.Element("EndDate")?.Value)
                 };
-                row.Objects.Add(obj);
+                doc.BookingYears.Add(year);
+
+                ParseAccounts(yearElement.Element("Accounts"), doc);
+                ParseDimensions(yearElement.Element("Dimensions"), doc);
             }
         }
 
-        row.Amount = decimal.Parse(item[3], CultureInfo.InvariantCulture);
-        if (item.Length > 4)
+        private void ParseAccounts(XElement accountsElement, SieDocument doc)
         {
-            row.TransactionDate = DateTime.ParseExact(item[4], SieDateFormat, CultureInfo.InvariantCulture);
-        }
-        if (item.Length > 5)
-        {
-            row.RowText = item[5];
-        }
-        if (item.Length > 6)
-        {
-            row.Quantity = decimal.Parse(item[6], CultureInfo.InvariantCulture);
-        }
-        if (item.Length > 7)
-        {
-            row.RegistrationSign = item[7];
-        }
-        voucher.Rows.Add(row);
-    }
-    private void ParseObject(string[] item)
-    {
-        var dim = Dimensions[item[1]];
-        dim.Objects.Add(new SieObject
-        {
-            DimensionNumber = item[1],
-            ObjectNumber = item[2],
-            ObjectName = item[3]
-        });
-    }
-
-    private void ParseDimension(string[] item)
-    {
-        var dim = new SieDimension
-        {
-            DimensionNumber = item[1],
-            DimensionName = item[2]
-        };
-        Dimensions[dim.DimensionNumber] = dim;
-    }
-    
-    private void ParsePeriodValue(string[] item, Func<SieAccount, List<SiePeriodValue>> list, int? yearId = null)
-    {
-        var acc = Accounts[item[1]];
-        var val = new SiePeriodValue();
-
-        if (yearId.HasValue)
-        {
-            val.BookingYear = BookingYears.FirstOrDefault(y => y.Id == yearId.Value);
-        }
-        
-        val.Period = item[2];
-        val.Value = decimal.Parse(item[3], CultureInfo.InvariantCulture);
-        if (item.Length > 4)
-        {
-            val.Quantity = decimal.Parse(item[4], CultureInfo.InvariantCulture);
-        }
-        list(acc).Add(val);
-    }
-
-    private static readonly Regex _itemex = SieDocumentRegex();
-    
-    internal static string[] SplitLine(string line)
-    {
-        var mc = _itemex.Matches(line);
-        return mc.Cast<Match>().Select(m => {
-            var val = m.Value;
-            if (val.Length > 1 && val.StartsWith('"') && val.EndsWith('"')) {
-                return val.Substring(1, val.Length - 2);
+            if (accountsElement == null) return;
+            foreach (var accElement in accountsElement.Elements("Account"))
+            {
+                var account = new SieAccount
+                {
+                    AccountId = accElement.Attribute("accountId")?.Value,
+                    Name = accElement.Attribute("description")?.Value,
+                    OpeningBalance = GetDecimal(accElement.Element("OpeningBalance")?.Value),
+                    ClosingBalance = GetDecimal(accElement.Element("ClosingBalance")?.Value)
+                };
+                if (!string.IsNullOrEmpty(account.AccountId))
+                {
+                    doc.Accounts[account.AccountId] = account;
+                }
             }
-            return val;
-        }).ToArray();
+        }
+
+        private void ParseDimensions(XElement dimensionsElement, SieDocument doc)
+        {
+            if (dimensionsElement == null) return;
+            foreach (var dimElement in dimensionsElement.Elements("Dimension"))
+            {
+                var dimension = new SieDimension
+                {
+                    Number = dimElement.Attribute("dimensionId")?.Value,
+                    Name = dimElement.Attribute("description")?.Value
+                };
+
+                foreach (var objElement in dimElement.Elements("Object"))
+                {
+                    var sieObject = new SieObject
+                    {
+                        DimensionNumber = dimension.Number,
+                        Number = objElement.Attribute("objectId")?.Value,
+                        Name = objElement.Attribute("description")?.Value
+                    };
+                    dimension.Objects.Add(sieObject.Number, sieObject);
+                }
+                doc.Dimensions.Add(dimension);
+            }
+        }
+
+        private void ParseVouchers(XElement journalElement, SieDocument doc)
+        {
+            if (journalElement == null) return;
+            foreach (var entryElement in journalElement.Elements("JournalEntry"))
+            {
+                var voucher = new SieVoucher
+                {
+                    Series = entryElement.Attribute("journalId")?.Value,
+                    Number = entryElement.Attribute("entryNumber")?.Value,
+                    Date = GetDate(entryElement.Attribute("entryDate")?.Value),
+                    Text = entryElement.Attribute("description")?.Value,
+                };
+
+                foreach (var ledgerElement in entryElement.Elements("LedgerEntry"))
+                {
+                    var row = new SieVoucherRow
+                    {
+                        AccountNumber = ledgerElement.Attribute("accountId")?.Value,
+                        Amount = GetDecimal(ledgerElement.Attribute("amount")?.Value),
+                        RowText = ledgerElement.Attribute("description")?.Value,
+                        TransactionDate = GetDate(ledgerElement.Attribute("entryDate")?.Value) ?? voucher.Date
+                    };
+
+                    var rowDimensions = ledgerElement.Element("Dimensions");
+                    if (rowDimensions != null)
+                    {
+                        foreach (var rowDimElement in rowDimensions.Elements("Dimension"))
+                        {
+                            row.Objects.Add(new SieObject()
+                            {
+                                DimensionNumber = rowDimElement.Attribute("dimensionId")?.Value,
+                                Number = rowDimElement.Attribute("objectId")?.Value
+                            });
+                        }
+                    }
+                    voucher.Rows.Add(row);
+                }
+                doc.Vouchers.Add(voucher);
+            }
+        }
+
+        private decimal GetDecimal(string value)
+        {
+            return decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var result) ? result : 0;
+        }
+
+        private DateTime? GetDate(string value)
+        {
+            return DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var result) ? result : (DateTime?)null;
+        }
     }
-    
-    private static string[] GetObjectText(string text)
-    {
-        if (string.IsNullOrWhiteSpace(text) || text == "{}") return Array.Empty<string>();
-
-        // Remove outer braces before splitting
-        var content = text.Trim().Substring(1, text.Length - 2).Trim();
-        if (string.IsNullOrWhiteSpace(content)) return Array.Empty<string>();
-
-        // Use the same robust splitter as the main line parser
-        return SplitLine(content);
-    }
-
-    [GeneratedRegex("\\{.*?\\}|\"[^\"]*\"|[^\\s]+", RegexOptions.Compiled)]
-    private static partial Regex SieDocumentRegex();
 }
+
