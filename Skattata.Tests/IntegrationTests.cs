@@ -1,7 +1,6 @@
+using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Skattata.Core;
-using System.IO;
-using System.Linq;
 
 namespace Skattata.Tests;
 
@@ -17,11 +16,12 @@ public class IntegrationTests
             Assert.Fail($"Test files directory not found: {TestFilesPath}");
             yield break;
         }
-    
-        var allFiles = 
+
+        var allFiles =
             Directory.GetFiles(TestFilesPath, "*.se", SearchOption.AllDirectories)
-            .Concat(Directory.GetFiles(TestFilesPath, "*.si", SearchOption.AllDirectories));
-    
+            .Concat(Directory.GetFiles(TestFilesPath, "*.si", SearchOption.AllDirectories))
+            .Concat(Directory.GetFiles(TestFilesPath, "*.sie", SearchOption.AllDirectories));
+
         foreach (var file in allFiles)
         {
             yield return [file];
@@ -38,10 +38,10 @@ public class IntegrationTests
         {
             // Arrange
             var doc = new SieDocument();
-            using var reader = new StreamReader(filePath, EncodingHelper.GetSieEncoding());
+            using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
 
             // Act
-            doc.ReadStream(reader, null);
+            doc.ReadStream(stream, null);
 
             // Assert
             Assert.IsTrue(true, $"Successfully parsed {Path.GetFileName(filePath)}");
@@ -60,9 +60,9 @@ public class IntegrationTests
         {
             // Arrange
             var originalDoc = new SieDocument();
-            using (var reader = new StreamReader(filePath, EncodingHelper.GetSieEncoding()))
+            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {
-                originalDoc.ReadStream(reader, null);
+                originalDoc.ReadStream(stream, null);
             }
 
             // Act
@@ -78,10 +78,7 @@ public class IntegrationTests
             memoryStream.Position = 0;
 
             var newDoc = new SieDocument();
-            using (var reader = new StreamReader(memoryStream, EncodingHelper.GetSieEncoding()))
-            {
-                newDoc.ReadStream(reader, null);
-            }
+            newDoc.ReadStream(memoryStream, null);
 
             // Assert
             var comparer = new SieDocumentComparer(originalDoc, newDoc);
@@ -92,5 +89,38 @@ public class IntegrationTests
         {
             Assert.Fail($"Exception in round-trip for {Path.GetFileName(filePath)}: {ex.Message}\n{ex.StackTrace}");
         }
+    }
+    
+    [TestMethod]
+    public void ParseVoucherRow_WithObjectData_ParsesCorrectly()
+    {
+        // Arrange
+        var sieContent = """
+                         #FNAMN "Test Company"
+                         #DIM 1 "Project"
+                         #OBJECT 1 "100" "Project X"
+                         #VER A 1 20240101 ""
+                         {
+                         #TRANS 1910 {1 "100"} 500.00 20240101 ""
+                         }
+                         """;
+        
+        var doc = new SieDocument();
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(sieContent));
+        
+        // Act
+        doc.ReadStream(stream, null);
+
+        // Assert
+        Assert.AreEqual(1, doc.Vouchers.Count, "Should be one voucher.");
+        var voucher = doc.Vouchers[0];
+        Assert.AreEqual(1, voucher.Rows.Count, "Voucher should have one row.");
+        var row = voucher.Rows[0];
+        
+        Assert.AreEqual(1, row.Objects.Count, "Row should have one object.");
+        var sieObject = row.Objects[0];
+
+        Assert.AreEqual("1", sieObject.DimensionNumber, "Object dimension number should be 1.");
+        Assert.AreEqual("100", sieObject.Number, "Object number should be 100.");
     }
 }
