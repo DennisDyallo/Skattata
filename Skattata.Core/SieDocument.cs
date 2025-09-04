@@ -87,6 +87,7 @@ public partial class SieDocument
                             ParseDimension(command);
                             break;
                         case "#OBJEKT":
+                        case "#OBJECT":
                             ParseObject(command);
                             break;
                         case "#RAR":
@@ -207,12 +208,12 @@ public partial class SieDocument
                 Text = command.Count > 4 ? command[4] : ""
             };
 
-            string line;
+            string? line;
             while ((line = reader.ReadLine()) != null && line.Trim() != "}")
             {
                 if (line.Trim() == "{") continue;
                 var rowCommand = SplitLine(line);
-                if (rowCommand.Count > 0 && rowCommand[0].ToUpper() == "#TRANS")
+                if (rowCommand.Count > 0 && rowCommand[0].Equals("#TRANS", StringComparison.InvariantCultureIgnoreCase))
                 {
                     ParseVoucherRow(rowCommand, voucher);
                 }

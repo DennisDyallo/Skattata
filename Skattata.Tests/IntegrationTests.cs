@@ -96,19 +96,21 @@ public class IntegrationTests
         var sieContent = """
                          #FNAMN "Test Company"
                          #DIM 1 "Project"
-                         #OBJECT 1 "100" "Project X"
+                         #OBJEKT 1 "100" "Project X"
                          #VER A 1 20240101 ""
                          {
                          #TRANS 1910 {1 "100"} 500.00 20240101 ""
                          }
                          """;
-        
+
         using var stream = new MemoryStream(EncodingHelper.GetSieEncoding().GetBytes(sieContent));
-        
+
         // Act
         var doc = SieDocument.ReadStream(stream, null);
 
         // Assert
+        Assert.IsTrue(doc.Errors.Count == 0, "Document should have no errors: {0}", doc.Errors.First());
+
         Assert.AreEqual(1, doc.Vouchers.Count, "Should be one voucher.");
         var voucher = doc.Vouchers[0];
         Assert.AreEqual(1, voucher.Rows.Count, "Voucher should have one row.");
