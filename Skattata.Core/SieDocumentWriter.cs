@@ -61,7 +61,14 @@ public class SieDocumentWriter
 
     private void WriteVoucherRow(SieVoucherRow row)
     {
-        WriteLine("#TRANS", row.AccountNumber, "{}", row.Amount.ToString(CultureInfo.InvariantCulture), row.TransactionDate.ToString(SieDocument.SieDateFormat), row.RowText);
+        var objectText = "{}";
+        if (row.Objects.Count > 0)
+        {
+            var objParts = row.Objects.Select(obj => $"{obj.DimensionNumber} \"{obj.Number}\"");
+            objectText = "{" + string.Join(" ", objParts) + "}";
+        }
+        
+        WriteLine("#TRANS", row.AccountNumber, objectText, row.Amount.ToString(CultureInfo.InvariantCulture), row.TransactionDate.ToString(SieDocument.SieDateFormat), row.RowText);
     }
     
     private void WriteLine(params object?[] values)

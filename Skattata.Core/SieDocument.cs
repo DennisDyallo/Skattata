@@ -191,16 +191,50 @@ public partial class SieDocument
         
         private void ParsePeriodValue(List<string> command, Func<SieAccount, List<SiePeriodValue>> listSelector)
         {
-            // Format: #PSALDO yearNo period accountNo balance
-            var accountId = command[3];
-            if (_doc.Accounts.TryGetValue(accountId, out var acc))
+            // Format: #PSALDO yearNo period accountNo {objects} balance
+            // Handle incorrect line splitting similar to ParseVoucherRow
+            List<string> actualCommand = command;
+            if (command.Count == 5 && command[4].Contains(' '))
             {
-                var list = listSelector(acc);
-                list.Add(new SiePeriodValue
+                // The fifth element contains: {} 6000
+                var remaining = command[4];
+                actualCommand = new List<string> { command[0], command[1], command[2], command[3] };
+                
+                // Find the closing brace for the object part
+                var braceEnd = remaining.IndexOf('}');
+                if (braceEnd >= 0)
                 {
-                    Period = command[2],
-                    Value = decimal.Parse(command[4], CultureInfo.InvariantCulture)
-                });
+                    var objectPart = remaining.Substring(0, braceEnd + 1);
+                    actualCommand.Add(objectPart);
+                    
+                    // Split the rest normally
+                    var restPart = remaining.Substring(braceEnd + 1).Trim();
+                    if (!string.IsNullOrEmpty(restPart))
+                    {
+                        var restParts = restPart.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        actualCommand.AddRange(restParts);
+                    }
+                }
+                else
+                {
+                    // Fallback to simple splitting
+                    var parts = remaining.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    actualCommand.AddRange(parts);
+                }
+            }
+            
+            if (actualCommand.Count >= 6)
+            {
+                var accountId = actualCommand[3];
+                if (_doc.Accounts.TryGetValue(accountId, out var acc))
+                {
+                    var list = listSelector(acc);
+                    list.Add(new SiePeriodValue
+                    {
+                        Period = actualCommand[2],
+                        Value = decimal.Parse(actualCommand[5], CultureInfo.InvariantCulture)
+                    });
+                }
             }
         }
 
