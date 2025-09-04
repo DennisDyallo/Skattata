@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="..\sie_test_files\**\*">
+        <Content Include="sie_test_files\**\*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>

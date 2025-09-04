@@ -49,6 +49,7 @@ else
     Console.WriteLine("Result: One or more tests failed.");
 }
 Console.ResetColor();
+return;
 
 
 static bool RunTest(string fileName)
@@ -64,7 +65,7 @@ static bool RunTest(string fileName)
         doc = SieDocument.Load(fileName);
         WriteResult("Load", true);
 
-        if (doc.Errors.Any())
+        if (doc.Errors.Count != 0)
         {
             WriteResult("Parsing Errors", false);
             foreach (var error in doc.Errors)
