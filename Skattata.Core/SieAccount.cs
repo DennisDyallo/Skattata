@@ -14,23 +14,67 @@
 
 namespace Skattata.Core;
 
+/// <summary>
+/// Represents a financial account in a SIE document.
+/// </summary>
 public class SieAccount
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SieAccount"/> class.
+    /// </summary>
     public SieAccount()
     {
         PeriodValues = new List<SiePeriodValue>();
         ObjectValues = new List<SiePeriodValue>();
     }
+    
+    /// <summary>
+    /// Gets or sets the account number.
+    /// </summary>
     public string AccountNumber { get; set; } = "";
+    
+    /// <summary>
+    /// Gets or sets the name of the account.
+    /// </summary>
     public string AccountName { get; set; } = "";
+    
+    /// <summary>
+    /// Gets or sets the unit for the account (e.g., "st" for pieces).
+    /// </summary>
     public string Unit { get; set; } = "";
+    
+    /// <summary>
+    /// Gets or sets the type of the account.
+    /// </summary>
     public string AccountType { get; set; } = "";
+    
+    /// <summary>
+    /// Gets the list of period-based balance values for this account.
+    /// </summary>
     public List<SiePeriodValue> PeriodValues { get; }
+    
+    /// <summary>
+    /// Gets the list of object-based balance values for this account.
+    /// </summary>
     public List<SiePeriodValue> ObjectValues { get; }
 
+    /// <summary>
+    /// Gets or sets the opening balance for the account.
+    /// </summary>
     public decimal OpeningBalance { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the closing balance for the account.
+    /// </summary>
     public decimal ClosingBalance { get; set; }
 
+    /// <summary>
+    /// Gets or sets the balance of the account.
+    /// </summary>
     public decimal Balance { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the quantity associated with the account balance.
+    /// </summary>
     public decimal Quantity { get; set; }
 }
