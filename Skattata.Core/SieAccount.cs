@@ -77,4 +77,9 @@ public class SieAccount
     /// Gets or sets the quantity associated with the account balance.
     /// </summary>
     public decimal Quantity { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the result for the account.
+    /// </summary>
+    public decimal Result { get; set; }
 }

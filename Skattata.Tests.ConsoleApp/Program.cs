@@ -69,8 +69,7 @@ static bool RunTest(string fileName)
             WriteResult("Parsing Errors", false);
             foreach (var error in doc.Errors)
             {
-                Console.WriteLine($"  - {error.Message}");
-                if(error.InnerException is not null) Console.WriteLine($"    Inner: {error.InnerException.Message}");
+                Console.WriteLine($"  - {error}");
             }
             success = false;
         }

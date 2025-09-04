@@ -11,23 +11,27 @@ namespace Skattata.Core;
 
 public partial class SieDocument
 {
+    public const string SieDateFormat = "yyyyMMdd";
+    
     public List<string> Errors { get; private set; } = new List<string>();
-    public string CompanyName { get; set; }
-    public string OrganizationNumber { get; set; }
+    public string CompanyName { get; set; } = "";
+    public string OrganizationNumber { get; set; } = "";
+    public string RegistrationNumber => OrganizationNumber;
+    public string Format { get; set; } = "PC8";
     public List<SieBookingYear> BookingYears { get; set; } = new List<SieBookingYear>();
     public List<SieVoucher> Vouchers { get; set; } = new List<SieVoucher>();
     public Dictionary<string, SieAccount> Accounts { get; set; } = new Dictionary<string, SieAccount>();
     public List<SieDimension> Dimensions { get; set; } = new List<SieDimension>();
 
-    public static SieDocument Load(string fileName, SieCallbacks callbacks = null)
+    public static SieDocument Load(string fileName, SieCallbacks? callbacks = null)
     {
         using var stream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
         return ReadStream(stream, callbacks);
     }
 
-    public static SieDocument ReadStream(Stream stream, SieCallbacks callbacks = null)
+    public static SieDocument ReadStream(Stream stream, SieCallbacks? callbacks = null)
     {
-        var reader = new StreamReader(stream, Encoding.Default, true);
+        var reader = new StreamReader(stream, EncodingHelper.GetSieEncoding(), true);
         var firstLine = reader.ReadLine();
         stream.Position = 0;
 
@@ -46,10 +50,10 @@ public partial class SieDocument
     private class SieTagParser
     {
         private static readonly Regex Splitter = new Regex("(?<=^[^{}\"]*(\"[^{}\"]*\"[^{}\"]*)*) (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", RegexOptions.Compiled);
-        private SieDocument _doc;
-        private SieCallbacks _callbacks;
+        private SieDocument _doc = null!;
+        private SieCallbacks? _callbacks;
 
-        public SieDocument Parse(Stream stream, SieCallbacks callbacks)
+        public SieDocument Parse(Stream stream, SieCallbacks? callbacks)
         {
             _callbacks = callbacks;
             _doc = new SieDocument();
@@ -115,8 +119,11 @@ public partial class SieDocument
         
         private void ParseAccount(List<string> command)
         {
-            var acc = new SieAccount() { AccountId = command[1], Name = command[2] };
-            _doc.Accounts.Add(acc.AccountId, acc);
+            if (command.Count >= 3)
+            {
+                var acc = new SieAccount() { AccountId = command[1], Name = command[2] };
+                _doc.Accounts.Add(acc.AccountId, acc);
+            }
         }
 
         private void ParseDimension(List<string> command)
@@ -254,9 +261,9 @@ public partial class SieDocument
 
     private class SieXmlParser
     {
-        private SieCallbacks _callbacks;
+        private SieCallbacks? _callbacks;
 
-        public SieDocument Parse(Stream stream, SieCallbacks callbacks)
+        public SieDocument Parse(Stream stream, SieCallbacks? callbacks)
         {
             _callbacks = callbacks;
             var doc = new SieDocument();
@@ -289,8 +296,8 @@ public partial class SieDocument
             {
                 var year = new SieBookingYear
                 {
-                    StartDate = GetDate(yearElement.Element("StartDate")?.Value),
-                    EndDate = GetDate(yearElement.Element("EndDate")?.Value)
+                    StartDate = GetDate(yearElement.Element("StartDate")?.Value) ?? DateTime.MinValue,
+                    EndDate = GetDate(yearElement.Element("EndDate")?.Value) ?? DateTime.MinValue
                 };
                 doc.BookingYears.Add(year);
 
@@ -350,10 +357,10 @@ public partial class SieDocument
             {
                 var voucher = new SieVoucher
                 {
-                    Series = entryElement.Attribute("journalId")?.Value,
-                    Number = entryElement.Attribute("entryNumber")?.Value,
-                    Date = GetDate(entryElement.Attribute("entryDate")?.Value),
-                    Text = entryElement.Attribute("description")?.Value,
+                    Series = entryElement.Attribute("journalId")?.Value ?? "",
+                    Number = entryElement.Attribute("entryNumber")?.Value ?? "",
+                    Date = GetDate(entryElement.Attribute("entryDate")?.Value) ?? DateTime.MinValue,
+                    Text = entryElement.Attribute("description")?.Value ?? "",
                 };
 
                 foreach (var ledgerElement in entryElement.Elements("LedgerEntry"))

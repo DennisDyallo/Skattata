@@ -37,11 +37,10 @@ public class IntegrationTests
         try
         {
             // Arrange
-            var doc = new SieDocument();
             using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
 
             // Act
-            doc.ReadStream(stream, null);
+            var doc = SieDocument.ReadStream(stream, null);
 
             // Assert
             Assert.IsTrue(true, $"Successfully parsed {Path.GetFileName(filePath)}");
@@ -59,10 +58,10 @@ public class IntegrationTests
         try
         {
             // Arrange
-            var originalDoc = new SieDocument();
+            SieDocument originalDoc;
             using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {
-                originalDoc.ReadStream(stream, null);
+                originalDoc = SieDocument.ReadStream(stream, null);
             }
 
             // Act
@@ -77,8 +76,7 @@ public class IntegrationTests
             }
             memoryStream.Position = 0;
 
-            var newDoc = new SieDocument();
-            newDoc.ReadStream(memoryStream, null);
+            var newDoc = SieDocument.ReadStream(memoryStream, null);
 
             // Assert
             var comparer = new SieDocumentComparer(originalDoc, newDoc);
@@ -105,11 +103,10 @@ public class IntegrationTests
                          }
                          """;
         
-        var doc = new SieDocument();
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(sieContent));
+        using var stream = new MemoryStream(EncodingHelper.GetSieEncoding().GetBytes(sieContent));
         
         // Act
-        doc.ReadStream(stream, null);
+        var doc = SieDocument.ReadStream(stream, null);
 
         // Assert
         Assert.AreEqual(1, doc.Vouchers.Count, "Should be one voucher.");
