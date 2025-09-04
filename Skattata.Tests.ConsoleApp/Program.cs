@@ -23,6 +23,7 @@ Console.WriteLine($"Found {files.Count} test files.");
 Console.WriteLine();
 
 var overallSuccess = true;
+var failedFiles = new List<string>();
 var stopwatch = Stopwatch.StartNew();
 
 foreach (var file in files)
@@ -31,6 +32,7 @@ foreach (var file in files)
     if (!success)
     {
         overallSuccess = false;
+        failedFiles.Add(file);
     }
 }
 
@@ -46,7 +48,11 @@ if (overallSuccess)
 else
 {
     Console.ForegroundColor = ConsoleColor.Red;
-    Console.WriteLine("Result: One or more tests failed.");
+    Console.WriteLine($"Result: {failedFiles.Count} tests failed.");
+    foreach (var failedFile in failedFiles)
+    {
+        Console.WriteLine($" - {Path.GetFileName(failedFile)}");
+    }
 }
 Console.ResetColor();
 return;
