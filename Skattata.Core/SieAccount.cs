@@ -49,6 +49,11 @@ public class SieAccount
     public string Type { get; set; } = "";
     
     /// <summary>
+    /// Gets or sets the SRU (Standard Reports Unit) code for the account.
+    /// </summary>
+    public string SruCode { get; set; } = "";
+    
+    /// <summary>
     /// Gets the list of period-based balance values for this account.
     /// </summary>
     public List<SiePeriodValue> PeriodValues { get; }

@@ -105,6 +105,9 @@ public partial class SieDocument
                         case "#PSALDO":
                             ParsePeriodValue(command, (acc) => acc.PeriodValues);
                             break;
+                        case "#SRU":
+                            ParseSruCode(command);
+                            break;
                         case "#VER":
                             ParseVoucher(command, reader);
                             break;
@@ -234,6 +237,19 @@ public partial class SieDocument
                         Period = actualCommand[2],
                         Value = decimal.Parse(actualCommand[5], CultureInfo.InvariantCulture)
                     });
+                }
+            }
+        }
+        
+        private void ParseSruCode(List<string> command)
+        {
+            // Format: #SRU accountNo sruCode
+            if (command.Count >= 3)
+            {
+                var accountId = command[1];
+                if (_doc.Accounts.TryGetValue(accountId, out var acc))
+                {
+                    acc.SruCode = command[2];
                 }
             }
         }

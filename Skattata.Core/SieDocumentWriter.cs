@@ -42,6 +42,26 @@ public class SieDocumentWriter
             WriteLine("#KONTO", account.AccountId, account.Name);
         }
 
+        foreach (var account in _doc.Accounts.Values.Where(a => !string.IsNullOrEmpty(a.SruCode)).OrderBy(a => a.AccountId))
+        {
+            WriteLine("#SRU", account.AccountId, account.SruCode);
+        }
+
+        foreach (var account in _doc.Accounts.Values.Where(a => a.OpeningBalance != 0).OrderBy(a => a.AccountId))
+        {
+            WriteLine("#IB", "0", account.AccountId, account.OpeningBalance.ToString(CultureInfo.InvariantCulture));
+        }
+
+        foreach (var account in _doc.Accounts.Values.Where(a => a.ClosingBalance != 0).OrderBy(a => a.AccountId))
+        {
+            WriteLine("#UB", "0", account.AccountId, account.ClosingBalance.ToString(CultureInfo.InvariantCulture));
+        }
+
+        foreach (var account in _doc.Accounts.Values.Where(a => a.Result != 0).OrderBy(a => a.AccountId))
+        {
+            WriteLine("#RES", "0", account.AccountId, account.Result.ToString(CultureInfo.InvariantCulture));
+        }
+
         foreach (var voucher in _doc.Vouchers.OrderBy(v => v.Date))
         {
             WriteVoucher(voucher);
@@ -73,10 +93,11 @@ public class SieDocumentWriter
     
     private void WriteLine(params object?[] values)
     {
-        var parts = values.Select(v =>
+        var parts = values.Select((v, i) =>
         {
             var s = v?.ToString() ?? "";
-            return s.Contains(' ') ? $"\"{s}\"" : s;
+            // Quote string parameters (account names, text, etc.) but not numeric parameters
+            return (i > 0 && (s.Contains(' ') || s == "" || s.Contains('\\'))) ? $"\"{s}\"" : s;
         });
         _writer.WriteLine(string.Join(" ", parts));
     }
