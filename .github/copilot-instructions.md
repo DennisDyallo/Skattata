@@ -52,4 +52,4 @@ The tests depend on a collection of SIE files located in the `sie_test_files` di
 
 - Always trust these instructions first. If a command or step fails, then resort to exploring the codebase.
 - Before running tests, ensure that the `sie_test_files` directory is present and accessible from the test execution path. The tests in `IntegrationTests.cs` expect to find this directory at `../sie_test_files/`.
-
+- Read the `docs/sie-info.md` file in the repository root directory for detailed information about the SIE format and its versions. This is useful when implementing parsers or writers for SIE files, or fixing bugs related to SIE file handling. Ignore the PDF files, you don't need them.
