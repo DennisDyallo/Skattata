@@ -109,11 +109,11 @@ public class IntegrationTests
         var doc = SieDocument.ReadStream(stream, null);
 
         // Assert
-        Assert.IsTrue(doc.Errors.Count == 0, "Document should have no errors: {0}", doc.Errors.First());
+        Assert.IsTrue(doc.Errors.Count == 0, "Document should have no errors: {0}", doc.Errors.Count > 0 ? doc.Errors.First() : "No errors");
 
         Assert.AreEqual(1, doc.Vouchers.Count, "Should be one voucher.");
         var voucher = doc.Vouchers[0];
-        Assert.AreEqual(1, voucher.Rows.Count, "Voucher should have one row.");
+        Assert.AreEqual(1, voucher.Rows.Count, $"Voucher should have one row. Errors: {string.Join(", ", doc.Errors)}");
         var row = voucher.Rows[0];
         
         Assert.AreEqual(1, row.Objects.Count, "Row should have one object.");

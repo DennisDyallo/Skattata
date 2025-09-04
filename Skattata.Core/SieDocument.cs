@@ -129,17 +129,23 @@ public partial class SieDocument
 
         private void ParseDimension(List<string> command)
         {
-            var dim = new SieDimension() { Number = command[1], Name = command[2] };
-            _doc.Dimensions.Add(dim);
+            if (command.Count >= 3)
+            {
+                var dim = new SieDimension() { Number = command[1], Name = command[2] };
+                _doc.Dimensions.Add(dim);
+            }
         }
 
         private void ParseObject(List<string> command)
         {
-            var dim = _doc.Dimensions.FirstOrDefault(d => d.Number == command[1]);
-            if (dim != null)
+            if (command.Count >= 4)
             {
-                var obj = new SieObject() { DimensionNumber = command[1], Number = command[2], Name = command[3] };
-                dim.Objects.Add(obj.Number, obj);
+                var dim = _doc.Dimensions.FirstOrDefault(d => d.Number == command[1]);
+                if (dim != null)
+                {
+                    var obj = new SieObject() { DimensionNumber = command[1], Number = command[2], Name = command[3] };
+                    dim.Objects.Add(obj.Number, obj);
+                }
             }
         }
         
@@ -200,44 +206,84 @@ public partial class SieDocument
 
         private void ParseVoucher(List<string> command, StreamReader reader)
         {
-            var voucher = new SieVoucher
+            if (command.Count >= 4)
             {
-                Series = command[1],
-                Number = command[2],
-                Date = DateTime.ParseExact(command[3], "yyyyMMdd", CultureInfo.InvariantCulture),
-                Text = command.Count > 4 ? command[4] : ""
-            };
-
-            string? line;
-            while ((line = reader.ReadLine()) != null && line.Trim() != "}")
-            {
-                if (line.Trim() == "{") continue;
-                var rowCommand = SplitLine(line);
-                if (rowCommand.Count > 0 && rowCommand[0].Equals("#TRANS", StringComparison.InvariantCultureIgnoreCase))
+                var voucher = new SieVoucher
                 {
-                    ParseVoucherRow(rowCommand, voucher);
+                    Series = command[1],
+                    Number = command[2],
+                    Date = DateTime.ParseExact(command[3], "yyyyMMdd", CultureInfo.InvariantCulture),
+                    Text = command.Count > 4 ? command[4] : ""
+                };
+
+                string? line;
+                while ((line = reader.ReadLine()) != null && line.Trim() != "}")
+                {
+                    if (line.Trim() == "{") continue;
+                    var rowCommand = SplitLine(line);
+                    if (rowCommand.Count > 0 && rowCommand[0].Equals("#TRANS", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        ParseVoucherRow(rowCommand, voucher);
+                    }
                 }
+                _doc.Vouchers.Add(voucher);
             }
-            _doc.Vouchers.Add(voucher);
         }
 
         private void ParseVoucherRow(List<string> command, SieVoucher voucher)
         {
-            var row = new SieVoucherRow
+            // Handle the case where the line wasn't split correctly
+            // If we have 3 elements and the 3rd contains multiple parts, try to re-split carefully
+            List<string> actualCommand = command;
+            if (command.Count == 3 && command[2].Contains(' '))
             {
-                AccountNumber = command[1],
-                Amount = decimal.Parse(command[3], CultureInfo.InvariantCulture),
-            };
-            var objectText = GetObjectText(command[2]);
-            if (!string.IsNullOrEmpty(objectText))
-            {
-                var objectCommands = SplitLine(objectText);
-                for (int i = 0; i < objectCommands.Count; i += 2)
+                // The third element contains: {1 "100"} 500.00 20240101 ""
+                // We need to extract these as separate elements
+                var remaining = command[2];
+                actualCommand = new List<string> { command[0], command[1] };
+                
+                // Find the closing brace for the object part
+                var braceEnd = remaining.IndexOf('}');
+                if (braceEnd >= 0)
                 {
-                    row.Objects.Add(new SieObject() { DimensionNumber = objectCommands[i], Number = objectCommands[i + 1] });
+                    var objectPart = remaining.Substring(0, braceEnd + 1);
+                    actualCommand.Add(objectPart);
+                    
+                    // Split the rest normally
+                    var restPart = remaining.Substring(braceEnd + 1).Trim();
+                    if (!string.IsNullOrEmpty(restPart))
+                    {
+                        var restParts = restPart.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        actualCommand.AddRange(restParts);
+                    }
+                }
+                else
+                {
+                    // Fallback to simple splitting
+                    var parts = remaining.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    actualCommand.AddRange(parts);
                 }
             }
-            voucher.Rows.Add(row);
+            
+            if (actualCommand.Count >= 4)
+            {
+                var row = new SieVoucherRow
+                {
+                    AccountNumber = actualCommand[1],
+                    Amount = decimal.Parse(actualCommand[3], CultureInfo.InvariantCulture),
+                };
+                var objectText = GetObjectText(actualCommand[2]);
+                if (!string.IsNullOrEmpty(objectText))
+                {
+                    var objectCommands = SplitLine(objectText);
+                    for (int i = 0; i < objectCommands.Count - 1; i += 2)
+                    {
+                        if (i + 1 < objectCommands.Count)
+                            row.Objects.Add(new SieObject() { DimensionNumber = objectCommands[i], Number = objectCommands[i + 1] });
+                    }
+                }
+                voucher.Rows.Add(row);
+            }
         }
         
         private static string GetObjectText(string text)
