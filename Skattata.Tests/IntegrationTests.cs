@@ -44,6 +44,7 @@ public class IntegrationTests
 
             // Assert
             Assert.IsTrue(true, $"Successfully parsed {Path.GetFileName(filePath)}");
+            Assert.IsTrue(doc.Errors.Count == 0, $"Document should have no errors: {doc.Errors.Count} Errors: {string.Join(", ", doc.Errors)}");
         }
         catch (Exception ex)
         {
@@ -81,6 +82,7 @@ public class IntegrationTests
             // Assert
             var comparer = new SieDocumentComparer(originalDoc, newDoc);
             var errors = comparer.Compare();
+            
             Assert.IsTrue(errors.Count == 0, $"Round-trip failed for {Path.GetFileName(filePath)}: {string.Join(", ", errors)}");
         }
         catch (Exception ex)
@@ -88,7 +90,7 @@ public class IntegrationTests
             Assert.Fail($"Exception in round-trip for {Path.GetFileName(filePath)}: {ex.Message}\n{ex.StackTrace}");
         }
     }
-    
+
     [TestMethod]
     public void ParseVoucherRow_WithObjectData_ParsesCorrectly()
     {
@@ -115,7 +117,7 @@ public class IntegrationTests
         var voucher = doc.Vouchers[0];
         Assert.AreEqual(1, voucher.Rows.Count, $"Voucher should have one row. Errors: {string.Join(", ", doc.Errors)}");
         var row = voucher.Rows[0];
-        
+
         Assert.AreEqual(1, row.Objects.Count, "Row should have one object.");
         var sieObject = row.Objects[0];
 
