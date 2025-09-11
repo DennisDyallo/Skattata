@@ -53,10 +53,16 @@ dotnet test --filter "TestCategory=Integration"
 
 # Run the console test application
 dotnet run --project Skattata.Tests.ConsoleApp
+
+# Run a specific test class
+dotnet test --filter "ClassName=IntegrationTests"
+
+# Run tests for a specific project
+dotnet test Skattata.Tests/Skattata.Tests.csproj
 ```
 
 ### Test with Specific SIE Files
-The console app in `Skattata.Tests.ConsoleApp` automatically discovers and tests all `.se`, `.si`, and `.sie` files in the `sie_test_files` directory, performing both parsing and round-trip validation.
+The console app in `Skattata.Tests.ConsoleApp` automatically discovers and tests all `.se`, `.si`, and `.sie` files in the `sie_test_files` directory, performing both parsing and round-trip validation. Note that tests expect the `sie_test_files` directory at path `../sie_test_files/` relative to test execution.
 
 ## SIE Format Context
 
@@ -84,3 +90,16 @@ The project uses extensive real-world SIE files for validation. The test suite:
 4. Tests both console app and MSTest frameworks
 
 When adding new functionality, ensure it works with the existing test file collection in `sie_test_files/`.
+
+## .NET Framework Details
+
+- **Target Framework**: .NET 9.0
+- **Key Dependencies**: System.Text.Encoding.CodePages (for IBM PC-8 support)
+- **Language Features**: Implicit usings and nullable reference types enabled
+- **Test Framework**: MSTest for unit/integration tests
+
+## Important Notes
+
+- Always trust the copilot instructions first if commands fail, then explore codebase
+- Read `docs/sie-info.md` for detailed SIE format specifications when implementing parsers/writers
+- SIE test files are critical for validation - ensure they're accessible at the expected relative path
