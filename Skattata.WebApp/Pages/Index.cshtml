@@ -1,0 +1,36 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "SIE File Parser";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="display-4 text-center mb-4">SIE File Parser</h1>
+            <p class="lead text-center mb-5">Upload a Swedish accounting SIE file to parse and view its contents</p>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form asp-page-handler="Upload" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="sieFile" class="form-label">Select SIE File</label>
+                            <input type="file" class="form-control" id="sieFile" name="sieFile" accept=".se,.si,.sie" required>
+                            <div class="form-text">Supported formats: .se, .si, .sie</div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Parse SIE File</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            @if (Model.ErrorMessage != null)
+            {
+                <div class="alert alert-danger mt-3">
+                    <strong>Error:</strong> @Model.ErrorMessage
+                </div>
+            }
+        </div>
+    </div>
+</div>
