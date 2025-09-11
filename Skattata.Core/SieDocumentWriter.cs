@@ -62,7 +62,7 @@ public class SieDocumentWriter
             WriteLine("#RES", "0", account.AccountId, account.Result.ToString(CultureInfo.InvariantCulture));
         }
 
-        foreach (var voucher in _doc.Vouchers.OrderBy(v => v.Date))
+        foreach (var voucher in _doc.Vouchers)
         {
             WriteVoucher(voucher);
         }
@@ -110,7 +110,21 @@ public class SieDocumentWriter
         {
             var s = v?.ToString() ?? "";
             // Quote string parameters (account names, text, etc.) but not numeric parameters
-            return (i > 0 && (s.Contains(' ') || s == "" || s.Contains('\\'))) ? $"\"{s}\"" : s;
+            // Don't double-quote strings that are already properly quoted
+            if (i > 0 && (s.Contains(' ') || s == "" || s.Contains('\\')))
+            {
+                if (s.StartsWith("\"") && s.EndsWith("\"") && s.Length >= 2)
+                {
+                    // String is already quoted, don't add additional quotes
+                    return s;
+                }
+                else
+                {
+                    // String needs quoting
+                    return $"\"{s}\"";
+                }
+            }
+            return s;
         });
         _writer.WriteLine(string.Join(" ", parts));
     }
