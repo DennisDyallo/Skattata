@@ -31,6 +31,121 @@
                     <strong>Error:</strong> @Model.ErrorMessage
                 </div>
             }
+                @if (Model.SieData != null)
+                {
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h2 class="h4 mb-0">File Summary</h2>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-3">File Name</dt>
+                                <dd class="col-sm-9">@Model.SieData.FileName</dd>
+                                <dt class="col-sm-3">Company Name</dt>
+                                <dd class="col-sm-9">@Model.SieData.CompanyName</dd>
+                                <dt class="col-sm-3">Organization Number</dt>
+                                <dd class="col-sm-9">@Model.SieData.OrganizationNumber</dd>
+                                <dt class="col-sm-3">Format</dt>
+                                <dd class="col-sm-9">@Model.SieData.Format</dd>
+                                <dt class="col-sm-3">Total Vouchers</dt>
+                                <dd class="col-sm-9">@Model.SieData.TotalVouchers</dd>
+                                <dt class="col-sm-3">Total Accounts</dt>
+                                <dd class="col-sm-9">@Model.SieData.TotalAccounts</dd>
+                                <dt class="col-sm-3">Booking Years</dt>
+                                <dd class="col-sm-9">
+                                    @foreach (var year in Model.SieData.BookingYears)
+                                    {
+                                        <span class="badge bg-secondary me-1">@year</span>
+                                    }
+                                </dd>
+                            </dl>
+                            @if (Model.SieData.ErrorCount > 0)
+                            {
+                                <div class="alert alert-warning">
+                                    <strong>Parsing Errors:</strong>
+                                    <ul>
+                                        @foreach (var err in Model.SieData.Errors)
+                                        {
+                                            <li>@err</li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h2 class="h4 mb-0">Accounts</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Account ID</th>
+                                            <th>Name</th>
+                                            <th>Opening Balance</th>
+                                            <th>Closing Balance</th>
+                                            <th>Result</th>
+                                            <th>SRU Code</th>
+                                            <th>Period Values</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var acc in Model.SieData.Accounts)
+                                        {
+                                            <tr>
+                                                <td>@acc.AccountId</td>
+                                                <td>@acc.Name</td>
+                                                <td>@acc.OpeningBalance</td>
+                                                <td>@acc.ClosingBalance</td>
+                                                <td>@acc.Result</td>
+                                                <td>@acc.SruCode</td>
+                                                <td>@acc.PeriodValueCount</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h2 class="h4 mb-0">Vouchers</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Series</th>
+                                            <th>Number</th>
+                                            <th>Date</th>
+                                            <th>Text</th>
+                                            <th>Rows</th>
+                                            <th>Total Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var v in Model.SieData.Vouchers)
+                                        {
+                                            <tr>
+                                                <td>@v.Series</td>
+                                                <td>@v.Number</td>
+                                                <td>@v.Date.ToString("yyyy-MM-dd")</td>
+                                                <td>@v.Text</td>
+                                                <td>@v.RowCount</td>
+                                                <td>@v.TotalAmount</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
         </div>
     </div>
 </div>

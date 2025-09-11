@@ -19,4 +19,5 @@ public class SieBookingYear
     public int Id { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
+    override public string ToString() => $"{Id} ({StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd})";
 }
