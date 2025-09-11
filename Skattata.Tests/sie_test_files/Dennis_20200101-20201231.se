@@ -1,0 +1,1694 @@
+#FLAGGA 0
+#PROGRAM WREBIT 2.0
+#FORMAT PC8
+#GEN 20250911
+#SIETYP 4
+#ORGNR "881211-4877"
+#FNAMN "Dennis Dyall Entertainment"
+#RAR 0 20200101 20201231
+#RAR -1 20190101 20191231
+#KONTO 1010 "Immateriella tillgÜngar"
+#KONTO 1079 "Ackumulerade avskrivningar immateriella tillgÜngar"
+#KONTO 1110 "Fastighet"
+#KONTO 1119 "Ackumulerade avskrivningar byggnader"
+#KONTO 1130 "Mark"
+#KONTO 1159 "Ackumulerade avskrivningar markanlÑggningar"
+#KONTO 1220 "Inventarier"
+#KONTO 1229 "Ackumulerade avskrivningar inventarier"
+#KONTO 1240 "Bilar"
+#KONTO 1249 "Ackumulerade avskrivningar bilar"
+#KONTO 1350 "ôvriga tillgÜngar"
+#KONTO 1385 "KapitalfîrsÑkring"
+#KONTO 1400 "Lager"
+#KONTO 1510 "Kundfordringar"
+#KONTO 1520 "Fordran Zettle"
+#KONTO 1630 "Skattekonto"
+#KONTO 1650 "Momsfordran"
+#KONTO 1680 "ôvriga kortfristiga fordringar"
+#KONTO 1790 "Fîrutbetalda kostnader och upplupna intÑkter"
+#KONTO 1910 "Kassa"
+#KONTO 1930 "Fîretagskonto"
+#KONTO 1940 "ôvrigt fîretagskonto"
+#KONTO 1950 "Sparkonto"
+#KONTO 2010 "Eget kapital"
+#KONTO 2012 "F-skatt (enskild firma)"
+#KONTO 2013 "Eget uttag/insÑttningar"
+#KONTO 2019 "èrets resultat (balansrÑkning)"
+#KONTO 2020 "Eget kapital delÑgare 2"
+#KONTO 2023 "Eget uttag/insÑttning delÑgare 2"
+#KONTO 2029 "èrets resultat delÑgare 2"
+#KONTO 2067 "Balanserad vinst/fîrlust"
+#KONTO 2069 "èrets resultat (balansrÑkning)"
+#KONTO 2081 "Aktiekapital"
+#KONTO 2083 "Medlemsinsatser"
+#KONTO 2084 "Fîrlagsinsatser"
+#KONTO 2085 "Uppskrivningsfond"
+#KONTO 2086 "Reservfond"
+#KONTO 2090 "Fritt eget kapital"
+#KONTO 2091 "Balanserad vinst/fîrlust"
+#KONTO 2093 "ErhÜllna aktieÑgartillskott"
+#KONTO 2094 "Egna aktier"
+#KONTO 2097 "ôverkursfond"
+#KONTO 2099 "èrets resultat (balansrÑkning)"
+#KONTO 2100 "Obeskattade reserver"
+#KONTO 2200 "AvsÑttningar"
+#KONTO 2350 "BanklÜn"
+#KONTO 2390 "ôvriga lÜngfristiga skulder"
+#KONTO 2393 "LÜn frÜn aktieÑgare"
+#KONTO 2420 "Fîrskott / Presentkort"
+#KONTO 2440 "Leverantîrsskuld"
+#KONTO 2510 "F-skatt (aktiebolag)"
+#KONTO 2514 "SÑrskild lîneskatt pÜ pensionskostnader"
+#KONTO 2611 "UtgÜende moms 25 %"
+#KONTO 2614 "Utg moms omvÑnd skattskyldighet 25%"
+#KONTO 2615 "UtgÜende moms pÜ import (utom EU), 25%"
+#KONTO 2617 "Utg moms omvÑnd skattskyldighet 25%"
+#KONTO 2621 "UtgÜende moms 12 %"
+#KONTO 2631 "UtgÜende moms 6 %"
+#KONTO 2641 "IngÜende moms"
+#KONTO 2645 "IngÜende moms pÜ import (utom EU)"
+#KONTO 2647 "Ing moms omvÑnd skattskyldighet 25%"
+#KONTO 2650 "Momsskuld"
+#KONTO 2710 "Skatt pÜ lîn"
+#KONTO 2731 "AvrÑkning sociala avgifter"
+#KONTO 2800 "ôvriga kortfristiga skulder"
+#KONTO 2990 "Upplupna kostnader"
+#KONTO 3041 "FîrsÑljning tjÑnster 25%"
+#KONTO 3042 "FîrsÑljning tjÑnster 12%"
+#KONTO 3043 "FîrsÑljning tjÑnster 6%"
+#KONTO 3044 "FîrsÑljning tjÑnster, momsfri"
+#KONTO 3045 "FîrsÑljning tjÑnster utlandet utom EU"
+#KONTO 3048 "FîrsÑljning tjÑnster utlandet inom EU, momsfri"
+#KONTO 3051 "FîrsÑljning varor 25%"
+#KONTO 3052 "FîrsÑljning varor 12%"
+#KONTO 3053 "FîrsÑljning varor 6%"
+#KONTO 3054 "FîrsÑljning varor, momsfritt"
+#KONTO 3055 "FîrsÑljning varor utlandet utom EU"
+#KONTO 3056 "FîrsÑljning varor inom EU, momspliktig (till privatpersoner)"
+#KONTO 3058 "FîrsÑljning varor utlandet inom EU"
+#KONTO 3061 "FîrsÑljning Zettle 25%"
+#KONTO 3062 "FîrsÑljning Zettle 12%"
+#KONTO 3063 "FîrsÑljning Zettle 6%"
+#KONTO 3064 "FîrsÑljning Zettle, momsfritt"
+#KONTO 3065 "FîrsÑljning Zettle utlandet inom EU"
+#KONTO 3066 "FîrsÑljning Zettle utlandet utom EU"
+#KONTO 3220 "FîrsÑljning VMB-varor, momsfri"
+#KONTO 3224 "Positiv vinstmarginal, 25%"
+#KONTO 3231 "FîrsÑljning bygg, omv. Skattskyldighet"
+#KONTO 3590 "ôvriga fakturerade kostnader"
+#KONTO 3740 "ôresavrundning"
+#KONTO 3911 "HyresintÑkt (momsfri)"
+#KONTO 3913 "HyresintÑkt (25% moms)"
+#KONTO 3975 "Vinst avyttring tillgÜng"
+#KONTO 3990 "Bidrag"
+#KONTO 3994 "FîrsÑkringsersÑttning"
+#KONTO 4010 "Inkîp varor 25%"
+#KONTO 4011 "Inkîp varor 12%"
+#KONTO 4012 "ôvriga rîrelsekostnader"
+#KONTO 4015 "Varor frÜn utlandet utom EU"
+#KONTO 4056 "Inkîp varor frÜn utlandet, inom EU"
+#KONTO 4200 "Inkîp VMB-varor, utan moms"
+#KONTO 4425 "Inkîp tjÑnster inom Sverige, omvÑnd skattskyldighet"
+#KONTO 4531 "Inkîp tjÑnster frÜn utlandet, utom EU"
+#KONTO 4535 "Inkîp tjÑnster frÜn utlandet, inom EU"
+#KONTO 4545 "Import av varor, utom EU"
+#KONTO 4600 "Inkîp tjÑnster frÜn Sverige"
+#KONTO 4990 "LagerfîrÑndring"
+#KONTO 5000 "Lokalkostnader"
+#KONTO 5100 "Fastighetskostnader"
+#KONTO 5200 "Hyra av maskiner, verktyg och inventarier"
+#KONTO 5400 "Fîrbrukningsmaterial"
+#KONTO 5410 "Fîrbrukningsinventarier"
+#KONTO 5460 "Fîrbrukningsmaterial"
+#KONTO 5600 "Bilkostnader"
+#KONTO 5612 "Skatt / fîrsÑkring bil"
+#KONTO 5615 "Leasing av bil"
+#KONTO 5700 "Frakt- och tullkostnader"
+#KONTO 5800 "Resekostnader"
+#KONTO 5900 "Reklamkostnader"
+#KONTO 5911 "Digital marknadsfîring inom EU"
+#KONTO 6071 "Representation, avdragsgill"
+#KONTO 6072 "Representation ej avdragsgill"
+#KONTO 6200 "Telefonkostnader"
+#KONTO 6250 "Porto"
+#KONTO 6310 "FîretagsfîrsÑkring"
+#KONTO 6530 "RedovisningstjÑnster"
+#KONTO 6540 "IT-tjÑnster"
+#KONTO 6570 "Bankkostnader"
+#KONTO 6571 "Kostnader Zettle m.fl."
+#KONTO 6970 "Tidningar, facklitteratur"
+#KONTO 6991 "ôvriga avdragsgilla kostnader"
+#KONTO 6992 "ôvriga ej avdragsgilla kostnader"
+#KONTO 7010 "Lînekostnader"
+#KONTO 7321 "Traktamenten"
+#KONTO 7331 "MilersÑttning"
+#KONTO 7412 "Pensionssparande"
+#KONTO 7510 "Arbetsgivaravgifter"
+#KONTO 7533 "SÑrskild lîneskatt, pensionskostnader"
+#KONTO 7570 "Fora"
+#KONTO 7690 "ôvriga personalkostnader"
+#KONTO 7710 "Nedskrivning av immateriella anlÑggningstillgÜngar"
+#KONTO 7720 "Nedskrivning av byggnader och mark"
+#KONTO 7730 "Nedskrivning av maskiner och inventarier"
+#KONTO 7740 "Nedskrivning av omsÑttningstillgÜngar"
+#KONTO 7790 "èterfîring av nedskrivningar"
+#KONTO 7810 "Avskrivningar pÜ immateriella anlÑggningstillgÜngar"
+#KONTO 7820 "Avskrivningar pÜ byggnader och markanlÑggningar"
+#KONTO 7830 "Avskrivningar pÜ maskiner och inventarier"
+#KONTO 7840 "Avskrivningar pÜ fîrbÑttringsutgifter pÜ annans fastighet"
+#KONTO 7975 "Fîrlust avyttring tillgÜng"
+#KONTO 7990 "ôvriga rîrelsekostnader"
+#KONTO 8010 "Utdelningar pÜ andelar koncern/dotter/intressefîretag"
+#KONTO 8210 "ôvriga utdelningar"
+#KONTO 8270 "Nedskrivning andelar/vÑrdepapper/fordringar"
+#KONTO 8300 "RÑnteinkomst"
+#KONTO 8314 "RÑnteintÑkt, skattekonto"
+#KONTO 8390 "ôvriga finansiella intÑkter"
+#KONTO 8400 "RÑntekostnader"
+#KONTO 8414 "RÑntekostnad, skattekonto"
+#KONTO 8490 "ôvriga finansiella kostnader"
+#KONTO 8811 "AvsÑttning till periodiseringsfond"
+#KONTO 8819 "èterfîring av periodiseringsfond"
+#KONTO 8899 "ôvriga bokslutsdispositioner"
+#KONTO 8910 "Skatt pÜ Ürets resultat"
+#KONTO 8999 "èrets resultat (ResultatrÑkning)"
+#IB 0 1010 0.00
+#IB 0 1079 0.00
+#IB 0 1110 0.00
+#IB 0 1119 0.00
+#IB 0 1130 0.00
+#IB 0 1159 0.00
+#IB 0 1220 0.00
+#IB 0 1229 0.00
+#IB 0 1240 0.00
+#IB 0 1249 0.00
+#IB 0 1350 0.00
+#IB 0 1385 0.00
+#IB 0 1400 0.00
+#IB 0 1510 0.00
+#IB 0 1520 0.00
+#IB 0 1630 0.00
+#IB 0 1650 0.00
+#IB 0 1680 0.00
+#IB 0 1790 0.00
+#IB 0 1910 0.00
+#IB 0 1930 233.97
+#IB 0 1940 0.00
+#IB 0 1950 0.00
+#IB 0 2010 0.00
+#IB 0 2012 0.00
+#IB 0 2013 -29980.33
+#IB 0 2019 32963.16
+#IB 0 2020 0.00
+#IB 0 2023 0.00
+#IB 0 2029 0.00
+#IB 0 2067 0.00
+#IB 0 2069 0.00
+#IB 0 2081 0.00
+#IB 0 2083 0.00
+#IB 0 2084 0.00
+#IB 0 2085 0.00
+#IB 0 2086 0.00
+#IB 0 2090 0.00
+#IB 0 2091 0.00
+#IB 0 2093 0.00
+#IB 0 2094 0.00
+#IB 0 2097 0.00
+#IB 0 2099 0.00
+#IB 0 2100 0.00
+#IB 0 2200 0.00
+#IB 0 2350 0.00
+#IB 0 2390 0.00
+#IB 0 2393 0.00
+#IB 0 2420 0.00
+#IB 0 2440 0.00
+#IB 0 2510 0.00
+#IB 0 2514 0.00
+#IB 0 2611 0.00
+#IB 0 2614 -1288.50
+#IB 0 2615 0.00
+#IB 0 2617 0.00
+#IB 0 2621 0.00
+#IB 0 2631 0.00
+#IB 0 2641 -1030.80
+#IB 0 2645 1288.50
+#IB 0 2647 0.00
+#IB 0 2650 -2186.00
+#IB 0 2710 0.00
+#IB 0 2731 0.00
+#IB 0 2800 0.00
+#IB 0 2990 0.00
+#UB 0 1010 0.00
+#UB 0 1079 0.00
+#UB 0 1110 0.00
+#UB 0 1119 0.00
+#UB 0 1130 0.00
+#UB 0 1159 0.00
+#UB 0 1220 33735.55
+#UB 0 1229 0.00
+#UB 0 1240 0.00
+#UB 0 1249 0.00
+#UB 0 1350 0.00
+#UB 0 1385 0.00
+#UB 0 1400 0.00
+#UB 0 1510 0.00
+#UB 0 1520 0.00
+#UB 0 1630 0.00
+#UB 0 1650 0.00
+#UB 0 1680 0.00
+#UB 0 1790 0.00
+#UB 0 1910 0.00
+#UB 0 1930 1762.48
+#UB 0 1940 0.00
+#UB 0 1950 0.00
+#UB 0 2010 0.00
+#UB 0 2012 0.00
+#UB 0 2013 -72818.92
+#UB 0 2019 40353.69
+#UB 0 2020 0.00
+#UB 0 2023 0.00
+#UB 0 2029 0.00
+#UB 0 2067 0.00
+#UB 0 2069 0.00
+#UB 0 2081 0.00
+#UB 0 2083 0.00
+#UB 0 2084 0.00
+#UB 0 2085 0.00
+#UB 0 2086 0.00
+#UB 0 2090 0.00
+#UB 0 2091 0.00
+#UB 0 2093 0.00
+#UB 0 2094 0.00
+#UB 0 2097 0.00
+#UB 0 2099 0.00
+#UB 0 2100 0.00
+#UB 0 2200 0.00
+#UB 0 2350 0.00
+#UB 0 2390 0.00
+#UB 0 2393 0.00
+#UB 0 2420 0.00
+#UB 0 2440 0.00
+#UB 0 2510 0.00
+#UB 0 2514 0.00
+#UB 0 2611 0.00
+#UB 0 2614 -1288.50
+#UB 0 2615 0.00
+#UB 0 2617 0.00
+#UB 0 2621 0.00
+#UB 0 2631 0.00
+#UB 0 2641 -1030.80
+#UB 0 2645 1288.50
+#UB 0 2647 0.00
+#UB 0 2650 -2002.00
+#UB 0 2710 0.00
+#UB 0 2731 0.00
+#UB 0 2800 0.00
+#UB 0 2990 0.00
+#IB -1 1010 0.00
+#IB -1 1079 0.00
+#IB -1 1110 0.00
+#IB -1 1119 0.00
+#IB -1 1130 0.00
+#IB -1 1159 0.00
+#IB -1 1220 0.00
+#IB -1 1229 0.00
+#IB -1 1240 0.00
+#IB -1 1249 0.00
+#IB -1 1350 0.00
+#IB -1 1385 0.00
+#IB -1 1400 0.00
+#IB -1 1510 0.00
+#IB -1 1520 0.00
+#IB -1 1630 0.00
+#IB -1 1650 0.00
+#IB -1 1680 0.00
+#IB -1 1790 0.00
+#IB -1 1910 0.00
+#IB -1 1930 15067.25
+#IB -1 1940 0.00
+#IB -1 1950 0.00
+#IB -1 2010 0.00
+#IB -1 2012 0.00
+#IB -1 2013 -16494.11
+#IB -1 2019 7426.66
+#IB -1 2020 0.00
+#IB -1 2023 0.00
+#IB -1 2029 0.00
+#IB -1 2067 0.00
+#IB -1 2069 0.00
+#IB -1 2081 0.00
+#IB -1 2083 0.00
+#IB -1 2084 0.00
+#IB -1 2085 0.00
+#IB -1 2086 0.00
+#IB -1 2090 0.00
+#IB -1 2091 0.00
+#IB -1 2093 0.00
+#IB -1 2094 0.00
+#IB -1 2097 0.00
+#IB -1 2099 0.00
+#IB -1 2100 0.00
+#IB -1 2200 0.00
+#IB -1 2350 0.00
+#IB -1 2390 0.00
+#IB -1 2393 0.00
+#IB -1 2420 0.00
+#IB -1 2440 0.00
+#IB -1 2510 0.00
+#IB -1 2514 0.00
+#IB -1 2611 0.00
+#IB -1 2614 -1288.50
+#IB -1 2615 0.00
+#IB -1 2617 0.00
+#IB -1 2621 0.00
+#IB -1 2631 0.00
+#IB -1 2641 -1030.80
+#IB -1 2645 1288.50
+#IB -1 2647 0.00
+#IB -1 2650 -4969.00
+#IB -1 2710 0.00
+#IB -1 2731 0.00
+#IB -1 2800 0.00
+#IB -1 2990 0.00
+#UB -1 1010 0.00
+#UB -1 1079 0.00
+#UB -1 1110 0.00
+#UB -1 1119 0.00
+#UB -1 1130 0.00
+#UB -1 1159 0.00
+#UB -1 1220 0.00
+#UB -1 1229 0.00
+#UB -1 1240 0.00
+#UB -1 1249 0.00
+#UB -1 1350 0.00
+#UB -1 1385 0.00
+#UB -1 1400 0.00
+#UB -1 1510 0.00
+#UB -1 1520 0.00
+#UB -1 1630 0.00
+#UB -1 1650 0.00
+#UB -1 1680 0.00
+#UB -1 1790 0.00
+#UB -1 1910 0.00
+#UB -1 1930 -14833.28
+#UB -1 1940 0.00
+#UB -1 1950 0.00
+#UB -1 2010 0.00
+#UB -1 2012 0.00
+#UB -1 2013 -13486.22
+#UB -1 2019 25536.50
+#UB -1 2020 0.00
+#UB -1 2023 0.00
+#UB -1 2029 0.00
+#UB -1 2067 0.00
+#UB -1 2069 0.00
+#UB -1 2081 0.00
+#UB -1 2083 0.00
+#UB -1 2084 0.00
+#UB -1 2085 0.00
+#UB -1 2086 0.00
+#UB -1 2090 0.00
+#UB -1 2091 0.00
+#UB -1 2093 0.00
+#UB -1 2094 0.00
+#UB -1 2097 0.00
+#UB -1 2099 0.00
+#UB -1 2100 0.00
+#UB -1 2200 0.00
+#UB -1 2350 0.00
+#UB -1 2390 0.00
+#UB -1 2393 0.00
+#UB -1 2420 0.00
+#UB -1 2440 0.00
+#UB -1 2510 0.00
+#UB -1 2514 0.00
+#UB -1 2611 0.00
+#UB -1 2614 0.00
+#UB -1 2615 0.00
+#UB -1 2617 0.00
+#UB -1 2621 0.00
+#UB -1 2631 0.00
+#UB -1 2641 0.00
+#UB -1 2645 0.00
+#UB -1 2647 0.00
+#UB -1 2650 2783.00
+#UB -1 2710 0.00
+#UB -1 2731 0.00
+#UB -1 2800 0.00
+#UB -1 2990 0.00
+#RES 0 3041 0.00
+#RES 0 3042 0.00
+#RES 0 3043 0.00
+#RES 0 3044 0.00
+#RES 0 3045 0.00
+#RES 0 3048 0.00
+#RES 0 3051 0.00
+#RES 0 3052 0.00
+#RES 0 3053 0.00
+#RES 0 3054 0.00
+#RES 0 3055 0.00
+#RES 0 3056 0.00
+#RES 0 3058 0.00
+#RES 0 3061 0.00
+#RES 0 3062 0.00
+#RES 0 3063 0.00
+#RES 0 3064 0.00
+#RES 0 3065 0.00
+#RES 0 3066 0.00
+#RES 0 3220 0.00
+#RES 0 3224 0.00
+#RES 0 3231 0.00
+#RES 0 3590 0.00
+#RES 0 3740 -0.40
+#RES 0 3911 0.00
+#RES 0 3913 0.00
+#RES 0 3975 0.00
+#RES 0 3990 -9318.80
+#RES 0 3994 0.00
+#RES 0 4010 -0.00
+#RES 0 4011 0.00
+#RES 0 4012 0.00
+#RES 0 4015 5200.67
+#RES 0 4056 -46547.02
+#RES 0 4200 0.00
+#RES 0 4425 0.00
+#RES 0 4531 5962.63
+#RES 0 4535 38562.58
+#RES 0 4545 0.00
+#RES 0 4600 0.00
+#RES 0 4990 0.00
+#RES 0 5000 0.00
+#RES 0 5100 0.00
+#RES 0 5200 0.00
+#RES 0 5400 5813.66
+#RES 0 5410 5920.07
+#RES 0 5460 0.00
+#RES 0 5600 0.00
+#RES 0 5612 0.00
+#RES 0 5615 0.00
+#RES 0 5700 0.00
+#RES 0 5800 0.00
+#RES 0 5900 0.00
+#RES 0 5911 0.00
+#RES 0 6071 0.00
+#RES 0 6072 0.00
+#RES 0 6200 0.00
+#RES 0 6250 0.00
+#RES 0 6310 0.00
+#RES 0 6530 0.00
+#RES 0 6540 0.00
+#RES 0 6570 0.00
+#RES 0 6571 0.00
+#RES 0 6970 0.00
+#RES 0 6991 1797.14
+#RES 0 6992 0.00
+#RES 0 7010 0.00
+#RES 0 7321 0.00
+#RES 0 7331 0.00
+#RES 0 7412 0.00
+#RES 0 7510 0.00
+#RES 0 7533 0.00
+#RES 0 7570 0.00
+#RES 0 7690 0.00
+#RES 0 7710 0.00
+#RES 0 7720 0.00
+#RES 0 7730 0.00
+#RES 0 7740 0.00
+#RES 0 7790 0.00
+#RES 0 7810 0.00
+#RES 0 7820 0.00
+#RES 0 7830 -0.00
+#RES 0 7840 -0.00
+#RES 0 7975 0.00
+#RES 0 7990 0.00
+#RES 0 8010 0.00
+#RES 0 8210 0.00
+#RES 0 8270 0.00
+#RES 0 8300 0.00
+#RES 0 8314 0.00
+#RES 0 8390 0.00
+#RES 0 8400 0.00
+#RES 0 8414 0.00
+#RES 0 8490 0.00
+#RES 0 8811 0.00
+#RES 0 8819 0.00
+#RES 0 8899 0.00
+#RES 0 8910 0.00
+#RES 0 8999 -7390.53
+#RES -1 3041 0.00
+#RES -1 3042 0.00
+#RES -1 3043 0.00
+#RES -1 3044 0.00
+#RES -1 3045 0.00
+#RES -1 3048 0.00
+#RES -1 3051 0.00
+#RES -1 3052 0.00
+#RES -1 3053 0.00
+#RES -1 3054 0.00
+#RES -1 3055 0.00
+#RES -1 3056 0.00
+#RES -1 3058 0.00
+#RES -1 3061 0.00
+#RES -1 3062 0.00
+#RES -1 3063 0.00
+#RES -1 3064 0.00
+#RES -1 3065 0.00
+#RES -1 3066 0.00
+#RES -1 3220 0.00
+#RES -1 3224 0.00
+#RES -1 3231 0.00
+#RES -1 3590 0.00
+#RES -1 3740 0.60
+#RES -1 3911 0.00
+#RES -1 3913 0.00
+#RES -1 3975 0.00
+#RES -1 3990 -16500.00
+#RES -1 3994 0.00
+#RES -1 4010 4439.20
+#RES -1 4011 0.00
+#RES -1 4012 0.00
+#RES -1 4015 0.00
+#RES -1 4056 0.00
+#RES -1 4200 0.00
+#RES -1 4425 0.00
+#RES -1 4531 2477.26
+#RES -1 4535 25800.24
+#RES -1 4545 0.00
+#RES -1 4600 0.00
+#RES -1 4990 0.00
+#RES -1 5000 0.00
+#RES -1 5100 0.00
+#RES -1 5200 0.00
+#RES -1 5400 0.00
+#RES -1 5410 934.40
+#RES -1 5460 0.00
+#RES -1 5600 0.00
+#RES -1 5612 0.00
+#RES -1 5615 0.00
+#RES -1 5700 0.00
+#RES -1 5800 0.00
+#RES -1 5900 0.00
+#RES -1 5911 0.00
+#RES -1 6071 0.00
+#RES -1 6072 0.00
+#RES -1 6200 0.00
+#RES -1 6250 0.00
+#RES -1 6310 0.00
+#RES -1 6530 0.00
+#RES -1 6540 0.00
+#RES -1 6570 0.00
+#RES -1 6571 0.00
+#RES -1 6970 0.00
+#RES -1 6991 8384.80
+#RES -1 6992 0.00
+#RES -1 7010 0.00
+#RES -1 7321 0.00
+#RES -1 7331 0.00
+#RES -1 7412 0.00
+#RES -1 7510 0.00
+#RES -1 7533 0.00
+#RES -1 7570 0.00
+#RES -1 7690 0.00
+#RES -1 7710 0.00
+#RES -1 7720 0.00
+#RES -1 7730 0.00
+#RES -1 7740 0.00
+#RES -1 7790 0.00
+#RES -1 7810 0.00
+#RES -1 7820 0.00
+#RES -1 7830 0.00
+#RES -1 7840 0.00
+#RES -1 7975 0.00
+#RES -1 7990 0.00
+#RES -1 8010 0.00
+#RES -1 8210 0.00
+#RES -1 8270 0.00
+#RES -1 8300 0.00
+#RES -1 8314 0.00
+#RES -1 8390 0.00
+#RES -1 8400 0.00
+#RES -1 8414 0.00
+#RES -1 8490 0.00
+#RES -1 8811 0.00
+#RES -1 8819 0.00
+#RES -1 8899 0.00
+#RES -1 8910 0.00
+#RES -1 8999 -25536.50
+#VER V 1 20200124 "Faktura #13: 6600,00 inbetalt"
+{
+#TRANS 1930 {} 6600.00
+#TRANS 2611 {} -1250.00
+#TRANS 3990 {} -5000.00
+#TRANS 3990 {} -350.00
+}
+#VER V 2 20200219 "InsÑttning skattekonto - MOMS2019"
+{
+#TRANS 1930 {} -2186.00
+#TRANS 2012 {} 2186.00
+}
+#VER V 3 20200226 "Inbetalning moms 2019"
+{
+#TRANS 2012 {} -2186.00
+#TRANS 2650 {} 2186.00
+}
+#VER V 4 20200507 "FîrsÑljning tjÑnster momsfri - LANDR"
+{
+#TRANS 1930 {} 658.90
+#TRANS 3990 {} -658.90
+}
+#VER V 5 20200804 "Inkîp varor inom EU 25% moms - Thomann - EQ Acoustics 1"
+{
+#TRANS 2013 {} -6555.20
+#TRANS 2614 {} -1638.80
+#TRANS 2645 {} 1638.80
+#TRANS 4535 {} 6555.20
+}
+#VER V 6 20200804 "Annullering av V5: Inkîp varor inom EU 25% moms - Thomann - EQ Acoustics 1"
+{
+#TRANS 2013 {} 6555.20
+#TRANS 2614 {} 1638.80
+#TRANS 2645 {} -1638.80
+#TRANS 4535 {} -6555.20
+}
+#VER V 7 20200804 "Inkîp varor inom EU 25% moms - Thomann - EQ Acoustics - 202032.836884 - 48710549"
+{
+#TRANS 2013 {} -6555.20
+#TRANS 2614 {} -1638.80
+#TRANS 2645 {} 1638.80
+#TRANS 4535 {} 6555.20
+}
+#VER V 8 20200810 "Inkîp varor inom EU 25% moms - Thomann - Rack Gear - 202033.960312 2374 - 48840482"
+{
+#TRANS 2013 {} -3498.40
+#TRANS 2614 {} -874.60
+#TRANS 2645 {} 874.60
+#TRANS 4535 {} 3498.40
+}
+#VER V 9 20200814 "Inkîp varor inom EU 25% moms - Thomann - EQ Acoustics Mounts - 202033.998702 - 48875968"
+{
+#TRANS 2013 {} -1394.40
+#TRANS 2614 {} -348.60
+#TRANS 2645 {} 348.60
+#TRANS 4535 {} 1394.40
+}
+#VER V 10 20200818 "Inkîp varor inom EU 25% moms - Thomann - Desktop Mount - 202034.051808 - 48903349"
+{
+#TRANS 2013 {} -239.20
+#TRANS 2614 {} -59.80
+#TRANS 2645 {} 59.80
+#TRANS 4535 {} 239.20
+}
+#VER V 11 20200818 "Inkîp varor inom EU 25% moms - Thomann - Rack Panels - 202034.052155- 48904713"
+{
+#TRANS 2013 {} -403.12
+#TRANS 2614 {} -100.78
+#TRANS 2645 {} 100.78
+#TRANS 4535 {} 403.12
+}
+#VER V 12 20200818 "Inkîp fîrbrukningsinventarier - Warehouse204 - SSD - 429"
+{
+#TRANS 2013 {} -1.20
+#TRANS 2641 {} 0.24
+#TRANS 5410 {} 0.96
+}
+#VER V 13 20200821 "Inkîp varor inom EU 25% moms  - EQ Acoustics -15203070309"
+{
+#TRANS 2013 {} -4970.73
+#TRANS 2614 {} -1242.68
+#TRANS 2645 {} 1242.68
+#TRANS 4535 {} 4970.73
+}
+#VER V 14 20200901 "Faktura #14: 4375,00 inbetalt"
+{
+#TRANS 1930 {} 4375.00
+#TRANS 2611 {} -875.00
+#TRANS 3990 {} -3500.00
+}
+#VER V 15 20200910 "Inkîp varor inom EU 25% moms - Thomann Panels"
+{
+#TRANS 2013 {} -2173.60
+#TRANS 2614 {} -543.40
+#TRANS 2645 {} 543.40
+#TRANS 4010 {} 2173.60
+#TRANS 4535 {} 2173.60
+#TRANS 4056 {} -2173.60
+}
+#VER V 16 20200818 "Annullering av V12: Inkîp fîrbrukningsinventarier - Warehouse204 - SSD - 429"
+{
+#TRANS 2013 {} 1.20
+#TRANS 2641 {} -0.24
+#TRANS 5410 {} -0.96
+}
+#VER V 17 20200818 "Inkîp fîrbrukningsinventarier - Warehouse204 - SSD - 429"
+{
+#TRANS 2013 {} -959.20
+#TRANS 2641 {} 239.80
+#TRANS 5410 {} 719.40
+}
+#VER V 18 20200927 "Inkîp fîrbrukningsinventarier - SecretLab"
+{
+#TRANS 1930 {} -4086.67
+#TRANS 2614 {} -1021.67
+#TRANS 2645 {} 1021.67
+#TRANS 4535 {} 4086.67
+#TRANS 4056 {} -4086.67
+#TRANS 5410 {} 4086.67
+}
+#VER V 19 20200821 "Inkîp varor inom EU 25% moms - EQ Acoustics"
+{
+#TRANS 1110 {} 4992.14
+#TRANS 1930 {} -4992.14
+#TRANS 2614 {} -1248.04
+#TRANS 2645 {} 1248.04
+#TRANS 4535 {} 4992.14
+#TRANS 4056 {} -4992.14
+}
+#VER V 20 20200910 "Annullering av V15: Inkîp varor inom EU 25% moms - Thomann Panels"
+{
+#TRANS 2013 {} 2173.60
+#TRANS 2614 {} 543.40
+#TRANS 2645 {} -543.40
+#TRANS 4010 {} -2173.60
+#TRANS 4535 {} -2173.60
+#TRANS 4056 {} 2173.60
+}
+#VER V 21 20200910 "Inkîp varor inom EU 25% moms - Thomann Panels"
+{
+#TRANS 1110 {} 2173.60
+#TRANS 1930 {} -2173.60
+#TRANS 2614 {} -543.40
+#TRANS 2645 {} 543.40
+#TRANS 4535 {} 2173.60
+#TRANS 4056 {} -2173.60
+}
+#VER V 22 20200821 "Annullering av V13: Inkîp varor inom EU 25% moms  - EQ Acoustics -15203070309"
+{
+#TRANS 2013 {} 4970.73
+#TRANS 2614 {} 1242.68
+#TRANS 2645 {} -1242.68
+#TRANS 4535 {} -4970.73
+}
+#VER V 23 20201231 "Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - Thomann Panels"
+{
+#TRANS 1110 {} -434.72
+#TRANS 7830 {} 434.72
+}
+#VER V 24 20200804 "Annullering av V7: Inkîp varor inom EU 25% moms - Thomann - EQ Acoustics - 202032.836884 - 48710549"
+{
+#TRANS 2013 {} 6555.20
+#TRANS 2614 {} 1638.80
+#TRANS 2645 {} -1638.80
+#TRANS 4535 {} -6555.20
+}
+#VER V 25 20200804 "Inkîp varor inom EU 25% moms - Thomann - EQ Acoustics - 202032.836884 - 48710549"
+{
+#TRANS 1110 {} 6555.20
+#TRANS 1930 {} -6555.20
+#TRANS 2614 {} -1638.80
+#TRANS 2645 {} 1638.80
+}
+#VER V 26 20200814 "Annullering av V9: Inkîp varor inom EU 25% moms - Thomann - EQ Acoustics Mounts - 202033.998702 - 48875968"
+{
+#TRANS 2013 {} 1394.40
+#TRANS 2614 {} 348.60
+#TRANS 2645 {} -348.60
+#TRANS 4535 {} -1394.40
+}
+#VER V 27 20200814 "Inkîp varor inom EU 25% moms - Thomann - EQ Acoustics Mounts - 202033.998702 - 48875968"
+{
+#TRANS 1110 {} 1394.40
+#TRANS 1930 {} -1394.40
+#TRANS 2614 {} -348.60
+#TRANS 2645 {} 348.60
+}
+#VER V 28 20200828 "Inkîp varor inom EU 25% moms - Thomann - Panels"
+{
+#TRANS 1110 {} 3658.50
+#TRANS 1930 {} -3658.50
+#TRANS 2614 {} -914.63
+#TRANS 2645 {} 914.63
+#TRANS 4535 {} 3658.50
+#TRANS 4056 {} -3658.50
+}
+#VER V 29 20200127 "Inkîp varor inom EU 25% moms - Behringer"
+{
+#TRANS 1220 {} 2520.80
+#TRANS 1930 {} -2520.80
+#TRANS 2614 {} -630.20
+#TRANS 2645 {} 630.20
+#TRANS 4535 {} 2520.80
+#TRANS 4056 {} -2520.80
+}
+#VER V 30 20200810 "Annullering av V8: Inkîp varor inom EU 25% moms - Thomann - Rack Gear - 202033.960312 2374 - 48840482"
+{
+#TRANS 2013 {} 3498.40
+#TRANS 2614 {} 874.60
+#TRANS 2645 {} -874.60
+#TRANS 4535 {} -3498.40
+}
+#VER V 31 20200810 "Inkîp varor inom EU 25% moms - Thomann - Rack Gear - 202033.960312 2374 - 48840482"
+{
+#TRANS 1110 {} 3498.40
+#TRANS 1930 {} -3498.40
+#TRANS 2614 {} -874.60
+#TRANS 2645 {} 874.60
+}
+#VER V 32 20200818 "Annullering av V10: Inkîp varor inom EU 25% moms - Thomann - Desktop Mount - 202034.051808 - 48903349"
+{
+#TRANS 2013 {} 239.20
+#TRANS 2614 {} 59.80
+#TRANS 2645 {} -59.80
+#TRANS 4535 {} -239.20
+}
+#VER V 33 20200818 "Inkîp varor inom EU 25% moms - Thomann - Desktop Mount - 202034.051808 - 48903349"
+{
+#TRANS 1110 {} 239.20
+#TRANS 1930 {} -239.20
+#TRANS 2614 {} -59.80
+#TRANS 2645 {} 59.80
+}
+#VER V 34 20201002 "Inkîp varor inom EU 25% moms - Cajon"
+{
+#TRANS 1220 {} 759.20
+#TRANS 1930 {} -759.20
+#TRANS 2614 {} -189.80
+#TRANS 2645 {} 189.80
+#TRANS 4010 {} 759.20
+#TRANS 4056 {} -759.20
+}
+#VER V 35 20200424 "Inkîp varor inom EU 25% moms - Sennheiser"
+{
+#TRANS 1220 {} 2879.20
+#TRANS 1930 {} -2879.20
+#TRANS 2614 {} -719.80
+#TRANS 2645 {} 719.80
+#TRANS 4010 {} 2879.20
+#TRANS 4056 {} -2879.20
+}
+#VER V 36 20200818 "Inkîp varor inom EU 25% moms - Studioutrusning"
+{
+#TRANS 1220 {} 335.92
+#TRANS 1930 {} -335.92
+#TRANS 2614 {} -83.98
+#TRANS 2645 {} 83.98
+#TRANS 4010 {} 335.92
+#TRANS 4056 {} -335.92
+}
+#VER V 37 20200818 "Inkîp varor inom EU 25% moms Studioutrusning"
+{
+#TRANS 1220 {} 239.20
+#TRANS 1930 {} -239.20
+#TRANS 2614 {} -59.80
+#TRANS 2645 {} 59.80
+#TRANS 4010 {} 239.20
+#TRANS 4056 {} -239.20
+}
+#VER V 38 20201231 "Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - Behringer"
+{
+#TRANS 1229 {} -504.16
+#TRANS 7840 {} 504.16
+}
+#VER V 39 20201231 "Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - Thomann - Desktop Mount - 202034.051808 - 48903349"
+{
+#TRANS 1110 {} -47.84
+#TRANS 7830 {} 47.84
+}
+#VER V 40 20201231 "Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - Sennheiser"
+{
+#TRANS 1229 {} -575.84
+#TRANS 7840 {} 575.84
+}
+#VER V 41 20201231 "Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms Studioutrusning"
+{
+#TRANS 1229 {} -47.84
+#TRANS 7840 {} 47.84
+}
+#VER V 42 20201231 "Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - Thomann - Rack Gear - 202033.960312 2374 - 48840482"
+{
+#TRANS 1110 {} -699.68
+#TRANS 7830 {} 699.68
+}
+#VER V 43 20201231 "Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - Studioutrusning"
+{
+#TRANS 1229 {} -67.18
+#TRANS 7840 {} 67.18
+}
+#VER V 44 20201231 "Avskrivning fîr tillgÜng: 	Inkîp varor inom EU 25% moms - Thomann - EQ Acoustics Mounts - 202033.998702 - 48875968"
+{
+#TRANS 1110 {} -278.88
+#TRANS 7830 {} 278.88
+}
+#VER V 45 20201231 "Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - EQ Acoustics"
+{
+#TRANS 1110 {} -998.43
+#TRANS 7830 {} 998.43
+}
+#VER V 46 20201231 "Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - Thomann - EQ Acoustics - 202032.836884 - 48710549"
+{
+#TRANS 1110 {} -1311.04
+#TRANS 7830 {} 1311.04
+}
+#VER V 47 20201231 "Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - Thomann - Panels"
+{
+#TRANS 1110 {} -731.70
+#TRANS 7830 {} 731.70
+}
+#VER V 48 20201231 "Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - Cajon"
+{
+#TRANS 1229 {} -151.84
+#TRANS 7840 {} 151.84
+}
+#VER V 49 20200927 "Annullering av V18: Inkîp fîrbrukningsinventarier - SecretLab"
+{
+#TRANS 1930 {} 4086.67
+#TRANS 2614 {} 1021.67
+#TRANS 2645 {} -1021.67
+#TRANS 4535 {} -4086.67
+#TRANS 4056 {} 4086.67
+#TRANS 5410 {} -4086.67
+}
+#VER V 50 20200927 "Inkîp fîrbrukningsinventarier - SecretLab"
+{
+#TRANS 1930 {} -4086.67
+#TRANS 2614 {} -1021.67
+#TRANS 2645 {} 1021.67
+#TRANS 4535 {} 4086.67
+#TRANS 4056 {} -4086.67
+#TRANS 5400 {} 4086.67
+}
+#VER V 51 20200927 "Annullering av V50: Inkîp fîrbrukningsinventarier - SecretLab"
+{
+#TRANS 1930 {} 4086.67
+#TRANS 2614 {} 1021.67
+#TRANS 2645 {} -1021.67
+#TRANS 4535 {} -4086.67
+#TRANS 4056 {} 4086.67
+#TRANS 5400 {} -4086.67
+}
+#VER V 52 20200927 "Inkîp fîrbrukningsinventarier - SecretLab"
+{
+#TRANS 1220 {} 4086.67
+#TRANS 1930 {} -4086.67
+#TRANS 2614 {} -1021.67
+#TRANS 2645 {} 1021.67
+#TRANS 4535 {} 4086.67
+#TRANS 4056 {} -4086.67
+}
+#VER V 53 20200301 "Inkîp TjÑnster utanfîr EU - PluginAlliance"
+{
+#TRANS 1930 {} -298.12
+#TRANS 2614 {} -74.53
+#TRANS 2645 {} 74.53
+#TRANS 4531 {} 298.12
+}
+#VER V 54 20200303 "Mjukvara licens - PluginAlliance"
+{
+#TRANS 1930 {} -298.12
+#TRANS 2614 {} -74.53
+#TRANS 2645 {} 74.53
+#TRANS 4531 {} 298.12
+#TRANS 4056 {} -298.12
+#TRANS 6991 {} 298.12
+}
+#VER V 55 20200303 "Mjukvara  - PLUGINALLIANCE"
+{
+#TRANS 1930 {} -298.12
+#TRANS 2614 {} -74.53
+#TRANS 2645 {} 74.53
+#TRANS 4531 {} 298.12
+#TRANS 4056 {} -298.12
+#TRANS 5400 {} 298.12
+}
+#VER V 56 20200701 "Mjukvara - Waves"
+{
+#TRANS 1930 {} -1055.98
+#TRANS 2614 {} -264.00
+#TRANS 2645 {} 264.00
+#TRANS 4531 {} 1055.98
+#TRANS 4056 {} -1055.98
+#TRANS 5400 {} 1055.98
+}
+#VER V 57 20200712 "Mjukvara - PluginAlliance"
+{
+#TRANS 1930 {} -241.60
+#TRANS 2614 {} -60.40
+#TRANS 2645 {} 60.40
+#TRANS 4531 {} 241.60
+#TRANS 4056 {} -241.60
+#TRANS 5400 {} 241.60
+}
+#VER V 58 20200127 "Mjukvara licens Slate"
+{
+#TRANS 1930 {} -149.55
+#TRANS 2641 {} 29.91
+#TRANS 6991 {} 119.64
+}
+#VER V 59 20200327 "Mjukvara licens Slate"
+{
+#TRANS 1930 {} -158.09
+#TRANS 2614 {} -39.52
+#TRANS 2645 {} 39.52
+#TRANS 4531 {} 158.09
+#TRANS 4056 {} -158.09
+#TRANS 6991 {} 158.09
+}
+#VER V 60 20200127 "Annullering av V58: Mjukvara licens Slate"
+{
+#TRANS 1930 {} 149.55
+#TRANS 2641 {} -29.91
+#TRANS 6991 {} -119.64
+}
+#VER V 61 20200127 "Mjukvara licens Slate"
+{
+#TRANS 1930 {} -149.55
+#TRANS 2614 {} -29.91
+#TRANS 2645 {} 29.91
+#TRANS 4531 {} 149.55
+#TRANS 4056 {} -149.55
+#TRANS 6991 {} 149.55
+}
+#VER V 62 20200303 "Annullering av V54: Mjukvara licens - PluginAlliance"
+{
+#TRANS 1930 {} 298.12
+#TRANS 2614 {} 74.53
+#TRANS 2645 {} -74.53
+#TRANS 4531 {} -298.12
+#TRANS 4056 {} 298.12
+#TRANS 6991 {} -298.12
+}
+#VER V 63 20200303 "Mjukvara licens - PluginAlliance"
+{
+#TRANS 1930 {} -298.12
+#TRANS 2614 {} -74.53
+#TRANS 2645 {} 74.53
+#TRANS 4531 {} 298.12
+#TRANS 4056 {} -298.12
+#TRANS 5400 {} 298.12
+}
+#VER V 64 20200427 "Mjukvara licens Slate"
+{
+#TRANS 1930 {} -157.97
+#TRANS 2614 {} -39.49
+#TRANS 2645 {} 39.49
+#TRANS 4531 {} 157.97
+#TRANS 4056 {} -157.97
+#TRANS 6991 {} 157.97
+}
+#VER V 65 20200227 "Mjukvara licens Slate"
+{
+#TRANS 1930 {} -152.25
+#TRANS 2614 {} -38.06
+#TRANS 2645 {} 38.06
+#TRANS 4531 {} 152.25
+#TRANS 4056 {} -152.25
+#TRANS 6991 {} 152.25
+}
+#VER V 66 20201128 "Mjukvara Sidemidner"
+{
+#TRANS 1930 {} -308.66
+#TRANS 2614 {} -77.17
+#TRANS 2645 {} 77.17
+#TRANS 4531 {} 308.66
+#TRANS 4056 {} -308.66
+#TRANS 5400 {} 308.66
+}
+#VER V 67 20200103 "Mjukvara licens Bitwig"
+{
+#TRANS 1930 {} -1328.83
+#TRANS 2614 {} -332.21
+#TRANS 2645 {} 332.21
+#TRANS 4535 {} 1328.83
+#TRANS 4056 {} -1328.83
+#TRANS 6991 {} 1328.83
+}
+#VER V 68 20200129 "Mjukvara Sring REverb"
+{
+#TRANS 1930 {} -291.27
+#TRANS 2614 {} -72.82
+#TRANS 2645 {} 72.82
+#TRANS 4531 {} 291.27
+#TRANS 4056 {} -291.27
+#TRANS 5400 {} 291.27
+}
+#VER V 69 20201129 "Mjukvara Oeksound"
+{
+#TRANS 1930 {} -1399.00
+#TRANS 2641 {} 279.80
+#TRANS 5400 {} 1119.20
+}
+#VER V 70 20200929 "Inkîp TjÑnster utanfîr EU LANDR"
+{
+#TRANS 1930 {} -781.54
+#TRANS 2614 {} -195.39
+#TRANS 2645 {} 195.39
+#TRANS 4531 {} 781.54
+}
+#VER V 71 20201129 "Mjukvara Oek Spiff"
+{
+#TRANS 1930 {} -999.00
+#TRANS 2614 {} -249.75
+#TRANS 2645 {} 249.75
+#TRANS 4535 {} 999.00
+#TRANS 4056 {} -999.00
+#TRANS 5400 {} 999.00
+}
+#VER V 72 20201128 "Mjukvara vlahalla"
+{
+#TRANS 1930 {} -444.70
+#TRANS 2614 {} -111.18
+#TRANS 2645 {} 111.18
+#TRANS 4531 {} 444.70
+#TRANS 4056 {} -444.70
+#TRANS 5400 {} 444.70
+}
+#VER V 73 20200627 "Inkîp TjÑnster utanfîr EU Drive"
+{
+#TRANS 1930 {} -999.00
+#TRANS 2614 {} -249.75
+#TRANS 2645 {} 249.75
+#TRANS 4531 {} 999.00
+}
+#VER V 74 20201201 "Mjukvara Voxengo"
+{
+#TRANS 1930 {} -477.21
+#TRANS 2614 {} -119.30
+#TRANS 2645 {} 119.30
+#TRANS 4531 {} 477.21
+#TRANS 4056 {} -477.21
+#TRANS 5400 {} 477.21
+}
+#VER V 75 20200620 "Inkîp tjÑnster inom EU 25% - Soundcloud"
+{
+#TRANS 1930 {} -1100.20
+#TRANS 2614 {} -275.05
+#TRANS 2645 {} 275.05
+#TRANS 4535 {} 1100.20
+}
+#VER V 76 20200126 "Inkîp fîrbrukningsinventarier FlowToys"
+{
+#TRANS 1930 {} -5200.67
+#TRANS 4015 {} 5200.67
+#TRANS 4056 {} -5200.67
+#TRANS 5410 {} 5200.67
+}
+#VER V 77 20201129 "Annullering av V69: Mjukvara Oeksound"
+{
+#TRANS 1930 {} 1399.00
+#TRANS 2641 {} -279.80
+#TRANS 5400 {} -1119.20
+}
+#VER V 78 20201129 "Mjukvara Oeksound"
+{
+#TRANS 1930 {} -1399.00
+#TRANS 2614 {} -279.80
+#TRANS 2645 {} 279.80
+#TRANS 4535 {} 1399.00
+#TRANS 4056 {} -1399.00
+#TRANS 5400 {} 1399.00
+}
+#VER V 79 20200818 "Annullering av V17: Inkîp fîrbrukningsinventarier - Warehouse204 - SSD - 429"
+{
+#TRANS 2013 {} 959.20
+#TRANS 2641 {} -239.80
+#TRANS 5410 {} -719.40
+}
+#VER V 80 20200818 "Inkîp fîrbrukningsinventarier - Warehouse204 - SSD - 429"
+{
+#TRANS 1930 {} -959.20
+#TRANS 2641 {} 239.80
+#TRANS 5410 {} 719.40
+}
+#VER V 81 20200818 "Annullering av V11: Inkîp varor inom EU 25% moms - Thomann - Rack Panels - 202034.052155- 48904713"
+{
+#TRANS 2013 {} 403.12
+#TRANS 2614 {} 100.78
+#TRANS 2645 {} -100.78
+#TRANS 4535 {} -403.12
+}
+#VER V 82 20200818 "Inkîp varor inom EU 25% moms - Thomann - Rack Panels - 202034.052155- 48904713"
+{
+#TRANS 1930 {} -403.12
+#TRANS 2614 {} -100.78
+#TRANS 2645 {} 100.78
+#TRANS 4535 {} 403.12
+}
+#VER V 83 20201231 "Egen insÑttning - TÑcka kostnader"
+{
+#TRANS 1930 {} 13903.00
+#TRANS 2013 {} -13903.00
+}
+#VER V 84 20201129 "Annullering av V78: Mjukvara Oeksound"
+{
+#TRANS 1930 {} 1399.00
+#TRANS 2614 {} 279.80
+#TRANS 2645 {} -279.80
+#TRANS 4535 {} -1399.00
+#TRANS 4056 {} 1399.00
+#TRANS 5400 {} -1399.00
+}
+#VER V 85 20201129 "Mjukvara Oeksound 2"
+{
+#TRANS 1930 {} -1399.00
+#TRANS 2614 {} -349.75
+#TRANS 2645 {} 349.75
+#TRANS 4535 {} 1399.00
+#TRANS 4056 {} -1399.00
+#TRANS 5400 {} 1399.00
+}
+#VER V 86 20201231 "Annullering av V83: Egen insÑttning - TÑcka kostnader"
+{
+#TRANS 1930 {} -13903.00
+#TRANS 2013 {} 13903.00
+}
+#VER V 87 20201230 "Egen insÑttning - TÑcka kostnader"
+{
+#TRANS 1930 {} 27249.76
+#TRANS 2013 {} -27249.76
+}
+#VER V 88 20201230 "Annullering av V87: Egen insÑttning - TÑcka kostnader"
+{
+#TRANS 1930 {} -27249.76
+#TRANS 2013 {} 27249.76
+}
+#VER V 89 20201230 "Egen insÑttning - TÑcka kostnader"
+{
+#TRANS 1930 {} 41152.76
+#TRANS 2013 {} -41152.76
+}
+#VER V 90 20200127 "Annullering av V61: Mjukvara licens Slate"
+{
+#TRANS 1930 {} 149.55
+#TRANS 2614 {} 29.91
+#TRANS 2645 {} -29.91
+#TRANS 4531 {} -149.55
+#TRANS 4056 {} 149.55
+#TRANS 6991 {} -149.55
+}
+#VER V 91 20200507 "Annullering av V4: FîrsÑljning tjÑnster momsfri - LANDR"
+{
+#TRANS 1930 {} -658.90
+#TRANS 3990 {} 658.90
+}
+#VER V 92 20200507 "FîrsÑljning tjÑnster momsfri - LANDR"
+{
+#TRANS 1930 {} 658.90
+#TRANS 2611 {} -164.72
+#TRANS 3990 {} -494.18
+}
+#VER V 93 20201231 "Annulment of V38: Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - Behringer"
+{
+#TRANS 1229 {} 504.16
+#TRANS 7840 {} -504.16
+}
+#VER V 94 20201231 "Annulment of V23: Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - Thomann Panels"
+{
+#TRANS 1110 {} 434.72
+#TRANS 7830 {} -434.72
+}
+#VER V 95 20201231 "Annulment of V39: Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - Thomann - Desktop Mount - 202034.051808 - 48903349"
+{
+#TRANS 1110 {} 47.84
+#TRANS 7830 {} -47.84
+}
+#VER V 96 20201231 "Annulment of V40: Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - Sennheiser"
+{
+#TRANS 1229 {} 575.84
+#TRANS 7840 {} -575.84
+}
+#VER V 97 20201231 "Annulment of V41: Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms Studioutrusning"
+{
+#TRANS 1229 {} 47.84
+#TRANS 7840 {} -47.84
+}
+#VER V 98 20201231 "Annulment of V42: Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - Thomann - Rack Gear - 202033.960312 2374 - 48840482"
+{
+#TRANS 1110 {} 699.68
+#TRANS 7830 {} -699.68
+}
+#VER V 99 20201231 "Annulment of V43: Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - Studioutrusning"
+{
+#TRANS 1229 {} 67.18
+#TRANS 7840 {} -67.18
+}
+#VER V 100 20201231 "Annulment of V44: Avskrivning fîr tillgÜng: 	Inkîp varor inom EU 25% moms - Thomann - EQ Acoustics Mounts - 202033.998702 - 48875968"
+{
+#TRANS 1110 {} 278.88
+#TRANS 7830 {} -278.88
+}
+#VER V 101 20201231 "Annulment of V45: Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - EQ Acoustics"
+{
+#TRANS 1110 {} 998.43
+#TRANS 7830 {} -998.43
+}
+#VER V 102 20201231 "Annulment of V46: Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - Thomann - EQ Acoustics - 202032.836884 - 48710549"
+{
+#TRANS 1110 {} 1311.04
+#TRANS 7830 {} -1311.04
+}
+#VER V 103 20201231 "Annulment of V47: Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - Thomann - Panels"
+{
+#TRANS 1110 {} 731.70
+#TRANS 7830 {} -731.70
+}
+#VER V 104 20201231 "Annulment of V48: Avskrivning fîr tillgÜng: Inkîp varor inom EU 25% moms - Cajon"
+{
+#TRANS 1229 {} 151.84
+#TRANS 7840 {} -151.84
+}
+#VER V 105 20200804 "Annullering av V25: Inkîp varor inom EU 25% moms - Thomann - EQ Acoustics - 202032.836884 - 48710549"
+{
+#TRANS 1110 {} -6555.20
+#TRANS 1930 {} 6555.20
+#TRANS 2614 {} 1638.80
+#TRANS 2645 {} -1638.80
+}
+#VER V 106 20200804 "Inkîp varor inom EU 25% moms - Thomann - EQ Acoustics - 202032.836884 - 48710549"
+{
+#TRANS 1220 {} 5244.16
+#TRANS 1930 {} -5244.16
+#TRANS 2614 {} -1311.04
+#TRANS 2645 {} 1311.04
+#TRANS 4535 {} 5244.16
+#TRANS 4056 {} -5244.16
+}
+#VER V 107 20200814 "Annullering av V27: Inkîp varor inom EU 25% moms - Thomann - EQ Acoustics Mounts - 202033.998702 - 48875968"
+{
+#TRANS 1110 {} -1394.40
+#TRANS 1930 {} 1394.40
+#TRANS 2614 {} 348.60
+#TRANS 2645 {} -348.60
+}
+#VER V 108 20200814 "Inkîp varor inom EU 25% moms - Thomann - EQ Acoustics Mounts - 202033.998702 - 48875968"
+{
+#TRANS 1220 {} 1394.40
+#TRANS 1930 {} -1394.40
+#TRANS 2614 {} -348.60
+#TRANS 2645 {} 348.60
+#TRANS 4535 {} 1394.40
+#TRANS 4056 {} -1394.40
+}
+#VER V 109 20200804 "Annullering av V106: Inkîp varor inom EU 25% moms - Thomann - EQ Acoustics - 202032.836884 - 48710549"
+{
+#TRANS 1220 {} -5244.16
+#TRANS 1930 {} 5244.16
+#TRANS 2614 {} 1311.04
+#TRANS 2645 {} -1311.04
+#TRANS 4535 {} -5244.16
+#TRANS 4056 {} 5244.16
+}
+#VER V 110 20200804 "Inkîp varor inom EU 25% moms - Thomann - EQ Acoustics - 202032.836884 - 48710549"
+{
+#TRANS 1220 {} 6555.20
+#TRANS 1930 {} -6555.20
+#TRANS 2614 {} -1638.80
+#TRANS 2645 {} 1638.80
+#TRANS 4535 {} 6555.20
+#TRANS 4056 {} -6555.20
+}
+#VER V 111 20200910 "Annullering av V21: Inkîp varor inom EU 25% moms - Thomann Panels"
+{
+#TRANS 1110 {} -2173.60
+#TRANS 1930 {} 2173.60
+#TRANS 2614 {} 543.40
+#TRANS 2645 {} -543.40
+#TRANS 4535 {} -2173.60
+#TRANS 4056 {} 2173.60
+}
+#VER V 112 20200910 "Inkîp varor inom EU 25% moms - Thomann Panels"
+{
+#TRANS 1220 {} 2173.60
+#TRANS 1930 {} -2173.60
+#TRANS 2614 {} -543.40
+#TRANS 2645 {} 543.40
+#TRANS 4535 {} 2173.60
+#TRANS 4056 {} -2173.60
+}
+#VER V 113 20200810 "Annullering av V31: Inkîp varor inom EU 25% moms - Thomann - Rack Gear - 202033.960312 2374 - 48840482"
+{
+#TRANS 1110 {} -3498.40
+#TRANS 1930 {} 3498.40
+#TRANS 2614 {} 874.60
+#TRANS 2645 {} -874.60
+}
+#VER V 114 20200810 "Inkîp varor inom EU 25% moms - Thomann - Rack Gear - 202033.960312 2374 - 48840482"
+{
+#TRANS 1220 {} 3498.40
+#TRANS 1930 {} -3498.40
+#TRANS 2614 {} -874.60
+#TRANS 2645 {} 874.60
+#TRANS 4535 {} 3498.40
+#TRANS 4056 {} -3498.40
+}
+#VER V 115 20200818 "Annullering av V33: Inkîp varor inom EU 25% moms - Thomann - Desktop Mount - 202034.051808 - 48903349"
+{
+#TRANS 1110 {} -239.20
+#TRANS 1930 {} 239.20
+#TRANS 2614 {} 59.80
+#TRANS 2645 {} -59.80
+}
+#VER V 116 20200818 "Inkîp varor inom EU 25% moms - Thomann - Desktop Mount - 202034.051808 - 48903349"
+{
+#TRANS 1220 {} 239.20
+#TRANS 1930 {} -239.20
+#TRANS 2614 {} -59.80
+#TRANS 2645 {} 59.80
+#TRANS 4535 {} 239.20
+#TRANS 4056 {} -239.20
+}
+#VER V 117 20201002 "Annullering av V34: Inkîp varor inom EU 25% moms - Cajon"
+{
+#TRANS 1220 {} -759.20
+#TRANS 1930 {} 759.20
+#TRANS 2614 {} 189.80
+#TRANS 2645 {} -189.80
+#TRANS 4010 {} -759.20
+#TRANS 4056 {} 759.20
+}
+#VER V 118 20201002 "Inkîp varor inom EU 25% moms - Cajon and mic"
+{
+#TRANS 1220 {} 759.20
+#TRANS 1930 {} -759.20
+#TRANS 2614 {} -189.80
+#TRANS 2645 {} 189.80
+#TRANS 4535 {} 759.20
+#TRANS 4056 {} -759.20
+}
+#VER V 119 20200424 "Annullering av V35: Inkîp varor inom EU 25% moms - Sennheiser"
+{
+#TRANS 1220 {} -2879.20
+#TRANS 1930 {} 2879.20
+#TRANS 2614 {} 719.80
+#TRANS 2645 {} -719.80
+#TRANS 4010 {} -2879.20
+#TRANS 4056 {} 2879.20
+}
+#VER V 120 20200424 "Inkîp varor inom EU 25% moms - Sennheiser"
+{
+#TRANS 1220 {} 2879.20
+#TRANS 1930 {} -2879.20
+#TRANS 2614 {} -719.80
+#TRANS 2645 {} 719.80
+#TRANS 4535 {} 2879.20
+#TRANS 4056 {} -2879.20
+}
+#VER V 121 20200818 "Annullering av V37: Inkîp varor inom EU 25% moms Studioutrusning"
+{
+#TRANS 1220 {} -239.20
+#TRANS 1930 {} 239.20
+#TRANS 2614 {} 59.80
+#TRANS 2645 {} -59.80
+#TRANS 4010 {} -239.20
+#TRANS 4056 {} 239.20
+}
+#VER V 122 20200818 "Inkîp varor inom EU 25% moms Studioutrusning"
+{
+#TRANS 1220 {} 239.20
+#TRANS 1930 {} -239.20
+#TRANS 2614 {} -59.80
+#TRANS 2645 {} 59.80
+#TRANS 4535 {} 239.20
+#TRANS 4056 {} -239.20
+}
+#VER V 123 20200818 "Annullering av V36: Inkîp varor inom EU 25% moms - Studioutrusning"
+{
+#TRANS 1220 {} -335.92
+#TRANS 1930 {} 335.92
+#TRANS 2614 {} 83.98
+#TRANS 2645 {} -83.98
+#TRANS 4010 {} -335.92
+#TRANS 4056 {} 335.92
+}
+#VER V 124 20200818 "Inkîp varor inom EU 25% moms - Studioutrusning"
+{
+#TRANS 1220 {} 335.92
+#TRANS 1930 {} -335.92
+#TRANS 2614 {} -83.98
+#TRANS 2645 {} 83.98
+#TRANS 4535 {} 335.92
+#TRANS 4056 {} -335.92
+}
+#VER V 125 20200927 "Annullering av V52: Inkîp fîrbrukningsinventarier - SecretLab"
+{
+#TRANS 1220 {} -4086.67
+#TRANS 1930 {} 4086.67
+#TRANS 2614 {} 1021.67
+#TRANS 2645 {} -1021.67
+#TRANS 4535 {} -4086.67
+#TRANS 4056 {} 4086.67
+}
+#VER V 126 20200927 "Inkîp fîrbrukningsinventarier - SecretLab"
+{
+#TRANS 1220 {} 4086.67
+#TRANS 1930 {} -4086.67
+#TRANS 2614 {} -1021.67
+#TRANS 2645 {} 1021.67
+#TRANS 4535 {} 4086.67
+#TRANS 4056 {} -4086.67
+}
+#VER V 127 20200828 "Annullering av V28: Inkîp varor inom EU 25% moms - Thomann - Panels"
+{
+#TRANS 1110 {} -3658.50
+#TRANS 1930 {} 3658.50
+#TRANS 2614 {} 914.63
+#TRANS 2645 {} -914.63
+#TRANS 4535 {} -3658.50
+#TRANS 4056 {} 3658.50
+}
+#VER V 128 20200828 "Inkîp varor inom EU 25% moms - Thomann - Panels"
+{
+#TRANS 1220 {} 3658.50
+#TRANS 1930 {} -3658.50
+#TRANS 2614 {} -914.63
+#TRANS 2645 {} 914.63
+#TRANS 4535 {} 3658.50
+#TRANS 4056 {} -3658.50
+}
+#VER V 129 20200821 "Annullering av V19: Inkîp varor inom EU 25% moms - EQ Acoustics"
+{
+#TRANS 1110 {} -4992.14
+#TRANS 1930 {} 4992.14
+#TRANS 2614 {} 1248.04
+#TRANS 2645 {} -1248.04
+#TRANS 4535 {} -4992.14
+#TRANS 4056 {} 4992.14
+}
+#VER V 130 20200821 "Inkîp varor inom EU 25% moms - EQ Acoustics"
+{
+#TRANS 1220 {} 4992.14
+#TRANS 1930 {} -4992.14
+#TRANS 2614 {} -1248.04
+#TRANS 2645 {} 1248.04
+#TRANS 4535 {} 4992.14
+#TRANS 4056 {} -4992.14
+}
+#VER V 131 20200818 "Annullering av V82: Inkîp varor inom EU 25% moms - Thomann - Rack Panels - 202034.052155- 48904713"
+{
+#TRANS 1930 {} 403.12
+#TRANS 2614 {} 100.78
+#TRANS 2645 {} -100.78
+#TRANS 4535 {} -403.12
+}
+#VER V 132 20200818 "Inkîp varor inom EU 25% moms - Thomann - Rack Panels - 202034.052155- 48904713"
+{
+#TRANS 1220 {} 403.12
+#TRANS 1930 {} -403.12
+#TRANS 2614 {} 100.78
+#TRANS 2645 {} -100.78
+#TRANS 4535 {} 403.12
+#TRANS 4056 {} -403.12
+}
+#VER V 133 20200127 "Annullering av V29: Inkîp varor inom EU 25% moms - Behringer"
+{
+#TRANS 1220 {} -2520.80
+#TRANS 1930 {} 2520.80
+#TRANS 2614 {} 630.20
+#TRANS 2645 {} -630.20
+#TRANS 4535 {} -2520.80
+#TRANS 4056 {} 2520.80
+}
+#VER V 134 20200127 "Inkîp varor inom EU 25% moms - Behringer"
+{
+#TRANS 1220 {} 2520.80
+#TRANS 1930 {} -2520.80
+#TRANS 2614 {} -630.20
+#TRANS 2645 {} 630.20
+#TRANS 4535 {} 2520.80
+#TRANS 4056 {} -2520.80
+}
+#VER V 135 20200818 "Annullering av V132: Inkîp varor inom EU 25% moms - Thomann - Rack Panels - 202034.052155- 48904713"
+{
+#TRANS 1220 {} -403.12
+#TRANS 1930 {} 403.12
+#TRANS 2614 {} -100.78
+#TRANS 2645 {} 100.78
+#TRANS 4535 {} -403.12
+#TRANS 4056 {} 403.12
+}
+#VER V 136 20200818 "Inkîp varor inom EU 25% moms - Thomann - Rack Panels - 202034.052155- 48904713"
+{
+#TRANS 1220 {} 403.12
+#TRANS 1930 {} -403.12
+#TRANS 2614 {} -100.78
+#TRANS 2645 {} 100.78
+#TRANS 4535 {} 403.12
+#TRANS 4056 {} -403.12
+}
+#VER V 137 20200507 "Annullering av V92: FîrsÑljning tjÑnster momsfri - LANDR"
+{
+#TRANS 1930 {} -658.90
+#TRANS 2611 {} 164.72
+#TRANS 3990 {} 494.18
+}
+#VER V 138 20200507 "FîrsÑljning tjÑnster momsfri - LANDR"
+{
+#TRANS 1930 {} 658.90
+#TRANS 2611 {} -164.72
+#TRANS 3990 {} -494.18
+}
+#VER V 139 20200507 "Annullering av V138: FîrsÑljning tjÑnster momsfri - LANDR"
+{
+#TRANS 1930 {} -658.90
+#TRANS 2611 {} 164.72
+#TRANS 3990 {} 494.18
+}
+#VER V 140 20200521 "FîrsÑljning tjÑnster 25% moms - LANDR"
+{
+#TRANS 1930 {} 586.00
+#TRANS 2611 {} -117.20
+#TRANS 3990 {} -468.80
+}
+#VER V 141 20201230 "Annullering av V89: Egen insÑttning - TÑcka kostnader"
+{
+#TRANS 1930 {} -41152.76
+#TRANS 2013 {} 41152.76
+}
+#VER V 142 20201231 "Egen insÑttning - TÑcka kostnader"
+{
+#TRANS 1930 {} 40836.59
+#TRANS 2013 {} -40836.59
+}
+#VER V 143 20201231 "Momsredovisning: januari 2020 - december 2020"
+{
+#TRANS 2611 {} 117.20
+#TRANS 2611 {} 2125.00
+#TRANS 2614 {} 11131.33
+#TRANS 2641 {} -239.80
+#TRANS 2645 {} -11131.33
+#TRANS 2650 {} -2002.00
+#TRANS 3740 {} -0.40
+}
+#VER V 144 20201231 "Annullering av V142: Egen insÑttning - TÑcka kostnader"
+{
+#TRANS 1930 {} -40836.59
+#TRANS 2013 {} 40836.59
+}
+#VER V 145 20201231 "Egen insÑttning - tÑcka kostnader + moms"
+{
+#TRANS 1930 {} 42838.59
+#TRANS 2013 {} -42838.59
+}
+#VER V 146 20201231 "èrets resultat"
+{
+#TRANS 2019 {} 7390.53
+#TRANS 8999 {} -7390.53
+}

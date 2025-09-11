@@ -1,0 +1,599 @@
+#FLAGGA 0
+#PROGRAM WREBIT 2.0
+#FORMAT PC8
+#GEN 20250911
+#SIETYP 4
+#ORGNR "881211-4877"
+#FNAMN "Dennis Dyall Entertainment"
+#RAR 0 20161004 20171231
+#KONTO 1010 "Immateriella tillgÜngar"
+#KONTO 1079 "Ackumulerade avskrivningar immateriella tillgÜngar"
+#KONTO 1110 "Fastighet"
+#KONTO 1119 "Ackumulerade avskrivningar byggnader"
+#KONTO 1130 "Mark"
+#KONTO 1159 "Ackumulerade avskrivningar markanlÑggningar"
+#KONTO 1220 "Inventarier"
+#KONTO 1229 "Ackumulerade avskrivningar inventarier"
+#KONTO 1240 "Bilar"
+#KONTO 1249 "Ackumulerade avskrivningar bilar"
+#KONTO 1350 "ôvriga tillgÜngar"
+#KONTO 1385 "KapitalfîrsÑkring"
+#KONTO 1400 "Lager"
+#KONTO 1510 "Kundfordringar"
+#KONTO 1520 "Fordran Zettle"
+#KONTO 1630 "Skattekonto"
+#KONTO 1650 "Momsfordran"
+#KONTO 1680 "ôvriga kortfristiga fordringar"
+#KONTO 1790 "Fîrutbetalda kostnader och upplupna intÑkter"
+#KONTO 1910 "Kassa"
+#KONTO 1930 "Fîretagskonto"
+#KONTO 1940 "ôvrigt fîretagskonto"
+#KONTO 1950 "Sparkonto"
+#KONTO 2010 "Eget kapital"
+#KONTO 2012 "F-skatt (enskild firma)"
+#KONTO 2013 "Eget uttag/insÑttningar"
+#KONTO 2019 "èrets resultat (balansrÑkning)"
+#KONTO 2020 "Eget kapital delÑgare 2"
+#KONTO 2023 "Eget uttag/insÑttning delÑgare 2"
+#KONTO 2029 "èrets resultat delÑgare 2"
+#KONTO 2067 "Balanserad vinst/fîrlust"
+#KONTO 2069 "èrets resultat (balansrÑkning)"
+#KONTO 2081 "Aktiekapital"
+#KONTO 2083 "Medlemsinsatser"
+#KONTO 2084 "Fîrlagsinsatser"
+#KONTO 2085 "Uppskrivningsfond"
+#KONTO 2086 "Reservfond"
+#KONTO 2090 "Fritt eget kapital"
+#KONTO 2091 "Balanserad vinst/fîrlust"
+#KONTO 2093 "ErhÜllna aktieÑgartillskott"
+#KONTO 2094 "Egna aktier"
+#KONTO 2097 "ôverkursfond"
+#KONTO 2099 "èrets resultat (balansrÑkning)"
+#KONTO 2100 "Obeskattade reserver"
+#KONTO 2200 "AvsÑttningar"
+#KONTO 2350 "BanklÜn"
+#KONTO 2390 "ôvriga lÜngfristiga skulder"
+#KONTO 2393 "LÜn frÜn aktieÑgare"
+#KONTO 2420 "Fîrskott / Presentkort"
+#KONTO 2440 "Leverantîrsskuld"
+#KONTO 2510 "F-skatt (aktiebolag)"
+#KONTO 2514 "SÑrskild lîneskatt pÜ pensionskostnader"
+#KONTO 2611 "UtgÜende moms 25 %"
+#KONTO 2614 "Utg moms omvÑnd skattskyldighet 25%"
+#KONTO 2615 "UtgÜende moms pÜ import (utom EU), 25%"
+#KONTO 2617 "Utg moms omvÑnd skattskyldighet 25%"
+#KONTO 2621 "UtgÜende moms 12 %"
+#KONTO 2631 "UtgÜende moms 6 %"
+#KONTO 2641 "IngÜende moms"
+#KONTO 2645 "IngÜende moms pÜ import (utom EU)"
+#KONTO 2647 "Ing moms omvÑnd skattskyldighet 25%"
+#KONTO 2650 "Momsskuld"
+#KONTO 2710 "Skatt pÜ lîn"
+#KONTO 2731 "AvrÑkning sociala avgifter"
+#KONTO 2800 "ôvriga kortfristiga skulder"
+#KONTO 2990 "Upplupna kostnader"
+#KONTO 3041 "FîrsÑljning tjÑnster 25%"
+#KONTO 3042 "FîrsÑljning tjÑnster 12%"
+#KONTO 3043 "FîrsÑljning tjÑnster 6%"
+#KONTO 3044 "FîrsÑljning tjÑnster, momsfri"
+#KONTO 3045 "FîrsÑljning tjÑnster utlandet utom EU"
+#KONTO 3048 "FîrsÑljning tjÑnster utlandet inom EU, momsfri"
+#KONTO 3051 "FîrsÑljning varor 25%"
+#KONTO 3052 "FîrsÑljning varor 12%"
+#KONTO 3053 "FîrsÑljning varor 6%"
+#KONTO 3054 "FîrsÑljning varor, momsfritt"
+#KONTO 3055 "FîrsÑljning varor utlandet utom EU"
+#KONTO 3056 "FîrsÑljning varor inom EU, momspliktig (till privatpersoner)"
+#KONTO 3058 "FîrsÑljning varor utlandet inom EU"
+#KONTO 3061 "FîrsÑljning Zettle 25%"
+#KONTO 3062 "FîrsÑljning Zettle 12%"
+#KONTO 3063 "FîrsÑljning Zettle 6%"
+#KONTO 3064 "FîrsÑljning Zettle, momsfritt"
+#KONTO 3065 "FîrsÑljning Zettle utlandet inom EU"
+#KONTO 3066 "FîrsÑljning Zettle utlandet utom EU"
+#KONTO 3220 "FîrsÑljning VMB-varor, momsfri"
+#KONTO 3224 "Positiv vinstmarginal, 25%"
+#KONTO 3231 "FîrsÑljning bygg, omv. Skattskyldighet"
+#KONTO 3590 "ôvriga fakturerade kostnader"
+#KONTO 3740 "ôresavrundning"
+#KONTO 3911 "HyresintÑkt (momsfri)"
+#KONTO 3913 "HyresintÑkt (25% moms)"
+#KONTO 3975 "Vinst avyttring tillgÜng"
+#KONTO 3990 "Bidrag"
+#KONTO 3994 "FîrsÑkringsersÑttning"
+#KONTO 4010 "Inkîp varor 25%"
+#KONTO 4011 "Inkîp varor 12%"
+#KONTO 4012 "ôvriga rîrelsekostnader"
+#KONTO 4015 "Varor frÜn utlandet utom EU"
+#KONTO 4056 "Inkîp varor frÜn utlandet, inom EU"
+#KONTO 4200 "Inkîp VMB-varor, utan moms"
+#KONTO 4425 "Inkîp tjÑnster inom Sverige, omvÑnd skattskyldighet"
+#KONTO 4531 "Inkîp tjÑnster frÜn utlandet, utom EU"
+#KONTO 4535 "Inkîp tjÑnster frÜn utlandet, inom EU"
+#KONTO 4545 "Import av varor, utom EU"
+#KONTO 4600 "Inkîp tjÑnster frÜn Sverige"
+#KONTO 4990 "LagerfîrÑndring"
+#KONTO 5000 "Lokalkostnader"
+#KONTO 5100 "Fastighetskostnader"
+#KONTO 5200 "Hyra av maskiner, verktyg och inventarier"
+#KONTO 5400 "Fîrbrukningsmaterial"
+#KONTO 5410 "Fîrbrukningsinventarier"
+#KONTO 5460 "Fîrbrukningsmaterial"
+#KONTO 5600 "Bilkostnader"
+#KONTO 5612 "Skatt / fîrsÑkring bil"
+#KONTO 5615 "Leasing av bil"
+#KONTO 5700 "Frakt- och tullkostnader"
+#KONTO 5800 "Resekostnader"
+#KONTO 5900 "Reklamkostnader"
+#KONTO 5911 "Digital marknadsfîring inom EU"
+#KONTO 6071 "Representation, avdragsgill"
+#KONTO 6072 "Representation ej avdragsgill"
+#KONTO 6200 "Telefonkostnader"
+#KONTO 6250 "Porto"
+#KONTO 6310 "FîretagsfîrsÑkring"
+#KONTO 6530 "RedovisningstjÑnster"
+#KONTO 6540 "IT-tjÑnster"
+#KONTO 6570 "Bankkostnader"
+#KONTO 6571 "Kostnader Zettle m.fl."
+#KONTO 6970 "Tidningar, facklitteratur"
+#KONTO 6991 "ôvriga avdragsgilla kostnader"
+#KONTO 6992 "ôvriga ej avdragsgilla kostnader"
+#KONTO 7010 "Lînekostnader"
+#KONTO 7321 "Traktamenten"
+#KONTO 7331 "MilersÑttning"
+#KONTO 7412 "Pensionssparande"
+#KONTO 7510 "Arbetsgivaravgifter"
+#KONTO 7533 "SÑrskild lîneskatt, pensionskostnader"
+#KONTO 7570 "Fora"
+#KONTO 7690 "ôvriga personalkostnader"
+#KONTO 7710 "Nedskrivning av immateriella anlÑggningstillgÜngar"
+#KONTO 7720 "Nedskrivning av byggnader och mark"
+#KONTO 7730 "Nedskrivning av maskiner och inventarier"
+#KONTO 7740 "Nedskrivning av omsÑttningstillgÜngar"
+#KONTO 7790 "èterfîring av nedskrivningar"
+#KONTO 7810 "Avskrivningar pÜ immateriella anlÑggningstillgÜngar"
+#KONTO 7820 "Avskrivningar pÜ byggnader och markanlÑggningar"
+#KONTO 7830 "Avskrivningar pÜ maskiner och inventarier"
+#KONTO 7840 "Avskrivningar pÜ fîrbÑttringsutgifter pÜ annans fastighet"
+#KONTO 7975 "Fîrlust avyttring tillgÜng"
+#KONTO 7990 "ôvriga rîrelsekostnader"
+#KONTO 8010 "Utdelningar pÜ andelar koncern/dotter/intressefîretag"
+#KONTO 8210 "ôvriga utdelningar"
+#KONTO 8270 "Nedskrivning andelar/vÑrdepapper/fordringar"
+#KONTO 8300 "RÑnteinkomst"
+#KONTO 8314 "RÑnteintÑkt, skattekonto"
+#KONTO 8390 "ôvriga finansiella intÑkter"
+#KONTO 8400 "RÑntekostnader"
+#KONTO 8414 "RÑntekostnad, skattekonto"
+#KONTO 8490 "ôvriga finansiella kostnader"
+#KONTO 8811 "AvsÑttning till periodiseringsfond"
+#KONTO 8819 "èterfîring av periodiseringsfond"
+#KONTO 8899 "ôvriga bokslutsdispositioner"
+#KONTO 8910 "Skatt pÜ Ürets resultat"
+#KONTO 8999 "èrets resultat (ResultatrÑkning)"
+#IB 0 1010 0.00
+#IB 0 1079 0.00
+#IB 0 1110 0.00
+#IB 0 1119 0.00
+#IB 0 1130 0.00
+#IB 0 1159 0.00
+#IB 0 1220 0.00
+#IB 0 1229 0.00
+#IB 0 1240 0.00
+#IB 0 1249 0.00
+#IB 0 1350 0.00
+#IB 0 1385 0.00
+#IB 0 1400 0.00
+#IB 0 1510 0.00
+#IB 0 1520 0.00
+#IB 0 1630 0.00
+#IB 0 1650 0.00
+#IB 0 1680 0.00
+#IB 0 1790 0.00
+#IB 0 1910 0.00
+#IB 0 1930 0.00
+#IB 0 1940 0.00
+#IB 0 1950 0.00
+#IB 0 2010 0.00
+#IB 0 2012 0.00
+#IB 0 2013 0.00
+#IB 0 2019 0.00
+#IB 0 2020 0.00
+#IB 0 2023 0.00
+#IB 0 2029 0.00
+#IB 0 2067 0.00
+#IB 0 2069 0.00
+#IB 0 2081 0.00
+#IB 0 2083 0.00
+#IB 0 2084 0.00
+#IB 0 2085 0.00
+#IB 0 2086 0.00
+#IB 0 2090 0.00
+#IB 0 2091 0.00
+#IB 0 2093 0.00
+#IB 0 2094 0.00
+#IB 0 2097 0.00
+#IB 0 2099 0.00
+#IB 0 2100 0.00
+#IB 0 2200 0.00
+#IB 0 2350 0.00
+#IB 0 2390 0.00
+#IB 0 2393 0.00
+#IB 0 2420 0.00
+#IB 0 2440 0.00
+#IB 0 2510 0.00
+#IB 0 2514 0.00
+#IB 0 2611 0.00
+#IB 0 2614 0.00
+#IB 0 2615 0.00
+#IB 0 2617 0.00
+#IB 0 2621 0.00
+#IB 0 2631 0.00
+#IB 0 2641 0.00
+#IB 0 2645 0.00
+#IB 0 2647 0.00
+#IB 0 2650 0.00
+#IB 0 2710 0.00
+#IB 0 2731 0.00
+#IB 0 2800 0.00
+#IB 0 2990 0.00
+#UB 0 1010 0.00
+#UB 0 1079 0.00
+#UB 0 1110 0.00
+#UB 0 1119 0.00
+#UB 0 1130 0.00
+#UB 0 1159 0.00
+#UB 0 1220 0.00
+#UB 0 1229 0.00
+#UB 0 1240 0.00
+#UB 0 1249 0.00
+#UB 0 1350 0.00
+#UB 0 1385 0.00
+#UB 0 1400 0.00
+#UB 0 1510 0.00
+#UB 0 1520 0.00
+#UB 0 1630 0.00
+#UB 0 1650 0.00
+#UB 0 1680 0.00
+#UB 0 1790 0.00
+#UB 0 1910 0.00
+#UB 0 1930 -1663.75
+#UB 0 1940 0.00
+#UB 0 1950 0.00
+#UB 0 2010 0.00
+#UB 0 2012 0.00
+#UB 0 2013 5955.00
+#UB 0 2019 -2797.25
+#UB 0 2020 0.00
+#UB 0 2023 0.00
+#UB 0 2029 0.00
+#UB 0 2067 0.00
+#UB 0 2069 0.00
+#UB 0 2081 0.00
+#UB 0 2083 0.00
+#UB 0 2084 0.00
+#UB 0 2085 0.00
+#UB 0 2086 0.00
+#UB 0 2090 0.00
+#UB 0 2091 0.00
+#UB 0 2093 0.00
+#UB 0 2094 0.00
+#UB 0 2097 0.00
+#UB 0 2099 0.00
+#UB 0 2100 0.00
+#UB 0 2200 0.00
+#UB 0 2350 0.00
+#UB 0 2390 0.00
+#UB 0 2393 0.00
+#UB 0 2420 0.00
+#UB 0 2440 0.00
+#UB 0 2510 0.00
+#UB 0 2514 0.00
+#UB 0 2611 0.00
+#UB 0 2614 0.00
+#UB 0 2615 0.00
+#UB 0 2617 0.00
+#UB 0 2621 0.00
+#UB 0 2631 0.00
+#UB 0 2641 0.00
+#UB 0 2645 0.00
+#UB 0 2647 0.00
+#UB 0 2650 -1494.00
+#UB 0 2710 0.00
+#UB 0 2731 0.00
+#UB 0 2800 0.00
+#UB 0 2990 0.00
+#RES 0 3041 0.00
+#RES 0 3042 0.00
+#RES 0 3043 0.00
+#RES 0 3044 0.00
+#RES 0 3045 0.00
+#RES 0 3048 0.00
+#RES 0 3051 0.00
+#RES 0 3052 0.00
+#RES 0 3053 0.00
+#RES 0 3054 0.00
+#RES 0 3055 0.00
+#RES 0 3056 0.00
+#RES 0 3058 0.00
+#RES 0 3061 0.00
+#RES 0 3062 0.00
+#RES 0 3063 0.00
+#RES 0 3064 0.00
+#RES 0 3065 0.00
+#RES 0 3066 0.00
+#RES 0 3220 0.00
+#RES 0 3224 0.00
+#RES 0 3231 0.00
+#RES 0 3590 0.00
+#RES 0 3740 -0.60
+#RES 0 3911 0.00
+#RES 0 3913 0.00
+#RES 0 3975 0.00
+#RES 0 3990 -9925.00
+#RES 0 3994 0.00
+#RES 0 4010 3776.80
+#RES 0 4011 0.00
+#RES 0 4012 0.00
+#RES 0 4015 0.00
+#RES 0 4056 857.00
+#RES 0 4200 0.00
+#RES 0 4425 0.00
+#RES 0 4531 0.00
+#RES 0 4535 1787.00
+#RES 0 4545 0.00
+#RES 0 4600 0.00
+#RES 0 4990 0.00
+#RES 0 5000 0.00
+#RES 0 5100 0.00
+#RES 0 5200 0.00
+#RES 0 5400 0.00
+#RES 0 5410 0.00
+#RES 0 5460 0.00
+#RES 0 5600 0.00
+#RES 0 5612 0.00
+#RES 0 5615 0.00
+#RES 0 5700 0.00
+#RES 0 5800 0.00
+#RES 0 5900 0.00
+#RES 0 5911 0.00
+#RES 0 6071 0.00
+#RES 0 6072 0.00
+#RES 0 6200 0.00
+#RES 0 6250 0.00
+#RES 0 6310 0.00
+#RES 0 6530 0.00
+#RES 0 6540 0.00
+#RES 0 6570 0.00
+#RES 0 6571 0.00
+#RES 0 6970 0.00
+#RES 0 6991 707.55
+#RES 0 6992 0.00
+#RES 0 7010 0.00
+#RES 0 7321 0.00
+#RES 0 7331 0.00
+#RES 0 7412 0.00
+#RES 0 7510 0.00
+#RES 0 7533 0.00
+#RES 0 7570 0.00
+#RES 0 7690 0.00
+#RES 0 7710 0.00
+#RES 0 7720 0.00
+#RES 0 7730 0.00
+#RES 0 7740 0.00
+#RES 0 7790 0.00
+#RES 0 7810 0.00
+#RES 0 7820 0.00
+#RES 0 7830 0.00
+#RES 0 7840 0.00
+#RES 0 7975 0.00
+#RES 0 7990 0.00
+#RES 0 8010 0.00
+#RES 0 8210 0.00
+#RES 0 8270 0.00
+#RES 0 8300 0.00
+#RES 0 8314 0.00
+#RES 0 8390 0.00
+#RES 0 8400 0.00
+#RES 0 8414 0.00
+#RES 0 8490 0.00
+#RES 0 8811 0.00
+#RES 0 8819 0.00
+#RES 0 8899 0.00
+#RES 0 8910 0.00
+#RES 0 8999 2797.25
+#VER V 1 20170303 "FîrsÑljning tjÑnster"
+{
+#TRANS 1930 {} 5000.00
+#TRANS 2611 {} -1000.00
+#TRANS 3990 {} -4000.00
+}
+#VER V 2 20170323 "FîrsÑljning tjÑnster"
+{
+#TRANS 1930 {} 5656.25
+#TRANS 2611 {} -1131.25
+#TRANS 3990 {} -4525.00
+}
+#VER V 3 20170921 "FîrsÑljning tjÑnster"
+{
+#TRANS 1930 {} 1750.00
+#TRANS 2611 {} -350.00
+#TRANS 3990 {} -1400.00
+}
+#VER V 4 20170715 "Eget uttag"
+{
+#TRANS 1930 {} -5000.00
+#TRANS 2013 {} 5000.00
+}
+#VER V 5 20171120 "Eget uttag"
+{
+#TRANS 1930 {} -955.00
+#TRANS 2013 {} 955.00
+}
+#VER V 6 20170131 "Inkîp Varor"
+{
+#TRANS 1930 {} -957.00
+#TRANS 2641 {} 191.40
+#TRANS 4010 {} 765.60
+}
+#VER V 7 20170201 "Biljetter Inrikes"
+{
+#TRANS 1930 {} -230.00
+#TRANS 2641 {} 13.02
+#TRANS 6991 {} 216.98
+}
+#VER V 8 20170221 "Biljetter Inrikes"
+{
+#TRANS 1930 {} -520.00
+#TRANS 2641 {} 29.43
+#TRANS 6991 {} 490.57
+}
+#VER V 9 20170411 "Inkîp Varor"
+{
+#TRANS 1930 {} -1390.00
+#TRANS 2641 {} 278.00
+#TRANS 4010 {} 1112.00
+}
+#VER V 10 20170708 "Inkîp Varor inom EU"
+{
+#TRANS 1930 {} -276.00
+#TRANS 2614 {} -69.00
+#TRANS 2645 {} 69.00
+#TRANS 4535 {} 276.00
+}
+#VER V 11 20171221 "Inkîp tjÑnster frÜn EU land"
+{
+#TRANS 1930 {} -99.00
+#TRANS 2614 {} -24.75
+#TRANS 2645 {} 24.75
+#TRANS 4535 {} 99.00
+}
+#VER V 12 20171130 "Inkîp Varor"
+{
+#TRANS 1930 {} -1089.00
+#TRANS 2641 {} 217.80
+#TRANS 4010 {} 871.20
+}
+#VER V 13 20170221 "Inkîp tjÑnster frÜn EU land"
+{
+#TRANS 1930 {} -99.00
+#TRANS 2614 {} -24.75
+#TRANS 2645 {} 24.75
+#TRANS 4535 {} 99.00
+}
+#VER V 14 20170422 "Inkîp tjÑnster frÜn EU land"
+{
+#TRANS 1930 {} -99.00
+#TRANS 2614 {} -24.75
+#TRANS 2645 {} 24.75
+#TRANS 4535 {} 99.00
+}
+#VER V 15 20170522 "Inkîp tjÑnster frÜn EU land"
+{
+#TRANS 1930 {} -99.00
+#TRANS 2614 {} -24.75
+#TRANS 2645 {} 24.75
+#TRANS 4535 {} 99.00
+}
+#VER V 16 20170322 "Inkîp tjÑnster frÜn EU land"
+{
+#TRANS 1930 {} -99.00
+#TRANS 2614 {} -24.75
+#TRANS 2645 {} 24.75
+#TRANS 4535 {} 99.00
+}
+#VER V 17 20170622 "Inkîp tjÑnster frÜn EU land"
+{
+#TRANS 1930 {} -99.00
+#TRANS 2614 {} -24.75
+#TRANS 2645 {} 24.75
+#TRANS 4535 {} 99.00
+}
+#VER V 18 20170722 "Inkîp tjÑnster frÜn EU land"
+{
+#TRANS 1930 {} -99.00
+#TRANS 2614 {} -24.75
+#TRANS 2645 {} 24.75
+#TRANS 4535 {} 99.00
+}
+#VER V 19 20170822 "Inkîp tjÑnster frÜn EU land"
+{
+#TRANS 1930 {} -99.00
+#TRANS 2614 {} -24.75
+#TRANS 2645 {} 24.75
+#TRANS 4535 {} 99.00
+}
+#VER V 20 20170922 "Inkîp tjÑnster frÜn EU land"
+{
+#TRANS 1930 {} -99.00
+#TRANS 2614 {} -24.75
+#TRANS 2645 {} 24.75
+#TRANS 4535 {} 99.00
+}
+#VER V 21 20171022 "Inkîp tjÑnster frÜn EU land"
+{
+#TRANS 1930 {} -99.00
+#TRANS 2614 {} -24.75
+#TRANS 2645 {} 24.75
+#TRANS 4535 {} 99.00
+}
+#VER V 22 20171121 "Inkîp tjÑnster frÜn EU land"
+{
+#TRANS 1930 {} -99.00
+#TRANS 2614 {} -24.75
+#TRANS 2645 {} 24.75
+#TRANS 4535 {} 99.00
+}
+#VER V 23 20171117 "Inkîp Varor"
+{
+#TRANS 1930 {} -1285.00
+#TRANS 2641 {} 257.00
+#TRANS 4010 {} 1028.00
+}
+#VER V 24 20171013 "Inkîp tjÑnster frÜn EU land"
+{
+#TRANS 1930 {} -175.00
+#TRANS 2614 {} -43.75
+#TRANS 2645 {} 43.75
+#TRANS 4535 {} 175.00
+}
+#VER V 25 20170411 "Inkîp Varor inom EU"
+{
+#TRANS 1930 {} -43.00
+#TRANS 2614 {} -10.75
+#TRANS 2645 {} 10.75
+#TRANS 4535 {} 43.00
+}
+#VER V 26 20170407 "Inkîp varor utanfîr EU"
+{
+#TRANS 1930 {} -857.00
+#TRANS 4056 {} 857.00
+}
+#VER V 27 20170302 "Inkîp tjÑnster frÜn EU land"
+{
+#TRANS 1930 {} -92.00
+#TRANS 2614 {} -23.00
+#TRANS 2645 {} 23.00
+#TRANS 4535 {} 92.00
+}
+#VER V 28 20161202 "Inkîp Varor inom EU"
+{
+#TRANS 1930 {} -112.00
+#TRANS 2614 {} -28.00
+#TRANS 2645 {} 28.00
+#TRANS 4535 {} 112.00
+}
+#VER V 29 20171231 "Genererad frÜn momsrapport"
+{
+#TRANS 2611 {} 2481.25
+#TRANS 2614 {} 446.75
+#TRANS 2641 {} -986.65
+#TRANS 2645 {} -446.75
+#TRANS 2650 {} -1494.00
+#TRANS 3740 {} -0.60
+}
+#VER V 30 20171231 "Bokslut"
+{
+#TRANS 2019 {} -2797.25
+#TRANS 8999 {} 2797.25
+}
