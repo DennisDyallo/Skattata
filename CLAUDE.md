@@ -98,6 +98,19 @@ When adding new functionality, ensure it works with the existing test file colle
 - **Language Features**: Implicit usings and nullable reference types enabled
 - **Test Framework**: MSTest for unit/integration tests
 
+## Development Plan Tracking
+
+**IMPORTANT**: This project follows a structured development plan located in `DEVELOPMENT_PLAN.md`.
+
+**When working on this project:**
+1. **Always read** `DEVELOPMENT_PLAN.md` first to understand current priorities
+2. **Check task status** before starting work - look for unchecked `[ ]` items
+3. **Update progress** by changing `[ ]` to `[x]` when completing tasks
+4. **Follow the phase order** - complete Phase 1 before moving to Phase 2, etc.
+5. **Use hot reload workflow** - run `dotnet watch run --hot-reload` for fast iteration
+
+**Current Focus**: Building a cross-platform SIE accounting app using .NET MAUI Blazor Hybrid approach for maximum code reuse and development speed.
+
 ## Important Notes
 
 - Always trust the copilot instructions first if commands fail, then explore codebase
