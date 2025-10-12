@@ -8,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<SieFileService>();
+builder.Services.AddScoped<BalanceSheetService>();
+builder.Services.AddScoped<VoucherStorageService>();
 
 var app = builder.Build();
 

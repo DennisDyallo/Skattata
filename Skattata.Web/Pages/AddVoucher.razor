@@ -1,0 +1,263 @@
+@page "/add-voucher"
+@using Skattata.Web.Services
+@inject VoucherStorageService VoucherStorage
+@inject NavigationManager Navigation
+
+<PageTitle>Add Voucher</PageTitle>
+
+<h1>Add Voucher</h1>
+<p class="text-muted">Create a new accounting voucher</p>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Error:</strong> @errorMessage
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success" role="alert">
+        <strong>Success!</strong> @successMessage
+        <div class="mt-2">
+            <button class="btn btn-primary btn-sm" @onclick="CreateAnother">Create Another</button>
+            <a href="/balance-sheet" class="btn btn-secondary btn-sm ms-2">View Balance Sheet</a>
+        </div>
+    </div>
+}
+
+<div class="card">
+    <div class="card-body">
+        <EditForm Model="@voucher" OnValidSubmit="HandleSubmit">
+            <DataAnnotationsValidator />
+
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="series" class="form-label">Series</label>
+                    <InputText id="series" class="form-control" @bind-Value="voucher.Series" placeholder="A, B, etc." />
+                    <ValidationMessage For="@(() => voucher.Series)" />
+                </div>
+                <div class="col-md-3">
+                    <label for="number" class="form-label">Number</label>
+                    <InputText id="number" class="form-control" @bind-Value="voucher.Number" placeholder="1, 2, 3..." />
+                    <ValidationMessage For="@(() => voucher.Number)" />
+                </div>
+                <div class="col-md-3">
+                    <label for="date" class="form-label">Date</label>
+                    <InputDate id="date" class="form-control" @bind-Value="voucherDate" />
+                </div>
+                <div class="col-md-3">
+                    <label for="text" class="form-label">Description</label>
+                    <InputText id="text" class="form-control" @bind-Value="voucher.Text" placeholder="Optional" />
+                </div>
+            </div>
+
+            <h5 class="mb-3">Voucher Rows</h5>
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 150px;">Account Number</th>
+                            <th>Description</th>
+                            <th style="width: 150px;">Debit</th>
+                            <th style="width: 150px;">Credit</th>
+                            <th style="width: 80px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < voucher.Rows.Count; i++)
+                        {
+                            var index = i;
+                            var row = voucher.Rows[index];
+                            <tr>
+                                <td>
+                                    <InputText class="form-control form-control-sm" @bind-Value="row.AccountNumber" placeholder="1000" />
+                                </td>
+                                <td>
+                                    <InputText class="form-control form-control-sm" @bind-Value="row.RowText" placeholder="Description" />
+                                </td>
+                                <td>
+                                    <InputNumber class="form-control form-control-sm text-end" @bind-Value="row.DebitAmount"
+                                                 @oninput="@((e) => HandleDebitInput(index, e.Value?.ToString()))"
+                                                 placeholder="0.00" />
+                                </td>
+                                <td>
+                                    <InputNumber class="form-control form-control-sm text-end" @bind-Value="row.CreditAmount"
+                                                 @oninput="@((e) => HandleCreditInput(index, e.Value?.ToString()))"
+                                                 placeholder="0.00" />
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => RemoveRow(index)">
+                                        <span class="oi oi-trash"></span>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-secondary">
+                            <td colspan="2"><strong>Totals:</strong></td>
+                            <td class="text-end"><strong>@TotalDebit.ToString("N2")</strong></td>
+                            <td class="text-end"><strong>@TotalCredit.ToString("N2")</strong></td>
+                            <td></td>
+                        </tr>
+                        <tr class="@(IsBalanced ? "table-success" : "table-danger")">
+                            <td colspan="4">
+                                @if (IsBalanced)
+                                {
+                                    <span class="text-success"><span class="oi oi-check me-1"></span>Voucher is balanced</span>
+                                }
+                                else
+                                {
+                                    <span class="text-danger"><span class="oi oi-warning me-1"></span>Voucher is not balanced (Difference: @Math.Abs(TotalDebit - TotalCredit).ToString("N2"))</span>
+                                }
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="mb-3">
+                <button type="button" class="btn btn-secondary btn-sm" @onclick="AddRow">
+                    <span class="oi oi-plus me-1"></span>Add Row
+                </button>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary" disabled="@(!IsBalanced || isSaving)">
+                    @if (isSaving)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span>Saving...</span>
+                    }
+                    else
+                    {
+                        <span class="oi oi-check me-1"></span>
+                        <span>Save Voucher</span>
+                    }
+                </button>
+                <a href="/balance-sheet" class="btn btn-secondary">Cancel</a>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private VoucherInput voucher = new();
+    private DateTime voucherDate = DateTime.Today;
+    private bool isSaving = false;
+    private string? errorMessage;
+    private string? successMessage;
+
+    protected override void OnInitialized()
+    {
+        // Add two default rows
+        AddRow();
+        AddRow();
+    }
+
+    private void AddRow()
+    {
+        voucher.Rows.Add(new VoucherRowInput());
+    }
+
+    private void RemoveRow(int index)
+    {
+        if (voucher.Rows.Count > 1)
+        {
+            voucher.Rows.RemoveAt(index);
+        }
+    }
+
+    private void HandleDebitInput(int index, string? value)
+    {
+        if (decimal.TryParse(value, out var debit) && debit > 0)
+        {
+            voucher.Rows[index].CreditAmount = 0;
+        }
+    }
+
+    private void HandleCreditInput(int index, string? value)
+    {
+        if (decimal.TryParse(value, out var credit) && credit > 0)
+        {
+            voucher.Rows[index].DebitAmount = 0;
+        }
+    }
+
+    private decimal TotalDebit => voucher.Rows.Sum(r => r.DebitAmount);
+    private decimal TotalCredit => voucher.Rows.Sum(r => r.CreditAmount);
+    private bool IsBalanced => Math.Abs(TotalDebit - TotalCredit) < 0.01m && TotalDebit > 0;
+
+    private async Task HandleSubmit()
+    {
+        isSaving = true;
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            // Convert to StoredVoucher format
+            var storedVoucher = new StoredVoucher
+            {
+                Series = voucher.Series,
+                Number = voucher.Number,
+                Date = voucherDate.ToString("yyyy-MM-dd"),
+                Text = voucher.Text
+            };
+
+            // Convert rows with debit/credit to signed amounts
+            foreach (var row in voucher.Rows)
+            {
+                if (row.DebitAmount > 0 || row.CreditAmount > 0)
+                {
+                    storedVoucher.Rows.Add(new StoredVoucherRow
+                    {
+                        AccountNumber = row.AccountNumber,
+                        Amount = row.DebitAmount > 0 ? row.DebitAmount : -row.CreditAmount,
+                        RowText = row.RowText
+                    });
+                }
+            }
+
+            var id = await VoucherStorage.AddVoucherAsync(storedVoucher);
+            successMessage = $"Voucher {voucher.Series} {voucher.Number} saved successfully with ID {id}";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void CreateAnother()
+    {
+        voucher = new VoucherInput();
+        voucherDate = DateTime.Today;
+        successMessage = null;
+        errorMessage = null;
+        AddRow();
+        AddRow();
+    }
+
+    public class VoucherInput
+    {
+        public string Series { get; set; } = "";
+        public string Number { get; set; } = "";
+        public string Text { get; set; } = "";
+        public List<VoucherRowInput> Rows { get; set; } = new();
+    }
+
+    public class VoucherRowInput
+    {
+        public string AccountNumber { get; set; } = "";
+        public string RowText { get; set; } = "";
+        public decimal DebitAmount { get; set; }
+        public decimal CreditAmount { get; set; }
+    }
+}
