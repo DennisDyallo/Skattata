@@ -1,0 +1,140 @@
+@page "/vouchers"
+@using Skattata.Web.Services
+@using Skattata.Core
+@inject SieFileService SieService
+@implements IDisposable
+
+<PageTitle>Vouchers</PageTitle>
+
+<h1>Vouchers</h1>
+
+@if (SieService.CurrentDocument == null)
+{
+    <div class="alert alert-warning" role="alert">
+        No SIE file loaded. Please <a href="/upload" class="alert-link">upload a file</a> first.
+    </div>
+}
+else
+{
+    var vouchers = SieService.CurrentDocument.Vouchers;
+
+    <div class="mb-3">
+        <p class="text-muted">Showing @vouchers.Count voucher(s)</p>
+    </div>
+
+    @if (vouchers.Count == 0)
+    {
+        <div class="alert alert-info" role="alert">
+            No vouchers found in this SIE file.
+        </div>
+    }
+    else
+    {
+        <div class="accordion" id="vouchersAccordion">
+            @for (int i = 0; i < vouchers.Count; i++)
+            {
+                var voucher = vouchers[i];
+                var voucherIndex = i;
+                var collapseId = $"collapse{voucherIndex}";
+                var headingId = $"heading{voucherIndex}";
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="@headingId">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
+                            <div class="d-flex justify-content-between w-100 pe-3">
+                                <span>
+                                    <strong>@voucher.Series @voucher.Number</strong>
+                                    @if (!string.IsNullOrEmpty(voucher.Text))
+                                    {
+                                        <span class="ms-2 text-muted">- @voucher.Text</span>
+                                    }
+                                </span>
+                                <span class="text-muted">@voucher.Date.ToString("yyyy-MM-dd")</span>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="@collapseId" class="accordion-collapse collapse" aria-labelledby="@headingId"
+                         data-bs-parent="#vouchersAccordion">
+                        <div class="accordion-body">
+                            <dl class="row mb-3">
+                                <dt class="col-sm-3">Series:</dt>
+                                <dd class="col-sm-9">@voucher.Series</dd>
+
+                                <dt class="col-sm-3">Number:</dt>
+                                <dd class="col-sm-9">@voucher.Number</dd>
+
+                                <dt class="col-sm-3">Date:</dt>
+                                <dd class="col-sm-9">@voucher.Date.ToString("yyyy-MM-dd")</dd>
+
+                                @if (voucher.RegistrationDate != DateTime.MinValue)
+                                {
+                                    <dt class="col-sm-3">Registration Date:</dt>
+                                    <dd class="col-sm-9">@voucher.RegistrationDate.ToString("yyyy-MM-dd")</dd>
+                                }
+
+                                @if (!string.IsNullOrEmpty(voucher.Text))
+                                {
+                                    <dt class="col-sm-3">Text:</dt>
+                                    <dd class="col-sm-9">@voucher.Text</dd>
+                                }
+                            </dl>
+
+                            <h6>Rows</h6>
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Account</th>
+                                        <th>Description</th>
+                                        <th class="text-end">Amount</th>
+                                        <th>Dimensions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var row in voucher.Rows)
+                                    {
+                                        <tr>
+                                            <td><code>@row.AccountNumber</code></td>
+                                            <td>@row.RowText</td>
+                                            <td class="text-end">@row.Amount.ToString("N2")</td>
+                                            <td>
+                                                @if (row.Objects.Any())
+                                                {
+                                                    @foreach (var obj in row.Objects)
+                                                    {
+                                                        <span class="badge bg-info text-dark me-1">
+                                                            Dim @obj.DimensionNumber: @obj.Number
+                                                        </span>
+                                                    }
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-secondary">
+                                        <td colspan="2" class="text-end"><strong>Total:</strong></td>
+                                        <td class="text-end"><strong>@voucher.Rows.Sum(r => r.Amount).ToString("N2")</strong></td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        SieService.OnDocumentChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        SieService.OnDocumentChanged -= StateHasChanged;
+    }
+}

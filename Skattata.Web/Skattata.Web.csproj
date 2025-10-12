@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Skattata.Core/Skattata.Core.csproj" />
+    <ProjectReference Include="..\Skattata.Core\Skattata.Core.csproj" />
   </ItemGroup>
 
 </Project>

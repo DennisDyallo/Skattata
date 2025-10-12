@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Skattata.WebApp", "Skattata.WebApp\Skattata.WebApp.csproj", "{E4841ED7-7955-4676-9FAC-3B4AC357D358}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Skattata.Web", "Skattata.Web\Skattata.Web.csproj", "{86B9B130-947A-478B-B02F-7E3039151761}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{E4841ED7-7955-4676-9FAC-3B4AC357D358}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4841ED7-7955-4676-9FAC-3B4AC357D358}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E4841ED7-7955-4676-9FAC-3B4AC357D358}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86B9B130-947A-478B-B02F-7E3039151761}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86B9B130-947A-478B-B02F-7E3039151761}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86B9B130-947A-478B-B02F-7E3039151761}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86B9B130-947A-478B-B02F-7E3039151761}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
