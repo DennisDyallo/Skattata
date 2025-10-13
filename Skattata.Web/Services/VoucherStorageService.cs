@@ -68,6 +68,59 @@ public class VoucherStorageService
         }
     }
 
+    // Read file as Base64 for storage
+    public async Task<PdfFileData?> ReadPdfFileAsync(string fileInputId)
+    {
+        try
+        {
+            Console.WriteLine($"[VoucherStorageService] Calling JS readFileAsBase64 for element: {fileInputId}");
+
+            var result = await _jsRuntime.InvokeAsync<PdfFileData>(
+                "readFileAsBase64",
+                fileInputId
+            );
+
+            Console.WriteLine($"[VoucherStorageService] JS call completed. Result: {(result != null ? $"FileName={result.FileName}, Size={result.Size}" : "null")}");
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[VoucherStorageService] Error reading PDF file: {ex.GetType().Name} - {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"[VoucherStorageService] Inner exception: {ex.InnerException.GetType().Name} - {ex.InnerException.Message}");
+            }
+            throw new Exception($"Failed to read PDF file: {ex.Message}", ex);
+        }
+    }
+
+    // Download PDF from voucher
+    public async Task DownloadPdfAsync(string base64Data, string fileName, string contentType)
+    {
+        try
+        {
+            await _jsRuntime.InvokeVoidAsync("downloadPdf", base64Data, fileName, contentType);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Failed to download PDF: {ex.Message}", ex);
+        }
+    }
+
+    // Create blob URL for PDF preview
+    public async Task<string> CreatePdfBlobUrlAsync(string base64Data, string contentType)
+    {
+        try
+        {
+            return await _jsRuntime.InvokeAsync<string>("createBlobUrl", base64Data, contentType);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Failed to create blob URL: {ex.Message}", ex);
+        }
+    }
+
     // Convert StoredVoucher to SieVoucher for integration with existing code
     public SieVoucher ToSieVoucher(StoredVoucher storedVoucher)
     {
@@ -110,6 +163,11 @@ public class StoredVoucher
     public string Text { get; set; } = "";
     public string? RegistrationDate { get; set; }
     public List<StoredVoucherRow> Rows { get; set; } = new();
+
+    // PDF attachment support
+    public string? PdfFileName { get; set; }
+    public string? PdfContentType { get; set; }
+    public string? PdfDataBase64 { get; set; }
 }
 
 public class StoredVoucherRow
@@ -117,4 +175,12 @@ public class StoredVoucherRow
     public string AccountNumber { get; set; } = "";
     public decimal Amount { get; set; }
     public string RowText { get; set; } = "";
+}
+
+public class PdfFileData
+{
+    public string FileName { get; set; } = "";
+    public string ContentType { get; set; } = "";
+    public string Base64Data { get; set; } = "";
+    public long Size { get; set; }
 }

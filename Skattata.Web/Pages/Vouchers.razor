@@ -2,38 +2,148 @@
 @using Skattata.Web.Services
 @using Skattata.Core
 @inject SieFileService SieService
+@inject VoucherStorageService VoucherStorage
 @implements IDisposable
 
 <PageTitle>Vouchers</PageTitle>
 
 <h1>Vouchers</h1>
 
-@if (SieService.CurrentDocument == null)
+<div class="mb-3">
+    <p class="text-muted">
+        @if (sieVouchers.Any() && storedVouchers.Any())
+        {
+            <span>Showing @sieVouchers.Count voucher(s) from SIE files and @storedVouchers.Count manually entered voucher(s)</span>
+        }
+        else if (sieVouchers.Any())
+        {
+            <span>Showing @sieVouchers.Count voucher(s) from SIE files</span>
+        }
+        else if (storedVouchers.Any())
+        {
+            <span>Showing @storedVouchers.Count manually entered voucher(s)</span>
+        }
+        else
+        {
+            <span>No vouchers found</span>
+        }
+    </p>
+</div>
+
+@if (!sieVouchers.Any() && !storedVouchers.Any())
 {
-    <div class="alert alert-warning" role="alert">
-        No SIE file loaded. Please <a href="/upload" class="alert-link">upload a file</a> first.
+    <div class="alert alert-info" role="alert">
+        No vouchers found. You can <a href="/upload" class="alert-link">upload a SIE file</a> or <a href="/add-voucher" class="alert-link">create a voucher manually</a>.
     </div>
 }
 else
 {
-    var vouchers = SieService.CurrentDocument.Vouchers;
-
-    <div class="mb-3">
-        <p class="text-muted">Showing @vouchers.Count voucher(s)</p>
-    </div>
-
-    @if (vouchers.Count == 0)
+    @if (storedVouchers.Any())
     {
-        <div class="alert alert-info" role="alert">
-            No vouchers found in this SIE file.
+        <h3>Manually Entered Vouchers</h3>
+        <div class="accordion mb-4" id="manualVouchersAccordion">
+            @for (int i = 0; i < storedVouchers.Count; i++)
+            {
+                var storedVoucher = storedVouchers[i];
+                var voucherIndex = i;
+                var collapseId = $"manual-collapse{voucherIndex}";
+                var headingId = $"manual-heading{voucherIndex}";
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="@headingId">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
+                            <div class="d-flex justify-content-between w-100 pe-3">
+                                <span>
+                                    <strong>@storedVoucher.Series @storedVoucher.Number</strong>
+                                    @if (!string.IsNullOrEmpty(storedVoucher.Text))
+                                    {
+                                        <span class="ms-2 text-muted">- @storedVoucher.Text</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(storedVoucher.PdfFileName))
+                                    {
+                                        <span class="ms-2">
+                                            <span class="badge bg-info">
+                                                <span class="oi oi-paperclip me-1"></span>PDF
+                                            </span>
+                                        </span>
+                                    }
+                                </span>
+                                <span class="text-muted">@storedVoucher.Date</span>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="@collapseId" class="accordion-collapse collapse" aria-labelledby="@headingId"
+                         data-bs-parent="#manualVouchersAccordion">
+                        <div class="accordion-body">
+                            <dl class="row mb-3">
+                                <dt class="col-sm-3">Series:</dt>
+                                <dd class="col-sm-9">@storedVoucher.Series</dd>
+
+                                <dt class="col-sm-3">Number:</dt>
+                                <dd class="col-sm-9">@storedVoucher.Number</dd>
+
+                                <dt class="col-sm-3">Date:</dt>
+                                <dd class="col-sm-9">@storedVoucher.Date</dd>
+
+                                @if (!string.IsNullOrEmpty(storedVoucher.Text))
+                                {
+                                    <dt class="col-sm-3">Text:</dt>
+                                    <dd class="col-sm-9">@storedVoucher.Text</dd>
+                                }
+
+                                @if (!string.IsNullOrEmpty(storedVoucher.PdfFileName))
+                                {
+                                    <dt class="col-sm-3">Attachment:</dt>
+                                    <dd class="col-sm-9">
+                                        <button class="btn btn-sm btn-primary" @onclick="@(() => DownloadPdf(storedVoucher))">
+                                            <span class="oi oi-data-transfer-download me-1"></span>
+                                            Download @storedVoucher.PdfFileName
+                                        </button>
+                                    </dd>
+                                }
+                            </dl>
+
+                            <h6>Rows</h6>
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Account</th>
+                                        <th>Description</th>
+                                        <th class="text-end">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var row in storedVoucher.Rows)
+                                    {
+                                        <tr>
+                                            <td><code>@row.AccountNumber</code></td>
+                                            <td>@row.RowText</td>
+                                            <td class="text-end">@row.Amount.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-secondary">
+                                        <td colspan="2" class="text-end"><strong>Total:</strong></td>
+                                        <td class="text-end"><strong>@storedVoucher.Rows.Sum(r => r.Amount).ToString("N2")</strong></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     }
-    else
+
+    @if (sieVouchers.Any())
     {
+        <h3>SIE File Vouchers</h3>
         <div class="accordion" id="vouchersAccordion">
-            @for (int i = 0; i < vouchers.Count; i++)
+            @for (int i = 0; i < sieVouchers.Count; i++)
             {
-                var voucher = vouchers[i];
+                var voucher = sieVouchers[i];
                 var voucherIndex = i;
                 var collapseId = $"collapse{voucherIndex}";
                 var headingId = $"heading{voucherIndex}";
@@ -128,13 +238,62 @@ else
 }
 
 @code {
-    protected override void OnInitialized()
+    private List<SieVoucher> sieVouchers = new();
+    private List<StoredVoucher> storedVouchers = new();
+
+    protected override async Task OnInitializedAsync()
     {
-        SieService.OnDocumentChanged += StateHasChanged;
+        await LoadVouchersAsync();
+        SieService.OnDocumentChanged += OnDocumentChanged;
+        VoucherStorage.OnVouchersChanged += OnVouchersChanged;
+    }
+
+    private async void OnDocumentChanged()
+    {
+        await LoadVouchersAsync();
+        StateHasChanged();
+    }
+
+    private async void OnVouchersChanged()
+    {
+        await LoadVouchersAsync();
+        StateHasChanged();
+    }
+
+    private async Task LoadVouchersAsync()
+    {
+        // Load SIE file vouchers
+        sieVouchers = SieService.CurrentDocument?.Vouchers ?? new List<SieVoucher>();
+
+        // Load manually entered vouchers from IndexedDB
+        storedVouchers = await VoucherStorage.GetAllVouchersAsync();
+    }
+
+    private async Task DownloadPdf(StoredVoucher voucher)
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(voucher.PdfDataBase64) &&
+                !string.IsNullOrEmpty(voucher.PdfFileName) &&
+                !string.IsNullOrEmpty(voucher.PdfContentType))
+            {
+                await VoucherStorage.DownloadPdfAsync(
+                    voucher.PdfDataBase64,
+                    voucher.PdfFileName,
+                    voucher.PdfContentType
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            // Could add error handling UI here
+            Console.WriteLine($"Error downloading PDF: {ex.Message}");
+        }
     }
 
     public void Dispose()
     {
-        SieService.OnDocumentChanged -= StateHasChanged;
+        SieService.OnDocumentChanged -= OnDocumentChanged;
+        VoucherStorage.OnVouchersChanged -= OnVouchersChanged;
     }
 }

@@ -52,6 +52,40 @@
                 </div>
             </div>
 
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label for="pdfFile" class="form-label">
+                        <span class="oi oi-paperclip me-1"></span>Attach PDF
+                    </label>
+                    <input type="file" id="pdfFile" class="form-control" accept=".pdf,application/pdf" @ref="fileInputRef" @onchange="HandleFileSelected" />
+                    @if (isLoadingFile)
+                    {
+                        <div class="mt-2">
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            <span>Reading file...</span>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(attachedFileName) && !isLoadingFile)
+                    {
+                        <div class="mt-2">
+                            <span class="badge bg-success">
+                                <span class="oi oi-check me-1"></span>
+                                @attachedFileName (@FormatFileSize(attachedFileSize))
+                            </span>
+                            <button type="button" class="btn btn-sm btn-link text-danger" @onclick="ClearAttachment">
+                                Remove
+                            </button>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(fileErrorMessage))
+                    {
+                        <div class="mt-2 alert alert-warning alert-sm">
+                            @fileErrorMessage
+                        </div>
+                    }
+                </div>
+            </div>
+
             <h5 class="mb-3">Voucher Rows</h5>
 
             <div class="table-responsive">
@@ -126,7 +160,7 @@
             </div>
 
             <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary" disabled="@(!IsBalanced || isSaving)">
+                <button type="submit" class="btn btn-primary" disabled="@(!IsBalanced || isSaving || isLoadingFile)">
                     @if (isSaving)
                     {
                         <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
@@ -140,6 +174,14 @@
                 </button>
                 <a href="/balance-sheet" class="btn btn-secondary">Cancel</a>
             </div>
+
+            @if (pdfFileData != null)
+            {
+                <div class="mt-2 small text-muted">
+                    <span class="oi oi-info me-1"></span>
+                    PDF will be saved with voucher (@FormatFileSize(attachedFileSize))
+                </div>
+            }
         </EditForm>
     </div>
 </div>
@@ -148,14 +190,87 @@
     private VoucherInput voucher = new();
     private DateTime voucherDate = DateTime.Today;
     private bool isSaving = false;
+    private bool isLoadingFile = false;
     private string? errorMessage;
     private string? successMessage;
+    private string? fileErrorMessage;
+
+    // PDF attachment tracking
+    private PdfFileData? pdfFileData;
+    private string? attachedFileName;
+    private long attachedFileSize;
+    private ElementReference fileInputRef;
 
     protected override void OnInitialized()
     {
         // Add two default rows
         AddRow();
         AddRow();
+    }
+
+    private async Task HandleFileSelected(ChangeEventArgs e)
+    {
+        Console.WriteLine("[AddVoucher] HandleFileSelected called");
+        isLoadingFile = true;
+        fileErrorMessage = null;
+        pdfFileData = null;
+        attachedFileName = null;
+
+        try
+        {
+            Console.WriteLine("[AddVoucher] Calling ReadPdfFileAsync...");
+            pdfFileData = await VoucherStorage.ReadPdfFileAsync("pdfFile");
+            Console.WriteLine($"[AddVoucher] ReadPdfFileAsync returned: {(pdfFileData != null ? "success" : "null")}");
+
+            if (pdfFileData != null)
+            {
+                attachedFileName = pdfFileData.FileName;
+                attachedFileSize = pdfFileData.Size;
+
+                Console.WriteLine($"[AddVoucher] PDF attached: {attachedFileName}, Size: {attachedFileSize} bytes");
+
+                // Validate file size (50MB limit)
+                if (attachedFileSize > 50 * 1024 * 1024)
+                {
+                    Console.WriteLine("[AddVoucher] File too large, clearing attachment");
+                    fileErrorMessage = "File is too large. Maximum size is 50MB.";
+                    ClearAttachment();
+                }
+                else
+                {
+                    Console.WriteLine("[AddVoucher] File attachment successful");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AddVoucher] Exception in HandleFileSelected: {ex.GetType().Name} - {ex.Message}");
+            fileErrorMessage = $"Error reading file: {ex.Message}";
+            ClearAttachment();
+        }
+        finally
+        {
+            Console.WriteLine("[AddVoucher] HandleFileSelected complete, setting isLoadingFile = false");
+            isLoadingFile = false;
+        }
+    }
+
+    private void ClearAttachment()
+    {
+        pdfFileData = null;
+        attachedFileName = null;
+        attachedFileSize = 0;
+        fileErrorMessage = null;
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024)
+            return $"{bytes} B";
+        else if (bytes < 1024 * 1024)
+            return $"{bytes / 1024.0:F1} KB";
+        else
+            return $"{bytes / (1024.0 * 1024.0):F1} MB";
     }
 
     private void AddRow()
@@ -208,6 +323,21 @@
                 Text = voucher.Text
             };
 
+            // Add PDF attachment if present
+            if (pdfFileData != null)
+            {
+                storedVoucher.PdfFileName = pdfFileData.FileName;
+                storedVoucher.PdfContentType = pdfFileData.ContentType;
+                storedVoucher.PdfDataBase64 = pdfFileData.Base64Data;
+
+                // Debug log
+                Console.WriteLine($"Attaching PDF: {pdfFileData.FileName}, Size: {pdfFileData.Size}, Base64 length: {pdfFileData.Base64Data?.Length ?? 0}");
+            }
+            else
+            {
+                Console.WriteLine("No PDF data to attach");
+            }
+
             // Convert rows with debit/credit to signed amounts
             foreach (var row in voucher.Rows)
             {
@@ -223,11 +353,13 @@
             }
 
             var id = await VoucherStorage.AddVoucherAsync(storedVoucher);
-            successMessage = $"Voucher {voucher.Series} {voucher.Number} saved successfully with ID {id}";
+            var attachmentInfo = pdfFileData != null ? $" with PDF attachment ({pdfFileData.FileName})" : "";
+            successMessage = $"Voucher {voucher.Series} {voucher.Number} saved successfully with ID {id}{attachmentInfo}";
         }
         catch (Exception ex)
         {
-            errorMessage = ex.Message;
+            errorMessage = $"Save failed: {ex.Message}";
+            Console.WriteLine($"Error saving voucher: {ex}");
         }
         finally
         {
@@ -241,6 +373,7 @@
         voucherDate = DateTime.Today;
         successMessage = null;
         errorMessage = null;
+        ClearAttachment();
         AddRow();
         AddRow();
     }
