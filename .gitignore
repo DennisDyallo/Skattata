@@ -1,5 +1,6 @@
 bin/
 obj/
+node_modules/
 # NuGet packages (now unused — TypeScript packages/ is source)
 # /packages/
 riderModule.iml
