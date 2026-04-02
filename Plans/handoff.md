@@ -2,79 +2,76 @@
 
 **Date:** 2026-04-02
 **Branch:** main
-**Last commit:** `7ceb092` — feat: fix financial statement calculations + rename test files + synthetic vectors
+**Last commit:** `76d88a2` — feat: complete enskild firma production-readiness (items 1-9)
+**Unpushed commits:** 0 (check before assuming — run `git status`)
 
 ---
 
 ## Session Summary
 
-This session completed a full TypeScript port of the Skattata SIE accounting library from C#, ran it through DevTeam Engineer→Reviewer cycles, built a 7-command CLI for Swedish accounting file analysis, fixed critical accounting calculation bugs (balance sheet sign convention, moms net VAT formula, income statement field priority), renamed all 127 test files to a uniform taxonomy, and created 6 synthetic SIE test files with provable expected outputs. The repo is clean on `main` with 156 tests passing and 127/127 SIE files passing E2E.
+This session completed the full 9-item enskild firma production-readiness plan from `Plans/smooth-gathering-kazoo.md`. The previous session had drafted the plan and partially applied items 1+4 (yearId support + BAS 7xxx split in IncomeStatementCalculator) but left them uncommitted. This session committed that work, completed all remaining 7 items, added 8 new e2e tests and a new synthetic test file, and verified 164 pass / 0 fail and 127/127 test-all.
 
 ---
 
 ## Current State
 
-### Committed Work (this session — key commits)
+### Committed Work (this session)
 
-| Commit | What |
-|---|---|
-| `7ceb092` | Fix financial statement calcs + rename 127 test files + 6 synthetic vectors + 10 E2E tests |
-| `44a2b52` | README for humans, CLAUDE.md for agents (clear split) |
-| `e1c3a6d` | Comprehensive `--help` text for all 7 CLI commands |
-| `0c33bb1` | `sru-report` command + `.sru` file generation (SKV 269) + 27 unit tests + LOW parser fixes |
-| `3840046` | 4 SIE5 XML variant test files from iCalcreator/Sie5Sdk |
-| `c0d1efd` | 51 edge-case test vectors from blinfo/Sie4j |
-| `90aa5bb` | Major parser improvements: tab separators, BOM, on-demand creation, yearBalances, PSALDO objects, safeParseFloat |
-| `c35db46` | Removed C# codebase — TypeScript port is now the sole implementation |
+- `15ea23c` — feat: yearId support + BAS 7xxx split in IncomeStatementCalculator (items 1+4)
+- `76d88a2` — feat: complete enskild firma production-readiness (items 1-9)
 
 ### Uncommitted Changes
-None — repo is clean.
+
+- `.claude/worktrees/agent-ad6d12d2` — deleted worktree entry (stale reference, safe to ignore)
+- `Plans/handoff.md` — this file (being written now)
+- `Plans/smooth-gathering-kazoo.md` — untracked (the plan document; no edits needed)
 
 ### Build & Test Status
+
 ```
-156 pass · 4 skip · 0 fail
-160 tests across 9 files (1.71s)
+164 pass · 4 skip · 0 fail
 127/127 SIE files pass test-all
 ```
 
 ### Worktree / Parallel Agent State
-None — single worktree on `main`.
+
+None. One stale worktree entry (`.claude/worktrees/agent-ad6d12d2`) appears in `git diff --stat` as a deletion — it's an internal Claude Code tracking file, not a real git worktree. `git worktree list` shows only the main worktree.
+
+---
+
+## Readiness Assessment
+
+**Target:** Swedish sole proprietors (enskild firma) who need to review accounting data from SIE exports, generate momsdeklaration output, and produce NE-bilaga SRU files for Skatteverket submission.
+
+| Need | Status | Notes |
+|---|---|---|
+| Parse any real-world SIE file | ✅ Working | 127/127 files pass; SIE 1-5, CP437, XML |
+| Balance sheet for any booking year | ✅ Working | `--year` now wired; uses yearBalances correctly |
+| Prior-year income statement comparison | ✅ Working | `--year` wired, BAS 7xxx split into Personnel/Depreciation/Opex |
+| Egenavgifter estimate for enskild firma | ✅ Working | `--enskild-firma` flag; 28.97% rate; prominently labelled estimate |
+| Momsdeklaration (VAT return) | ✅ Working | Range-based scan: 2610-2669 (VAT accounts), 3000-3999 (sales base); EU transactions not handled |
+| NE-bilaga SRU file generation | ⚠️ Partial | Passes through `#SRU` tags from SIE file correctly; no hardcoded NE field mapping if `#SRU` absent; egenavgifter SRU codes not yet verified from SKV 269 NE fältförteckning |
+| Skatteverket SRU format compliance | ✅ Working | `#TAXAR`, CRLF endings, `#FILNAMN BLANKETTER.SRU`, hard error on missing/invalid orgNr |
+| NE-bilaga validation | ✅ Working | Exits with code 1 + named account warning if no SRU codes found; warns if revenue section absent |
+
+**Overall:** 🟢 Production — reliable for sole proprietors reviewing accounts and generating momsdeklaration. NE-bilaga submission depends on accounting software having exported `#SRU` tags; egenavgifter SRU field codes are not yet in the SRU output file (display only).
+
+**Critical next step:** Verify egenavgifter SRU field codes from SKV 269 NE fältförteckning and add them to `SruFileWriter` when `--form ne` is used. This is the only remaining gap between display output and a complete, submittable NE-bilaga SRU file.
 
 ---
 
 ## What's Next (Prioritized)
 
-1. **Push to GitHub** — all work is local, nothing has been pushed.
-   ```bash
-   git push origin main
-   ```
-
-2. **Fix remaining deferred audit items** — 4 LOW items from the parser audit:
-   - `parseDate` returns `new Date(0)` sentinel for invalid input — could add `Date | null` type (low risk)
-   - `normalizePsaldoTokens` edge case when PSALDO has no brace block at all (now partially fixed; verify with new test)
-   - `yearBalances` sort order (confirmed correct — descending = current year first per SIE spec)
-   - CRLF line endings in writer — intentional per SIE spec but not configurable
-
-3. **`sru-report` sign convention for SRU output** — SRU 7410 test shows `-40000` (raw revenue sign). Revenue accounts (3xxx) are credit/negative in SIE. The `SruReportCalculator` should negate revenue accounts the same way `IncomeStatementCalculator` now does, so SRU 7410 shows `40000` not `-40000`. One-line fix in `SruReportCalculator.ts` balanceField logic.
-
-4. **Add `info.sru` generation** — `sru-report --output file.sru` generates `blanketter.sru` but a full Skatteverket submission also needs `info.sru` (company metadata companion file). Deferred — document in README.
-
-5. **Add `skattata` as global binary** — `bun link` in `packages/cli/` so `skattata` runs without the `bun run packages/cli/src/index.ts` prefix.
-   ```bash
-   cd packages/cli && bun link
-   ```
-
-6. **Update CLAUDE.md** — several new things since last update: 133 total test files (127 + 6 synthetic), all test file names changed, `balanceDiff` semantics documented.
-
-7. **Update README** — test count is still showing old numbers; add `sru-report` example with real output.
-
----
+1. **Verify egenavgifter SRU codes from SKV 269** — Research SKV 269 Bilaga NE fältförteckning for the exact 4-digit codes for egenavgifter contribution base (R40/R41/R43 are candidate labels but not confirmed). Once verified, add `#UPPGIFT <code> <amount>` to `SruFileWriter` when `form === 'NE'`.
+2. **EU moms fields (20–37)** — Extend `MomsCalculator` with BAS ranges 2614-2615, 2645-2647; map to SKV 4700 fields 20, 30-32, 35-37. Auto-detect or gate on `--eu` flag.
+3. **F-skatt (preliminary tax) command** — `skattata f-skatt <file> --municipality-rate 0.32` — see "Next Ups" section of `Plans/smooth-gathering-kazoo.md` for full formula.
+4. **Räntefördelning flag** — Optional interest-allocation tool for asset-heavy enskild firma; 2025 rate 7.96%, 2026 rate 8.55%.
+5. **INK2R/INK2S validation** — Validate aktiebolag SRU output correctness; currently untested beyond pass-through.
 
 ## Blockers & Known Issues
 
-- **`SruReportCalculator` sign bug:** Revenue SRU codes show negative amounts because raw `result` field is used without negation. E2E test `7410 ≈ -40000` is passing but semantically wrong — the report should show positive revenue amounts. See item #3 above.
-- **`BalanceSheetCalculator` + `IncomeStatementCalculator` coupling:** Balance sheet calls income statement internally. Any bug in income statement will surface as a balance sheet error with no clear message. Acceptable for now but deferred improvement.
-- **`moms` command for SIE 1/2 files:** Falls back to `closingBalance` when `#RES` is absent (SIE 1/2 don't have `#RES`). This may produce wrong period-level P&L for those formats. Acceptable for balance sheet numbers, wrong for income statement purpose.
+- Egenavgifter SRU codes not verified from Skatteverket canonical source. **Do NOT hardcode from secondary sources.** Must consult official SKV 269 NE appendix before implementing.
+- EU moms transactions silently excluded — no warning if EU-range accounts present. (Low priority until a user hits it.)
 
 ---
 
@@ -82,82 +79,40 @@ None — single worktree on `main`.
 
 | File | Purpose |
 |---|---|
-| `packages/cli/src/index.ts` | All 7 CLI commands: `parse`, `validate`, `balance-sheet`, `income-statement`, `moms`, `sru-report`, `test-all` |
-| `packages/cli/src/statements/` | 5 calculators: `BalanceSheetCalculator`, `IncomeStatementCalculator`, `MomsCalculator`, `SruReportCalculator`, `SruFileWriter` |
-| `packages/sie-core/src/parser/SieTagParser.ts` | SIE 4 tag-based parser — see CLAUDE.md for critical parser notes |
-| `packages/sie-core/src/models/SieAccount.ts` | All account fields incl. `yearBalances`, `sruCode`, `type` (KTYP) |
-| `CLAUDE.md` | Agent reference: architecture, model fields, parser gotchas, add-command pattern |
-| `sie_test_files/synthetic/` | 6 synthetic files with provable expected outputs |
-| `Plans/wondrous-wiggling-piglet.md` | Approved implementation plan (SRU report feature) — next to implement |
-| `packages/cli/tests/e2e/financial-statements.e2e.test.ts` | E2E tests with exact value assertions against synthetic files |
-| `~/Code/y/first-responder/` | first-responder CLI — had non-interactive SelectionPrompt bug FIXED this session |
-
----
-
-## Architecture Snapshot
-
-```
-packages/
-  sie-core/          ← library (publishable)
-    src/models/      ← SieDocument, SieAccount (yearBalances), SieDimension, SiePeriodValue
-    src/parser/      ← SieTagParser (SIE 1-4, CP437+tab), SieXmlParser (SIE 5)
-    src/writer/      ← SieDocumentWriter (CP437 output)
-    src/comparer/    ← SieDocumentComparer (round-trip diff)
-    src/utils/       ← encoding.ts (iconv-lite CP437), lineParser.ts (state machine)
-  cli/
-    src/index.ts     ← commander.js, 7 commands
-    src/statements/  ← 5 financial calculators
-    src/formatters/  ← table/json/csv output
-
-sie_test_files/
-  *.se *.si *.sie    ← 127 files, named <sietype>-<vendor>-<description>.<ext>
-  synthetic/         ← 6 synthetic files with known expected outputs
-
-Swedish BAS sign convention (critical):
-  Asset accounts (1xxx):    positive #UB = asset present
-  Equity/Liability (2xxx):  negative #UB = credit balance (NEGATE for display)
-  Revenue (3xxx):           negative #RES = credit (NEGATE for display)
-  Cost accounts (4xxx-8xxx): positive #RES = debit (show as-is)
-```
+| `Plans/smooth-gathering-kazoo.md` | Full 9-item implementation plan — all items now complete; "Next Ups" section lists future work |
+| `packages/cli/src/commands/income-statement/IncomeStatementCalculator.ts` | yearId + BAS 7xxx split (Personnel 7000-7399, Depreciation 7400-7499+7700-7899, Opex 5000-6999+7500-7699) |
+| `packages/cli/src/commands/income-statement/index.ts` | `--year`, `--enskild-firma` flags; egenavgifter display (28.97% simplified estimate, truncated) |
+| `packages/cli/src/commands/balance-sheet/BalanceSheetCalculator.ts` | yearId support; passes yearId to IncomeStatementCalculator |
+| `packages/cli/src/commands/moms/MomsCalculator.ts` | Range-based BAS scan; `warnings[]` field added to `MomsResult` |
+| `packages/cli/src/commands/sru-report/SruFileWriter.ts` | `#TAXAR`, CRLF, hard error on orgNr, removed XXXXXXXXXX fallback |
+| `packages/cli/src/commands/sru-report/InfoSruWriter.ts` | `#FILNAMN BLANKETTER.SRU`, CRLF, hard error on orgNr |
+| `packages/cli/src/commands/sru-report/index.ts` | `--tax-year`, NE validation (exit 1 + named account warning) |
+| `sie_test_files/synthetic/skattata-test-income-multiyear.se` | NEW — two RAR years; verifies `--year` flag for both income-statement and balance-sheet |
+| `packages/cli/tests/e2e/financial-statements.e2e.test.ts` | Extended with 6 new tests: `--year` flag, 7xxx section routing |
+| `packages/cli/tests/e2e/enskild-firma.e2e.test.ts` | NEW — `--enskild-firma` flag: checks output contains "egenavgifter", "estimate", correct truncated value |
 
 ---
 
 ## Quick Start for New Agent
 
 ```bash
-# 1. Install dependencies
 cd /Users/Dennis.Dyall/Code/other/Skattata
-bun install
 
-# 2. Verify everything passes
-bun test                                              # 156 pass, 0 fail
-bun run packages/cli/src/index.ts test-all ./sie_test_files  # 127/127
+# 1. Verify clean state
+bun test                                              # expect 164 pass, 0 fail
+bun run packages/cli/src/index.ts test-all ./sie_test_files  # expect 127/127
 
-# 3. Run any CLI command
-bun run packages/cli/src/index.ts parse ./sie_test_files/sie4-demo-company.se
-bun run packages/cli/src/index.ts balance-sheet ./sie_test_files/sie4-demo-company.se
-bun run packages/cli/src/index.ts moms ./sie_test_files/sie4-demo-company.se
-bun run packages/cli/src/index.ts sru-report ./sie_test_files/sie4-round-trip-test.se
-bun run packages/cli/src/index.ts --help             # see all commands
+# 2. Smoke tests
+bun run packages/cli/src/index.ts income-statement ./sie_test_files/synthetic/skattata-test-income-multiyear.se --year -1
+bun run packages/cli/src/index.ts income-statement ./sie_test_files/synthetic/skattata-test-income-statement.se --enskild-firma
+bun run packages/cli/src/index.ts moms ./sie_test_files/synthetic/skattata-test-moms-annual.se
+bun run packages/cli/src/index.ts sru-report ./sie_test_files/synthetic/skattata-test-sru-report.se --form ne --output /tmp/ne.sru
+cat /tmp/ne.sru     # Check: #TAXAR on line 2, CRLF endings (^M$), #FILNAMN in info.sru
+cat /tmp/info.sru   # (written alongside ne.sru)
 
-# 4. Push to remote (not yet done)
-git push origin main
-
-# 5. First action after context load
-# Read CLAUDE.md — it has architecture, parser gotchas, and add-command recipe
+# 3. Next work: verify egenavgifter SRU codes from SKV 269 NE fältförteckning
+# Then add to SruFileWriter when form === 'NE'
 ```
-
----
-
-## Session Context for New Agent
-
-**What this codebase is:** A TypeScript CLI for parsing Swedish SIE accounting files and generating tax reports (balansräkning, resultaträkning, momsdeklaration, SRU tax declarations).
-
-**Key insight about Swedish BAS sign convention:** All 2xxx accounts (equity/liability) store CREDIT balances as NEGATIVE numbers in SIE files. Calculators MUST negate them for display. This was a critical bug that was fixed this session.
-
-**The `balanceDiff` field** on `BalanceSheetResult` = `assets.total - (equity.total + liabilities.total)`. It does NOT include `netIncome` (that would double-count if 2099 is already booked). Zero means balanced.
-
-**SRU sign issue (open):** `SruReportCalculator` currently passes raw `result` values to SRU entries without negating revenue accounts. Revenue (3xxx) shows as negative. Should be negated like `IncomeStatementCalculator` does.
 
 ---
 
