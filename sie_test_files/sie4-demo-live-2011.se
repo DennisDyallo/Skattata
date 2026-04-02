@@ -1,0 +1,287 @@
+; original: live2011.se | sietype: 4 | vendor: visma | source: unknown
+#FLAGGA 0
+
+#PROGRAM "Visma Avendo eEkonomi" 3.2.4042.22853
+#FORMAT PC8
+#GEN 20110304 "Siw Eriksson"
+#SIETYP 4
+#ORGNR 555555-5555
+#FNAMN "ôvningsbolaget AB"
+#RAR 0 20110601 20111231
+#KPTYP EUBAS97
+
+#KONTO 1010 "Balanserade utgifter"
+#KONTO 1040 Licenser
+#KONTO 1050 VarumÑrken
+#KONTO 1110 Byggnader
+#KONTO 1119 "Ackumulerade avskrivningar pÜ byggnader"
+#KONTO 1210 "Maskiner och andra tekniska anlÑggningar"
+#KONTO 1216 "maskiner 1"
+#KONTO 1220 "Inventarier och verktyg"
+#KONTO 1229 "Ackumulerade avskrivningar pÜ inventarier och verktyg"
+#KONTO 1250 Datorer
+#KONTO 1259 "Ackumulerade avskrivningar pÜ datorer"
+#KONTO 1311 "Andelar i svenska dotterfîretag"
+#KONTO 1400 Lager
+#KONTO 1480 "Fîrskott fîr varor och tjÑnster"
+#KONTO 1510 Kundfordringar
+#KONTO 1518 "Ej reskontrafîrda kundfordringar"
+#KONTO 1519 "Nedskrivning av kundfordringar"
+#KONTO 1520 "Ej reskontrafîrda kundfordringar"
+#KONTO 1610 "Kortfristiga fordringar hos anstÑllda"
+#KONTO 1630 "AvrÑkning fîr skatter och avgifter (skattekonto)"
+#KONTO 1640 Skattefordringar
+#KONTO 1650 Momsfordran
+#KONTO 1680 "Andra kortfristiga fordringar"
+#KONTO 1686 "Fodran Teater CafÇet"
+#KONTO 1700 "Fîrutbetalda kostnader/interimsfordringar"
+#KONTO 1710 "Fîrutbetalda hyreskostnader"
+#KONTO 1790 "ôvriga fîrutbetalda kostnader och upplupna intÑkter"
+#KONTO 1900 "Kopia av Kassa"
+#KONTO 1910 Kassa
+#KONTO 1912 "Kassa 2"
+#KONTO 1920 "Bank, plusgiro"
+#KONTO 1930 "Bank, checkrÑkningskonto"
+#KONTO 1940 "Bank, îvriga bankkonto"
+#KONTO 1941 konto1
+#KONTO 1942 "Bankkonto HB e-kapital"
+#KONTO 1980 Valutakonton
+#KONTO 1981 eurokonto
+#KONTO 2010 "Eget kapital, delÑgare 1"
+#KONTO 2018 "ôvriga egna insÑttningar"
+#KONTO 2081 Aktiekapital
+#KONTO 2083 Medlemsinsatser
+#KONTO 2086 Reservfond
+#KONTO 2091 "Balanserad vinst eller fîrlust"
+#KONTO 2099 "èrets resultat"
+#KONTO 2128 "Periodiseringsfond vid 2008 Ürs taxering"
+#KONTO 2129 "Periodiseringsfond vid 2009 Ürs taxering"
+#KONTO 2150 "Ackumulerade îveravskrivningar"
+#KONTO 2311 lÜn
+#KONTO 2312 "Test - konto"
+#KONTO 2350 "Andra lÜngfristiga skulder till kreditinstitut"
+#KONTO 2390 "ôvriga lÜngfristiga skulder"
+#KONTO 2420 "Fîrskott frÜn kunder"
+#KONTO 2421 "Ej inlîsta presentkort"
+#KONTO 2440 Leverantîrsskulder
+#KONTO 2448 "Ej reskontrafîrda leverantîrsskulder"
+#KONTO 2490 "ôvriga kortfristiga skulder till kreditinstitut, kunder och leverantîrer"
+#KONTO 2499 "Andra îvriga kortfristiga skulder"
+#KONTO 2510 Skatteskulder
+#KONTO 2514 "BerÑknad sÑrskild lîneskatt pÜ pensionskostnader"
+#KONTO 2518 "Betald F-skatt"
+#KONTO 2611 "UtgÜende moms pÜ fîrsÑljning inom Sverige, 25%"
+#KONTO 2617 "UtgÜende moms omvÑnd skattskyldighet varor och tjÑnster i Sverige, 25%"
+#KONTO 2621 "UtgÜende moms pÜ fîrsÑljning inom Sverige, 12%"
+#KONTO 2631 "UtgÜende moms pÜ fîrsÑljning inom Sverige, 6%"
+#KONTO 2640 "IngÜende moms"
+#KONTO 2641 "Debiterad ingÜende moms"
+#KONTO 2643 ingÜende
+#KONTO 2650 "Redovisningskonto fîr moms"
+#KONTO 2710 Personalskatt
+#KONTO 2731 "AvrÑkning lagstadgade sociala avgifter"
+#KONTO 2740 "Avtalade sociala avgifter"
+#KONTO 2820 "Kortfristiga skulder till anstÑllda"
+#KONTO 2831 "AvrÑkning Ingrid"
+#KONTO 2832 "AvrÑkning Martin"
+#KONTO 2893 "Skulder till nÑrstÜende personer, kortfristig del"
+#KONTO 2920 "Upplupna semesterlîner"
+#KONTO 2940 "Upplupna lagstadgade sociala och andra avgifter"
+#KONTO 2941 "BerÑknade upplupna lagstadgade sociala avgifter"
+#KONTO 2970 "Fîrutbetalda intÑkter"
+#KONTO 2990 "ôvriga upplupna kostnader och fîrutbetalda intÑkter"
+#KONTO 2999 "ôvriga upplupna kostnader och fîrutbetalda intÑkter"
+#KONTO 4056 "Inkîp varor 25% EG"
+#KONTO 4057 "Inkîp varor 12% EG"
+#KONTO 2624 "BerÑknad utgÜende moms pÜ tjÑnstefîrvÑrv frÜn utlandet, 12%"
+#KONTO 2645 "BerÑknad ingÜende moms pÜ fîrvÑrv frÜn utlandet"
+
+#IB 0 1010 5025.00
+#IB 0 1040 4945.00
+#IB 0 1050 412.00
+#IB 0 1110 713370.00
+#IB 0 1119 -212770.50
+#IB 0 1210 -90.00
+#IB 0 1216 912.00
+#IB 0 1220 1028326.62
+#IB 0 1229 -302776.00
+#IB 0 1250 170976.00
+#IB 0 1259 -99961.00
+#IB 0 1311 100000.00
+#IB 0 1400 158060.00
+#IB 0 1480 500.00
+#IB 0 1510 715082.31
+#IB 0 1518 1371327.91
+#IB 0 1519 -5513.87
+#IB 0 1520 -138539.09
+#IB 0 1610 28086.00
+#IB 0 1630 -4565.00
+#IB 0 1640 -260.00
+#IB 0 1650 261925.00
+#IB 0 1680 -5000.00
+#IB 0 1686 132119.37
+#IB 0 1700 5251.83
+#IB 0 1710 348802.00
+#IB 0 1790 577967.00
+#IB 0 1900 54909.74
+#IB 0 1910 136527.24
+#IB 0 1912 400.00
+#IB 0 1920 -11987.50
+#IB 0 1930 -260682.38
+#IB 0 1940 169900.00
+#IB 0 1941 -1720.00
+#IB 0 1942 1464.00
+#IB 0 1980 101667.00
+#IB 0 1981 116547.80
+#IB 0 2010 -1000.00
+#IB 0 2018 -2300.00
+#IB 0 2081 -100962.00
+#IB 0 2083 -1000000.00
+#IB 0 2086 -12100.00
+#IB 0 2091 -448933.97
+#IB 0 2099 -522092.63
+#IB 0 2128 -24000.00
+#IB 0 2129 -195000.00
+#IB 0 2150 -66767.00
+#IB 0 2311 -601150.00
+#IB 0 2312 -1000.00
+#IB 0 2350 -15824.71
+#IB 0 2390 -8750.00
+#IB 0 2420 -403647.00
+#IB 0 2421 -2365.00
+#IB 0 2440 -378611.73
+#IB 0 2448 -683535.30
+#IB 0 2490 20.00
+#IB 0 2499 213.00
+#IB 0 2510 -790345.00
+#IB 0 2514 -106112.00
+#IB 0 2518 200.00
+#IB 0 2611 21285.60
+#IB 0 2617 999999.00
+#IB 0 2621 -311.21
+#IB 0 2631 -187.00
+#IB 0 2640 -200.00
+#IB 0 2641 -33261.61
+#IB 0 2643 988000.00
+#IB 0 2650 -49397.00
+#IB 0 2710 -370071.00
+#IB 0 2731 -407048.00
+#IB 0 2740 200.00
+#IB 0 2820 -1500.00
+#IB 0 2831 -1545.90
+#IB 0 2832 -777.44
+#IB 0 2893 1600.00
+#IB 0 2920 -522598.00
+#IB 0 2940 300.00
+#IB 0 2941 -164200.00
+#IB 0 2970 -605345.00
+#IB 0 2990 100.00
+#IB 0 2999 -145219.00
+
+#UB 0 1010 5025.00
+#UB 0 1040 4945.00
+#UB 0 1050 412.00
+#UB 0 1110 713370.00
+#UB 0 1119 -212770.50
+#UB 0 1210 -90.00
+#UB 0 1216 912.00
+#UB 0 1220 1028326.62
+#UB 0 1229 -302776.00
+#UB 0 1250 170976.00
+#UB 0 1259 -99961.00
+#UB 0 1311 100000.00
+#UB 0 1400 158060.00
+#UB 0 1480 500.00
+#UB 0 1510 715082.31
+#UB 0 1518 1371327.91
+#UB 0 1519 -5513.87
+#UB 0 1520 -138539.09
+#UB 0 1610 28086.00
+#UB 0 1630 -4565.00
+#UB 0 1640 -260.00
+#UB 0 1650 261925.00
+#UB 0 1680 -5000.00
+#UB 0 1686 132119.37
+#UB 0 1700 5251.83
+#UB 0 1710 348802.00
+#UB 0 1790 577967.00
+#UB 0 1900 54909.74
+#UB 0 1910 136527.24
+#UB 0 1912 400.00
+#UB 0 1920 -11987.50
+#UB 0 1930 -260682.38
+#UB 0 1940 169900.00
+#UB 0 1941 -1720.00
+#UB 0 1942 1464.00
+#UB 0 1980 101667.00
+#UB 0 1981 116547.80
+#UB 0 2010 -1000.00
+#UB 0 2018 -2300.00
+#UB 0 2081 -100962.00
+#UB 0 2083 -1000000.00
+#UB 0 2086 -12100.00
+#UB 0 2091 -448933.97
+#UB 0 2099 -522092.63
+#UB 0 2128 -24000.00
+#UB 0 2129 -195000.00
+#UB 0 2150 -66767.00
+#UB 0 2311 -601150.00
+#UB 0 2312 -1000.00
+#UB 0 2350 -15824.71
+#UB 0 2390 -8750.00
+#UB 0 2420 -403647.00
+#UB 0 2421 -2365.00
+#UB 0 2440 -383918.85
+#UB 0 2448 -683535.30
+#UB 0 2490 20.00
+#UB 0 2499 213.00
+#UB 0 2510 -790345.00
+#UB 0 2514 -106112.00
+#UB 0 2518 200.00
+#UB 0 2611 21285.60
+#UB 0 2617 999999.00
+#UB 0 2621 -111.21
+#UB 0 2631 -87.00
+#UB 0 2641 -33261.61
+#UB 0 2643 988000.00
+#UB 0 2650 -49897.00
+#UB 0 2710 -370071.00
+#UB 0 2731 -407048.00
+#UB 0 2740 200.00
+#UB 0 2820 -1500.00
+#UB 0 2831 -1545.90
+#UB 0 2832 -777.44
+#UB 0 2893 1600.00
+#UB 0 2920 -522598.00
+#UB 0 2940 300.00
+#UB 0 2941 -164200.00
+#UB 0 2970 -605345.00
+#UB 0 2990 100.00
+#UB 0 2999 -145219.00
+
+#RES 0 4056 884.52
+#RES 0 4057 4422.60
+
+#VER "" 1 20111005 "Bachbinder GmbH, 898"
+{
+#TRANS 2440 {} -884.52
+#TRANS 4056 {} 884.52
+}
+
+#VER "" 2 20111001 "Bachbinder GmbH, 34"
+{
+#TRANS 2440 {} -4422.60
+#TRANS 4057 {} 4422.60
+#TRANS 2624 {} -884.52
+#TRANS 2645 {} 884.52
+}
+
+#VER "" 3 20111231 "Momsredovisning oktober-december 2011"
+{
+#TRANS 2621 {} 200.00
+#TRANS 2631 {} 100.00
+#TRANS 2624 {} 884.52
+#TRANS 2640 {} 200.00
+#TRANS 2645 {} -884.52
+#TRANS 2650 {} -500.00
+}

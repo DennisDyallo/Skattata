@@ -22,7 +22,7 @@ function findTestFilesDir(): string | null {
 }
 
 const testFilesDir = findTestFilesDir();
-const testSe = testFilesDir ? resolve(testFilesDir, 'Dennis_20161004-20171231.se') : null;
+const testSe = testFilesDir ? resolve(testFilesDir, 'sie4-dennis-fiscal-2016.se') : null;
 const hasTestFile = testSe ? existsSync(testSe) : false;
 
 function run(...args: string[]) {

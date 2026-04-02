@@ -32,7 +32,7 @@ export class MomsCalculator {
     const val2630 = getBalance('2630');
     const val2640 = getBalance('2640');
 
-    const netVat = (val2610 + val2620 + val2630) - val2640;
+    const netVat = -(val2610 + val2620 + val2630) - val2640;
 
     const fields: MomsField[] = [
       { code: '05', label: 'Taxable sales', amount: Math.abs(val3010) },

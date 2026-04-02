@@ -56,7 +56,7 @@ Commands at a glance:
 File formats accepted:  .se (SIE 1–4)  .si (SIE 4i import)  .sie (SIE 5 XML)
 
 Example:
-  $ skattata parse ./sie_test_files/Sie4.se
+  $ skattata parse ./sie_test_files/sie4-demo-company.se
   $ skattata sru-report annual.se --output ink2r.sru
 `);
 
@@ -210,6 +210,17 @@ Examples:
 
       console.log(`\nTotal Assets: ${result.totalAssets.toFixed(2)}`);
       console.log(`Total Equity & Liabilities: ${result.totalEquityAndLiabilities.toFixed(2)}`);
+
+      // Show Årets resultat and balance check
+      if (result.netIncome !== 0) {
+        console.log(`\nÅrets resultat (from P&L): ${result.netIncome.toFixed(2)}`);
+      }
+      const isBalanced = Math.abs(result.balanceDiff) < 0.01;
+      if (isBalanced) {
+        console.log('BALANCE CHECK: ✓ BALANCED');
+      } else {
+        console.log(`BALANCE CHECK: ⚠ Difference: ${result.balanceDiff.toFixed(2)} SEK (may be unclosed P&L result)`);
+      }
     } catch (err) {
       console.error(`Error: ${(err as Error).message}`);
       process.exit(1);
@@ -374,7 +385,12 @@ Examples:
         return;
       }
 
-      // table/json/csv output
+      if (options.format === 'json') {
+        console.log(JSON.stringify(result, null, 2));
+        return;
+      }
+
+      // table/csv output
       const headers = ['SRU Code', 'Total (SEK)', 'Accounts'];
       const rows = result.entries.map(e => [
         e.sruCode,

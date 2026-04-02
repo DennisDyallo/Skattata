@@ -143,10 +143,10 @@ describe('Integration: parse all SIE test files', () => {
     // This is a soft check — we don't fail on empty docs since some files may be minimal
   });
 
-  it('SIE 5 XML Sample.sie has correct company info', async () => {
-    const samplePath = join(TEST_FILES_DIR, 'Sample.sie');
+  it('SIE 5 XML sie5-icalcreator-sample.sie has correct company info', async () => {
+    const samplePath = join(TEST_FILES_DIR, 'sie5-icalcreator-sample.sie');
     if (!existsSync(samplePath)) {
-      console.warn('Skipping: Sample.sie not found');
+      console.warn('Skipping: sie5-icalcreator-sample.sie not found');
       return;
     }
 
@@ -159,10 +159,10 @@ describe('Integration: parse all SIE test files', () => {
     expect(doc.vouchers.length).toBeGreaterThan(0);
   });
 
-  it('a real SIE 4 file (Dennis_20161004-20171231.se) parses correctly', async () => {
-    const filePath = join(TEST_FILES_DIR, 'Dennis_20161004-20171231.se');
+  it('a real SIE 4 file (sie4-dennis-fiscal-2016.se) parses correctly', async () => {
+    const filePath = join(TEST_FILES_DIR, 'sie4-dennis-fiscal-2016.se');
     if (!existsSync(filePath)) {
-      console.warn('Skipping: Dennis_20161004-20171231.se not found');
+      console.warn('Skipping: sie4-dennis-fiscal-2016.se not found');
       return;
     }
 
@@ -182,9 +182,9 @@ describe('Integration: parse all SIE test files', () => {
   });
 
   it('a SIE file with #KTYP parses account types', async () => {
-    const filePath = join(TEST_FILES_DIR, 'Sie%203%20+%204.se');
+    const filePath = join(TEST_FILES_DIR, 'sie4-demo-combined.se');
     if (!existsSync(filePath)) {
-      console.warn('Skipping: Sie 3 + 4.se not found');
+      console.warn('Skipping: sie4-demo-combined.se not found');
       return;
     }
 

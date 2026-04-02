@@ -1,0 +1,16 @@
+; skattata-test-moms-period.se | origin: synthetic | created: 2026-04-02 | purpose: verify period moms: 202301 output 12500 input 5000 net 7500, 202304 output 15000 input 6000 net 9000
+#FLAGGA 0
+#FORMAT PC8
+#GEN 20240101
+#SIETYP 2
+#FNAMN "Test Moms Period AB"
+#ORGNR 556600-0005
+#RAR 0 20230101 20231231
+#KONTO 2610 "Utg†ende moms 25%"
+#KTYP 2610 S
+#PSALDO 0 202301 2610 {} -12500.00
+#PSALDO 0 202304 2610 {} -15000.00
+#KONTO 2640 "Ing†ende moms"
+#KTYP 2640 T
+#PSALDO 0 202301 2640 {} 5000.00
+#PSALDO 0 202304 2640 {} 6000.00

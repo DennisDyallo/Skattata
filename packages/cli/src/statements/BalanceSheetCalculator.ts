@@ -1,4 +1,5 @@
 import type { SieDocument } from '@skattata/sie-core';
+import { IncomeStatementCalculator } from './IncomeStatementCalculator.js';
 
 export interface BalanceSheetSection {
   title: string;
@@ -10,6 +11,10 @@ export interface BalanceSheetResult {
   sections: BalanceSheetSection[];
   totalAssets: number;
   totalEquityAndLiabilities: number;
+  /** Net income from the income statement — informational only, NOT included in balanceDiff. */
+  netIncome: number;
+  /** assets.total − (equity.total + liabilities.total). 0 = balanced. Non-zero = may be unclosed P&L. */
+  balanceDiff: number;
 }
 
 export class BalanceSheetCalculator {
@@ -20,24 +25,43 @@ export class BalanceSheetCalculator {
 
     for (const [id, acc] of doc.accounts) {
       const num = parseInt(id, 10);
-      if (isNaN(num)) continue;
+      if (isNaN(num) || acc.closingBalance === 0) continue;  // skip zero-balance
 
-      if (num >= 1000 && num <= 1999) {
+      const type = acc.type;
+      const inAssetRange = num >= 1000 && num <= 1999;
+      const inEquityRange = num >= 2000 && num <= 2099;
+      const inLiabilityRange = num >= 2100 && num <= 2999;
+
+      if (type === 'T' || (type === '' && inAssetRange)) {
+        // Asset — shown as-is (positive = asset present)
         assets.accounts.push({ id, name: acc.name, balance: acc.closingBalance });
         assets.total += acc.closingBalance;
-      } else if (num >= 2000 && num <= 2099) {
-        equity.accounts.push({ id, name: acc.name, balance: acc.closingBalance });
-        equity.total += acc.closingBalance;
-      } else if (num >= 2100 && num <= 2999) {
-        liabilities.accounts.push({ id, name: acc.name, balance: acc.closingBalance });
-        liabilities.total += acc.closingBalance;
+      } else if ((type === 'S' || type === '') && inEquityRange) {
+        // Equity — negate (credit balance → positive equity display)
+        equity.accounts.push({ id, name: acc.name, balance: -acc.closingBalance });
+        equity.total += -acc.closingBalance;
+      } else if ((type === 'S' || type === '') && inLiabilityRange) {
+        // Liability — negate (credit balance → positive liability display)
+        liabilities.accounts.push({ id, name: acc.name, balance: -acc.closingBalance });
+        liabilities.total += -acc.closingBalance;
       }
     }
+
+    const incomeCalc = new IncomeStatementCalculator();
+    const incomeResult = incomeCalc.calculate(doc);
+    const netIncome = incomeResult.netIncome;
+
+    // Simple balance check: Assets = Equity + Liabilities.
+    // For closed year-end files (2099 booked), balanceDiff = 0.
+    // For in-year files (P&L not yet booked to 2099), balanceDiff shows the unreconciled income.
+    const balanceDiff = assets.total - (equity.total + liabilities.total);
 
     return {
       sections: [assets, equity, liabilities],
       totalAssets: assets.total,
       totalEquityAndLiabilities: equity.total + liabilities.total,
+      netIncome,
+      balanceDiff,
     };
   }
 }

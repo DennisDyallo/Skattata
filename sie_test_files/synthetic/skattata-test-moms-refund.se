@@ -1,0 +1,14 @@
+; skattata-test-moms-refund.se | origin: synthetic | created: 2026-04-02 | purpose: verify moms refund scenario where input VAT (30000) exceeds output VAT (10000), Field 49 = -20000 (Skatteverket owes you)
+#FLAGGA 0
+#FORMAT PC8
+#GEN 20240101
+#SIETYP 1
+#FNAMN "Test Moms Refund AB"
+#ORGNR 556600-0006
+#RAR 0 20230101 20231231
+#KONTO 2610 "Utg†ende moms 25%"
+#KTYP 2610 S
+#UB 0 2610 -10000.00
+#KONTO 2640 "Ing†ende moms"
+#KTYP 2640 T
+#UB 0 2640 30000.00

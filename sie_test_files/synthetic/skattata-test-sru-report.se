@@ -1,0 +1,24 @@
+; skattata-test-sru-report.se | origin: synthetic | created: 2026-04-02 | purpose: verify SRU aggregation: 7281=50000 (bank), 7301=50000 (equity negated), 7410=40000 (two revenue accounts)
+#FLAGGA 0
+#FORMAT PC8
+#GEN 20240101
+#SIETYP 1
+#FNAMN "Test SRU AB"
+#ORGNR 556600-0004
+#RAR 0 20230101 20231231
+#KONTO 1930 "Bankkonto"
+#KTYP 1930 T
+#SRU 1930 7281
+#UB 0 1930 50000.00
+#KONTO 2081 "Aktiekapital"
+#KTYP 2081 S
+#SRU 2081 7301
+#UB 0 2081 -50000.00
+#KONTO 3010 "F”rs„ljning"
+#KTYP 3010 I
+#SRU 3010 7410
+#RES 0 3010 -30000.00
+#KONTO 3011 "F”rs„ljning tj„nster"
+#KTYP 3011 I
+#SRU 3011 7410
+#RES 0 3011 -10000.00

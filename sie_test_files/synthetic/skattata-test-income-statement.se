@@ -1,0 +1,23 @@
+; skattata-test-income-statement.se | origin: synthetic | created: 2026-04-02 | purpose: verify P&L: revenue 100000, wages 60000, depreciation 20000, net income 20000
+#FLAGGA 0
+#FORMAT PC8
+#GEN 20240101
+#SIETYP 4
+#FNAMN "Test Income AB"
+#ORGNR 556600-0002
+#RAR 0 20230101 20231231
+#KONTO 3010 "FîrsÑljning"
+#KTYP 3010 I
+#RES 0 3010 -100000.00
+#KONTO 6010 "Lînekostnader"
+#KTYP 6010 K
+#RES 0 6010 60000.00
+#KONTO 7010 "Avskrivningar"
+#KTYP 7010 K
+#RES 0 7010 20000.00
+#KONTO 1930 "Bankkonto"
+#KTYP 1930 T
+#UB 0 1930 20000.00
+#KONTO 2099 "èrets resultat"
+#KTYP 2099 S
+#UB 0 2099 -20000.00

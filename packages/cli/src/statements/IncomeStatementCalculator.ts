@@ -23,12 +23,13 @@ export class IncomeStatementCalculator {
       const num = parseInt(id, 10);
       if (isNaN(num)) continue;
 
-      const value = acc.closingBalance !== 0 ? acc.closingBalance : acc.result;
+      const value = acc.result !== 0 ? acc.result : acc.closingBalance;
       if (value === 0) continue;
 
       if (num >= 3000 && num <= 3999) {
-        revenue.accounts.push({ id, name: acc.name, balance: value });
-        revenue.total += value;
+        const displayValue = -value;  // negate: credit revenue → positive display
+        revenue.accounts.push({ id, name: acc.name, balance: displayValue });
+        revenue.total += displayValue;
       } else if (num >= 4000 && num <= 4999) {
         cogs.accounts.push({ id, name: acc.name, balance: value });
         cogs.total += value;
@@ -41,8 +42,8 @@ export class IncomeStatementCalculator {
       }
     }
 
-    const grossProfit = revenue.total + cogs.total;
-    const netIncome = grossProfit + operating.total + financial.total;
+    const grossProfit = revenue.total - cogs.total;
+    const netIncome = grossProfit - operating.total - financial.total;
 
     return {
       sections: [revenue, cogs, operating, financial],

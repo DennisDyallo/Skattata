@@ -1,0 +1,24 @@
+; skattata-test-balanced-annual.se | origin: synthetic | created: 2026-04-02 | purpose: verify balance sheet balances (totalAssets = totalEquityAndLiabilities = 150000)
+#FLAGGA 0
+#FORMAT PC8
+#GEN 20240101
+#SIETYP 1
+#FNAMN "Test Balanced AB"
+#ORGNR 556600-0001
+#RAR 0 20230101 20231231
+#KONTO 1930 "Bankkonto"
+#KTYP 1930 T
+#IB 0 1930 0.00
+#UB 0 1930 150000.00
+#KONTO 2081 "Aktiekapital"
+#KTYP 2081 S
+#IB 0 2081 0.00
+#UB 0 2081 -100000.00
+#KONTO 2099 "èrets resultat"
+#KTYP 2099 S
+#IB 0 2099 0.00
+#UB 0 2099 -30000.00
+#KONTO 2400 "Leverantîrsskulder"
+#KTYP 2400 S
+#IB 0 2400 0.00
+#UB 0 2400 -20000.00

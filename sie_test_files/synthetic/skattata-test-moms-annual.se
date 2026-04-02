@@ -1,0 +1,17 @@
+; skattata-test-moms-annual.se | origin: synthetic | created: 2026-04-02 | purpose: verify moms: output 25000, input 10000, net payable 15000 (Field 49 = 15000)
+#FLAGGA 0
+#FORMAT PC8
+#GEN 20240101
+#SIETYP 1
+#FNAMN "Test Moms AB"
+#ORGNR 556600-0003
+#RAR 0 20230101 20231231
+#KONTO 3010 "F”rs„ljning 25% moms"
+#KTYP 3010 I
+#UB 0 3010 -100000.00
+#KONTO 2610 "Utg†ende moms 25%"
+#KTYP 2610 S
+#UB 0 2610 -25000.00
+#KONTO 2640 "Ing†ende moms"
+#KTYP 2640 T
+#UB 0 2640 10000.00
