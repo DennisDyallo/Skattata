@@ -18,7 +18,7 @@ packages/
         SieDocumentWriter.ts   # Writes SieDocument → SIE 4 CP437 Buffer
       comparer/
         SieDocumentComparer.ts # Field-by-field diff for round-trip testing
-      utils/
+      internal/                # Private implementation details (not public API)
         encoding.ts            # iconv-lite CP437 encode/decode
         lineParser.ts          # State-machine token splitter for SIE 4 lines
     tests/
@@ -26,15 +26,29 @@ packages/
       integration/             # Parse all 127 real SIE files
   cli/
     src/
-      index.ts                 # commander.js entry — all 7 commands live here
-      statements/
-        BalanceSheetCalculator.ts
-        IncomeStatementCalculator.ts
-        MomsCalculator.ts
-        SruReportCalculator.ts
-        SruFileWriter.ts       # Writes SKV 269 .sru flat-file format
-      formatters/
-        index.ts               # formatRows(), formatKeyValue(), OutputFormat
+      index.ts                 # ~30 lines: program setup + register() calls only
+      shared/
+        parseFile.ts           # Auto-detects SIE 4/5 and parses to SieDocument
+        formatters/
+          index.ts             # formatRows(), formatKeyValue(), OutputFormat
+      commands/                # Vertical slices — each command owns its logic
+        parse/index.ts
+        validate/index.ts
+        balance-sheet/
+          BalanceSheetCalculator.ts
+          index.ts
+        income-statement/
+          IncomeStatementCalculator.ts
+          index.ts
+        moms/
+          MomsCalculator.ts
+          index.ts
+        sru-report/
+          SruReportCalculator.ts
+          SruFileWriter.ts     # Writes SKV 269 blanketter.sru flat-file format
+          InfoSruWriter.ts     # Writes SKV 269 info.sru companion file
+          index.ts
+        test-all/index.ts
     tests/
       e2e/                     # Spawns CLI binary, asserts stdout/exit code
 sie_test_files/                # 133 test files: 127 real-world (SIE 1–5, various vendors) + 6 synthetic
@@ -164,7 +178,7 @@ State-machine tokeniser. Key invariants:
 
 **Recipe:**
 
-1. Create `packages/cli/src/statements/MyCalculator.ts`:
+1. Create `packages/cli/src/commands/my-command/MyCalculator.ts`:
    ```typescript
    import type { SieDocument } from '@skattata/sie-core';
    export interface MyResult { ... }
@@ -173,10 +187,25 @@ State-machine tokeniser. Key invariants:
    }
    ```
 
-2. Add to `packages/cli/src/index.ts` after an existing command:
+2. Create `packages/cli/src/commands/my-command/index.ts`:
    ```typescript
-   import { MyCalculator } from './statements/MyCalculator.js';
+   import type { Command } from 'commander';
+   import { MyCalculator } from './MyCalculator.js';
+   import { parseFile } from '../../shared/parseFile.js';
+   import { formatRows, type OutputFormat } from '../../shared/formatters/index.js';
+
+   export function register(program: Command): void {
+     program
+       .command('my-command <file>')
+       // ...
+   }
+   ```
+
+3. Add one line to `packages/cli/src/index.ts`:
+   ```typescript
+   import { register as registerMyCommand } from './commands/my-command/index.js';
    // ...
+   registerMyCommand(program);
    program
      .command('my-command <file>')
      .description('One sentence description')
