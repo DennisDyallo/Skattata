@@ -33,6 +33,19 @@ bun run packages/cli/src/index.ts <command> [file] [options]
 
 Every command supports `--format table|json|csv` and `--help` for full options.
 
+## Who is this for?
+
+Skattata is built for **Swedish sole proprietors (enskild firma)** who use BAS-standard bookkeeping software (Fortnox, Visma, etc.) and want to generate their tax filings from a SIE export. It produces the financial data and declaration files -- not a complete tax submission platform.
+
+## What Skattata does NOT do
+
+- **Submit to Skatteverket** -- Skattata generates .sru and XML files in the correct formats. You upload them to Skatteverket's portal yourself.
+- **Replace an accountant** -- The tool automates calculations per BAS standards, but tax law has edge cases. Verify results before filing.
+- **Handle employees** -- Arbetsgivardeklaration (employer declarations) are not in scope.
+- **Generate INK1** -- Personal income tax (capital gains, rental income) is separate from business income.
+- **Support K2/K3 NE mapping** -- The default SRU mapping uses K1 (forenklat arsbokslut). Larger businesses using K2/K3 need #SRU tags from their accounting software.
+- **Handle K10/K12 forms** -- Partnership and corporation-specific forms are not supported.
+
 ### Cross-command options
 
 | Option | Available on | What it does |

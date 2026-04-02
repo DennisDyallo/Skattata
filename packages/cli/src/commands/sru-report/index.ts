@@ -5,6 +5,7 @@ import { formatRows, type OutputFormat } from '../../shared/formatters/index.js'
 import { SruReportCalculator } from './SruReportCalculator.js';
 import { writeSruFile, type SruFileOptions } from './SruFileWriter.js';
 import { writeInfoSru } from './InfoSruWriter.js';
+import { applyDefaultNeSru } from './neDefaultSru.js';
 import { IncomeStatementCalculator } from '../income-statement/IncomeStatementCalculator.js';
 import { getTaxRates, getDefaultTaxYear } from '../../shared/taxRates.js';
 import { validateSniCode } from '../../shared/sniCodes.js';
@@ -64,6 +65,15 @@ Examples:
 
         const doc = await parseFile(file);
         const yearId = parseInt(options.year ?? '0', 10);
+
+        if ((options.form ?? 'ink2r').toUpperCase() === 'NE') {
+          const applied = applyDefaultNeSru(doc);
+          if (applied > 0) {
+            console.warn(`Note: Applied default NE K1 mapping to ${applied} account(s) missing #SRU tags.`);
+            console.warn('  Mapping follows BAS Forenklat Arsbokslut (K1). Accounts 3700-3969 default to R1 (VAT-liable).');
+          }
+        }
+
         const result = new SruReportCalculator().calculate(doc, yearId);
 
         // NE-bilaga validation: warn if no SRU codes found

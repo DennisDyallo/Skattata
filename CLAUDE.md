@@ -322,8 +322,22 @@ SRU (Standardiserade Räkenskapsutdrag) codes appear in SIE files as `#SRU accou
 
 - `SruReportCalculator.ts` — groups `acc.sruCode`, sums correct field per account type
 - `SruFileWriter.ts` — outputs SKV 269 flat-file format (`#BLANKETT`, `#UPPGIFT`, etc.)
+- `neDefaultSru.ts` — K1 BAS-to-NE-SRU default mapping (see below)
 - Form types: `INK2R` (aktiebolag balance+P&L) · `INK2S` (tax adjustments) · `NE` (enskild firma)
 - Values are truncated integers (`Math.trunc`) per Swedish tax convention
+
+### NE K1 Default SRU Mapping
+
+When `--form ne` is used and accounts lack `#SRU` tags, `applyDefaultNeSru()` applies the BAS K1 (förenklat årsbokslut) mapping as a preprocessing step before `SruReportCalculator`. Source: BAS Kontogruppen official NE_K1 mapping table (`bas.se/sru/`).
+
+**Key rules:**
+- Existing `#SRU` tags are NEVER overwritten (`if (acc.sruCode) continue`)
+- First matching range wins (ordered table in `neDefaultSru.ts`)
+- 2100-2299 (untaxed reserves, provisions) intentionally unmapped — not used in K1
+- 3300-3499 intentionally unmapped — not in K1 chart
+- 3970-3989 maps to R2/7401 (asset disposal gains, grants — explicitly R2 in K1)
+- 8000-8299, 8500+ gaps intentionally unmapped — unusual financial items need manual classification
+- A `console.warn` is emitted when defaults are applied, noting that 3700-3969 defaults to R1 (VAT-liable)
 
 ---
 
