@@ -1,0 +1,22 @@
+; skattata-test-rantefordelning.se | origin: synthetic | created: 2026-04-02 | purpose: verify rantefordelning: capital base=200000 (2081 IB), profit=300000, allocation=15920 (200000*0.0796)
+#FLAGGA 0
+#FORMAT PC8
+#GEN 20240101
+#SIETYP 4
+#FNAMN "Test Rantefordelning EF"
+#ORGNR 198501011234
+#RAR 0 20230101 20231231
+#KONTO 3010 "Forsaljning"
+#KTYP 3010 I
+#RES 0 3010 -400000.00
+#KONTO 4010 "Inkop"
+#KTYP 4010 K
+#RES 0 4010 100000.00
+#KONTO 1930 "Bank"
+#KTYP 1930 T
+#IB 0 1930 200000.00
+#UB 0 1930 500000.00
+#KONTO 2081 "Eget kapital"
+#KTYP 2081 S
+#IB 0 2081 -200000.00
+#UB 0 2081 -500000.00

@@ -1,0 +1,19 @@
+; skattata-test-rantefordelning-neg.se | origin: synthetic | created: 2026-04-02 | purpose: verify negative rantefordelning: capital base=-50000 (positive IB on 2081), mandatory allocation
+#FLAGGA 0
+#FORMAT PC8
+#GEN 20240101
+#SIETYP 4
+#FNAMN "Test Neg Rantefordelning EF"
+#ORGNR 198501011234
+#RAR 0 20230101 20231231
+#KONTO 3010 "Forsaljning"
+#KTYP 3010 I
+#RES 0 3010 -100000.00
+#KONTO 1930 "Bank"
+#KTYP 1930 T
+#IB 0 1930 10000.00
+#UB 0 1930 110000.00
+#KONTO 2081 "Eget kapital"
+#KTYP 2081 S
+#IB 0 2081 50000.00
+#UB 0 2081 -60000.00
