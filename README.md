@@ -62,6 +62,22 @@ bun run packages/cli/src/index.ts moms annual.se
 ```
 
 ```bash
+# Tax declaration lines from SRU codes
+bun run packages/cli/src/index.ts sru-report annual.se
+```
+```
+┌──────────┬─────────────┬────────────┐
+│ SRU Code │ Total (SEK) │ Accounts   │
+├──────────┼─────────────┼────────────┤
+│ 7281     │ 50000.00    │ 1930       │
+├──────────┼─────────────┼────────────┤
+│ 7301     │ -50000.00   │ 2081       │
+├──────────┼─────────────┼────────────┤
+│ 7410     │ 40000.00    │ 3010, 3011 │
+└──────────┴─────────────┴────────────┘
+```
+
+```bash
 # Generate Skatteverket .sru file for electronic submission
 bun run packages/cli/src/index.ts sru-report annual.se --output ink2r.sru
 

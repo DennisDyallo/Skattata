@@ -439,6 +439,12 @@ export class SieTagParser {
     return row;
   }
 
+  /**
+   * Parse an 8-digit YYYYMMDD date string.
+   * Returns `new Date(0)` (Unix epoch sentinel) for malformed input — intentional design.
+   * Callers detect invalid dates with `date.getTime() === 0`. Not changed to `Date | null`
+   * because that would require touching every caller with no correctness benefit.
+   */
   private parseDate(str: string): Date {
     if (!str || str.length !== 8 || !/^\d{8}$/.test(str)) {
       return new Date(0);

@@ -73,11 +73,11 @@ describe('moms', () => {
 });
 
 describe('sru-report', () => {
-  test('skattata-test-sru-report.se: SRU 7410 ≈ -40000 (two revenue accounts, credit sign)', () => {
+  test('skattata-test-sru-report.se: SRU 7410 ≈ 40000 (two revenue accounts, negated for display)', () => {
     const data = runCli('sru-report', `${SYNTHETIC}/skattata-test-sru-report.se`, '--format', 'json');
     const entries = data.entries as Array<{ sruCode: string; totalAmount: number }>;
     const e7410 = entries.find(e => e.sruCode === '7410');
-    expect(e7410?.totalAmount).toBeCloseTo(-40000, 1);
+    expect(e7410?.totalAmount).toBeCloseTo(40000, 1);
   });
 
   test('skattata-test-sru-report.se: SRU 7281 = 50000 (bank asset)', () => {

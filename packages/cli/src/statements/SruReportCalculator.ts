@@ -28,7 +28,11 @@ export class SruReportCalculator {
       }
 
       const field = this.balanceField(acc, id);
-      const amount = this.getAmount(acc, field, yearId);
+      const raw = this.getAmount(acc, field, yearId);
+      // Revenue accounts (type 'I' or 3xxx) store credit balances as negative in SIE.
+      // Negate to match IncomeStatementCalculator display convention (positive = revenue earned).
+      const isRevenue = acc.type === 'I' || (!acc.type && parseInt(id, 10) >= 3000 && parseInt(id, 10) <= 3999);
+      const amount = (isRevenue && field === 'result') ? -raw : raw;
 
       if (!map.has(acc.sruCode)) {
         map.set(acc.sruCode, { sruCode: acc.sruCode, totalAmount: 0, accounts: [] });

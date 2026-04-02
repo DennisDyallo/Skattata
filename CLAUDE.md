@@ -37,7 +37,7 @@ packages/
         index.ts               # formatRows(), formatKeyValue(), OutputFormat
     tests/
       e2e/                     # Spawns CLI binary, asserts stdout/exit code
-sie_test_files/                # 127 real-world SIE files (SIE 1–5, various vendors)
+sie_test_files/                # 133 test files: 127 real-world (SIE 1–5, various vendors) + 6 synthetic
 docs/                          # SIE format PDFs
 Plans/                         # Approved implementation plans (read-only history)
 ```
@@ -48,7 +48,7 @@ Plans/                         # Approved implementation plans (read-only histor
 
 ```bash
 bun install                              # install all workspace deps
-bun test                                 # run all tests (146 unit + integration)
+bun test                                 # run all tests (156 unit + integration)
 bun test packages/sie-core               # library tests only
 bun test packages/cli                    # CLI tests only
 bun run packages/cli/src/index.ts --help                          # list all 7 commands
@@ -138,6 +138,15 @@ objects: Array<{ dimensionNumber: string; number: string }>
 - **`#KONTO` with no name:** `if (tokens.length >= 2)` — creates account with empty name if name is absent.
 - **Malformed `#VER`:** If `tokens.length < 4`, still scans forward past `{...}` to avoid leaking rows into the top-level switch.
 
+### Parser Audit — LOW items (disposition)
+
+| Item | Decision |
+|---|---|
+| `parseDate` returns `new Date(0)` sentinel (not `Date \| null`) | **Keep sentinel** — callers check `date.getTime() === 0`. Changing to `Date \| null` would touch every caller with no correctness benefit. JSDoc added to the method. |
+| `normalizePsaldoTokens` no-brace edge case (`tokens.length === 5`, no `{}`) | **Already handled** — the `else` branch injects `{}` when the 5th token has no space and no brace. Verified by existing tests. |
+| `yearBalances` sort order | **Not applicable** — `Map` preserves insertion order (SIE tag order = current year first, prior years after). No sort needed or applied. |
+| CRLF line endings in `SieDocumentWriter` | **Intentional per SIE spec** — `lines.join('\r\n') + '\r\n'`. Not configurable by design; the SIE 4 spec mandates CRLF. |
+
 ---
 
 ## Line Parser (`lineParser.ts`)
@@ -199,12 +208,20 @@ packages/sie-core/tests/unit/
                             on-demand creation, parseDate validation
 
 packages/sie-core/tests/integration/
-  integration.test.ts       Parses all 127 SIE files, checks errors[]
+  integration.test.ts       Parses all 127 real SIE files, checks errors[]
 
-sie_test_files/             127 real SIE files:
+sie_test_files/             133 test files total:
+  127 real-world files (named <sietype>-<vendor>-<description>.<ext>):
   - Original 72 from C# test suite (SIE 1–5, Visma/MAMUT/Magenta/SoftOne)
   - 51 from blinfo/Sie4j (deliberate edge cases: UTF-8, imbalanced, missing fields)
   - 4 from iCalcreator/Sie5Sdk (SIE 5 XML variants)
+  synthetic/                6 hand-crafted files with provable expected outputs:
+  - skattata-test-balanced-annual.se     Balance sheet: assets=equity=150000, diff=0
+  - skattata-test-income-statement.se    Income statement: revenue=100000, COGS=80000, net=20000
+  - skattata-test-moms-annual.se         Moms: output VAT 25000, input 10000, net payable 15000
+  - skattata-test-moms-period.se         Moms by period: Jan=7500, Feb=7500
+  - skattata-test-moms-refund.se         Moms: net -20000 (refund scenario)
+  - skattata-test-sru-report.se          SRU: 7281=50000, 7301=-50000, 7410=40000
 ```
 
 **When to run what:**
@@ -254,6 +271,14 @@ sie_test_files/             127 real SIE files:
 Exact splits used by calculators:
 - **balance-sheet:** 1000–1999 assets · 2000–2099 equity · 2100–2999 liabilities
 - **income-statement:** 3000–3999 revenue · 4000–4999 COGS · 5000–6999 opex · 7000–7999 depreciation · 8000–8999 financial
+
+**`balanceDiff`** on `BalanceSheetResult` = `assets.total − (equity.total + liabilities.total)`. Zero means balanced. Does NOT include `netIncome` — adding it would double-count if 2099 (retained earnings) is already booked. The `BalanceSheetCalculator` calls `IncomeStatementCalculator` internally to derive `netIncome` for display purposes only.
+
+**Sign conventions for display (all calculators apply these):**
+- Assets (1xxx): `closingBalance` as-is (positive = asset present)
+- Equity/Liability (2xxx): `closingBalance` negated (SIE stores credit as negative; negate for display)
+- Revenue (3xxx): `result` negated (credit revenue → positive display)
+- Costs (4xxx–8xxx): `result` as-is (debit costs → positive display)
 
 ---
 
