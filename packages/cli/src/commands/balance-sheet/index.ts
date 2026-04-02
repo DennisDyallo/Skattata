@@ -25,7 +25,8 @@ Examples:
       try {
         const doc = await parseFile(file);
         const calc = new BalanceSheetCalculator();
-        const result = calc.calculate(doc);
+        const yearId = parseInt(options.year ?? '0', 10);
+        const result = calc.calculate(doc, yearId);
 
         if (options.format === 'json') {
           console.log(JSON.stringify(result, null, 2));

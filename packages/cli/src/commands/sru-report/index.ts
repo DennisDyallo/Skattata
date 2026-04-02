@@ -15,6 +15,7 @@ export function register(program: Command): void {
     .option('--form <form>', 'Declaration form: ink2r=aktiebolag, ne=enskild firma (default: ink2r)', 'ink2r')
     .option('--output <file>', 'Write Skatteverket .sru flat-file to this path (implies --format sru)')
     .option('--org-number <value>', 'Override organisation number used in #IDENTITET line of .sru file')
+    .option('--tax-year <YYYY>', 'Tax year for #TAXAR declaration (default: current year - 1)')
     .addHelpText('after', `
 SRU (Standardiserade Räkenskapsutdrag) codes are assigned by your accounting
 software when it exports the SIE file (e.g. Fortnox, Visma). Each #SRU tag
@@ -50,16 +51,40 @@ Examples:
   $ skattata sru-report annual.se --form ne --output ne.sru
   $ skattata sru-report annual.se --org-number 5566547898 --output ink2r.sru
 `)
-    .action(async (file: string, options: { format: string; year: string; form: string; output?: string; orgNumber?: string }) => {
+    .action(async (file: string, options: { format: string; year: string; form: string; output?: string; orgNumber?: string; taxYear?: string }) => {
       try {
         const doc = await parseFile(file);
         const yearId = parseInt(options.year ?? '0', 10);
         const result = new SruReportCalculator().calculate(doc, yearId);
 
+        // NE-bilaga validation: warn if no SRU codes found
+        if (options.form?.toLowerCase() === 'ne') {
+          if (result.entries.length === 0) {
+            console.warn(`Warning: No NE SRU codes found in this SIE file. The accounting software did not export #SRU tags. NE-bilaga output will be empty.`);
+            if (result.missingCode.length > 0) {
+              const sample = result.missingCode.slice(0, 5).map(a => `${a.id} (${a.name || 'unnamed'})`).join(', ');
+              console.warn(`  Accounts without SRU codes: ${sample}${result.missingCode.length > 5 ? ` and ${result.missingCode.length - 5} more` : ''}`);
+            }
+            process.exit(1);
+          }
+
+          // Check for revenue section
+          const hasRevenue = result.entries.some(e => {
+            return e.accounts.some(a => {
+              const num = parseInt(a.id, 10);
+              return num >= 3000 && num <= 3999;
+            });
+          });
+          if (!hasRevenue && result.entries.length > 0) {
+            console.warn('Warning: NE-bilaga has cost entries but no revenue section. Accounts in 3000-3999 may be missing #SRU tags.');
+          }
+        }
+
         if (options.output || options.format === 'sru') {
           const sruText = writeSruFile(result, {
             form: (options.form ?? 'ink2r').toUpperCase() as 'INK2R' | 'INK2S' | 'NE',
             orgNumber: options.orgNumber,
+            taxYear: options.taxYear ? parseInt(options.taxYear, 10) : undefined,
           });
           if (options.output) {
             // No directory restriction enforced — intentional for a tax filing tool

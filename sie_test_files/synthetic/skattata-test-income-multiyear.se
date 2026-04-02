@@ -1,0 +1,29 @@
+; skattata-test-income-multiyear.se | synthetic | purpose: test --year flag with two RAR periods
+#FLAGGA 0
+#FORMAT PC8
+#GEN 20240101
+#SIETYP 4
+#FNAMN "Test MultiYear AB"
+#ORGNR 556600-0010
+#RAR 0 20230101 20231231
+#RAR -1 20220101 20221231
+#KONTO 3010 "Forsaljning"
+#KTYP 3010 I
+#RES 0 3010 -100000.00
+#RES -1 3010 -80000.00
+#KONTO 7410 "Avskrivningar maskiner"
+#KTYP 7410 K
+#RES 0 7410 20000.00
+#RES -1 7410 15000.00
+#KONTO 7210 "Loner"
+#KTYP 7210 K
+#RES 0 7210 30000.00
+#RES -1 7210 25000.00
+#KONTO 1930 "Bankkonto"
+#KTYP 1930 T
+#UB 0 1930 50000.00
+#UB -1 1930 40000.00
+#KONTO 2099 "Arets resultat"
+#KTYP 2099 S
+#UB 0 2099 -50000.00
+#UB -1 2099 -40000.00

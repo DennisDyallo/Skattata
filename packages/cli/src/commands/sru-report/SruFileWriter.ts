@@ -2,7 +2,7 @@ import type { SruReportResult } from './SruReportCalculator.js';
 
 export interface SruFileOptions {
   form: 'INK2R' | 'INK2S' | 'NE';
-  taxYear?: string;
+  taxYear?: number;
   orgNumber?: string;
   companyName?: string;
   softwareName?: string;
@@ -17,10 +17,16 @@ export function writeSruFile(result: SruReportResult, options: SruFileOptions): 
   const name = options.companyName ?? result.companyName;
 
   if (!org) {
-    console.warn('Warning: organization number is missing — #IDENTITET will be incomplete');
+    throw new Error('Organization number is required for SRU output. Add #ORGNR to the SIE file or use --org-number option.');
+  }
+  // Validate format: 10-digit corporate or 12-digit personnummer (digits only after stripping hyphens)
+  if (!/^\d{10}$|^\d{12}$/.test(org)) {
+    throw new Error(`Invalid organization number format: "${org}". Expected 10 digits (corporate) or 12 digits (personnummer, YYYYMMDDNNNN).`);
   }
   lines.push(`#BLANKETT ${options.form}`);
-  lines.push(`#IDENTITET ${org || 'XXXXXXXXXX'} ${date} ${time}`);
+  const taxYear = options.taxYear ?? (new Date().getFullYear() - 1);
+  lines.push(`#TAXAR ${taxYear}`);
+  lines.push(`#IDENTITET ${org} ${date} ${time}`);
   if (name) lines.push(`#NAMN ${name}`);
   lines.push(`#SYSTEMINFO ${options.softwareName ?? 'skattata'} 0.1.0`);
 
@@ -33,7 +39,7 @@ export function writeSruFile(result: SruReportResult, options: SruFileOptions): 
   lines.push('#FIL_SLUT');
   lines.push('');
 
-  return lines.join('\n');
+  return lines.join('\r\n') + '\r\n';
 }
 
 function formatSruDate(d: Date): string {

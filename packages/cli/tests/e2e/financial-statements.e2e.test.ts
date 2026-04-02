@@ -72,6 +72,44 @@ describe('moms', () => {
   });
 });
 
+describe('income-statement --year flag', () => {
+  test('multiyear: --year 0 netIncome = 50000', () => {
+    const data = runCli('income-statement', `${SYNTHETIC}/skattata-test-income-multiyear.se`, '--year', '0', '--format', 'json');
+    expect(data.netIncome).toBeCloseTo(50000, 1);
+  });
+
+  test('multiyear: --year -1 netIncome = 40000', () => {
+    const data = runCli('income-statement', `${SYNTHETIC}/skattata-test-income-multiyear.se`, '--year', '-1', '--format', 'json');
+    expect(data.netIncome).toBeCloseTo(40000, 1);
+  });
+
+  test('multiyear: 7410 lands in Depreciation section', () => {
+    const data = runCli('income-statement', `${SYNTHETIC}/skattata-test-income-multiyear.se`, '--format', 'json');
+    const sections = data.sections as Array<{ title: string; accounts: Array<{ id: string }> }>;
+    const depSection = sections.find(s => s.title.includes('Depreciation'));
+    expect(depSection?.accounts.some(a => a.id === '7410')).toBe(true);
+  });
+
+  test('multiyear: 7210 lands in Personnel section', () => {
+    const data = runCli('income-statement', `${SYNTHETIC}/skattata-test-income-multiyear.se`, '--format', 'json');
+    const sections = data.sections as Array<{ title: string; accounts: Array<{ id: string }> }>;
+    const personSection = sections.find(s => s.title.includes('Personnel'));
+    expect(personSection?.accounts.some(a => a.id === '7210')).toBe(true);
+  });
+});
+
+describe('balance-sheet --year flag', () => {
+  test('multiyear: --year 0 totalAssets = 50000', () => {
+    const data = runCli('balance-sheet', `${SYNTHETIC}/skattata-test-income-multiyear.se`, '--year', '0', '--format', 'json');
+    expect(data.totalAssets).toBeCloseTo(50000, 1);
+  });
+
+  test('multiyear: --year -1 totalAssets = 40000', () => {
+    const data = runCli('balance-sheet', `${SYNTHETIC}/skattata-test-income-multiyear.se`, '--year', '-1', '--format', 'json');
+    expect(data.totalAssets).toBeCloseTo(40000, 1);
+  });
+});
+
 describe('sru-report', () => {
   test('skattata-test-sru-report.se: SRU 7410 ≈ 40000 (two revenue accounts, negated for display)', () => {
     const data = runCli('sru-report', `${SYNTHETIC}/skattata-test-sru-report.se`, '--format', 'json');

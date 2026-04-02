@@ -44,6 +44,10 @@ Examples:
         const headers = ['Code', 'Label', 'Amount'];
         const rows = result.fields.map(f => [f.code, f.label, f.amount.toFixed(2)]);
         console.log(formatRows(headers, rows, options.format));
+
+        if (result.warnings.length > 0) {
+          for (const w of result.warnings) console.warn(w);
+        }
       } catch (err) {
         console.error(`Error: ${(err as Error).message}`);
         process.exit(1);

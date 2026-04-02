@@ -18,14 +18,18 @@ export interface BalanceSheetResult {
 }
 
 export class BalanceSheetCalculator {
-  calculate(doc: SieDocument): BalanceSheetResult {
+  calculate(doc: SieDocument, yearId = 0): BalanceSheetResult {
     const assets: BalanceSheetSection = { title: 'Assets', accounts: [], total: 0 };
     const equity: BalanceSheetSection = { title: 'Equity', accounts: [], total: 0 };
     const liabilities: BalanceSheetSection = { title: 'Liabilities', accounts: [], total: 0 };
 
     for (const [id, acc] of doc.accounts) {
       const num = parseInt(id, 10);
-      if (isNaN(num) || acc.closingBalance === 0) continue;  // skip zero-balance
+      const closing = (() => {
+        const yr = acc.yearBalances.get(yearId);
+        return yr ? yr.closing : acc.closingBalance;
+      })();
+      if (isNaN(num) || closing === 0) continue;  // skip zero-balance
 
       const type = acc.type;
       const inAssetRange = num >= 1000 && num <= 1999;
@@ -34,21 +38,21 @@ export class BalanceSheetCalculator {
 
       if (type === 'T' || (type === '' && inAssetRange)) {
         // Asset — shown as-is (positive = asset present)
-        assets.accounts.push({ id, name: acc.name, balance: acc.closingBalance });
-        assets.total += acc.closingBalance;
+        assets.accounts.push({ id, name: acc.name, balance: closing });
+        assets.total += closing;
       } else if ((type === 'S' || type === '') && inEquityRange) {
         // Equity — negate (credit balance → positive equity display)
-        equity.accounts.push({ id, name: acc.name, balance: -acc.closingBalance });
-        equity.total += -acc.closingBalance;
+        equity.accounts.push({ id, name: acc.name, balance: -closing });
+        equity.total += -closing;
       } else if ((type === 'S' || type === '') && inLiabilityRange) {
         // Liability — negate (credit balance → positive liability display)
-        liabilities.accounts.push({ id, name: acc.name, balance: -acc.closingBalance });
-        liabilities.total += -acc.closingBalance;
+        liabilities.accounts.push({ id, name: acc.name, balance: -closing });
+        liabilities.total += -closing;
       }
     }
 
     const incomeCalc = new IncomeStatementCalculator();
-    const incomeResult = incomeCalc.calculate(doc);
+    const incomeResult = incomeCalc.calculate(doc, yearId);
     const netIncome = incomeResult.netIncome;
 
     // Simple balance check: Assets = Equity + Liabilities.

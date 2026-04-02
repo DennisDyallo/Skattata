@@ -9,6 +9,13 @@ export function writeInfoSru(result: SruReportResult, options?: { orgNumber?: st
   const org = (options?.orgNumber ?? result.organizationNumber ?? '').replace(/-/g, '');
   const name = options?.companyName ?? result.companyName ?? '';
 
+  if (!org) {
+    throw new Error('Organization number is required for info.sru. Add #ORGNR to the SIE file or use --org-number option.');
+  }
+  if (!/^\d{10}$|^\d{12}$/.test(org)) {
+    throw new Error(`Invalid organization number format: "${org}". Expected 10 digits (corporate) or 12 digits (personnummer).`);
+  }
+
   const now = new Date();
   const date = formatDate(now);
   const time = formatTime(now);
@@ -16,6 +23,7 @@ export function writeInfoSru(result: SruReportResult, options?: { orgNumber?: st
   const lines: string[] = [];
   lines.push('#DATABESKRIVNING_START');
   lines.push('#PRODUKT SRU');
+  lines.push('#FILNAMN BLANKETTER.SRU');
   lines.push(`#SKAPAD ${date} ${time}`);
   lines.push('#DATABESKRIVNING_SLUT');
   lines.push('#MEDIELEV_START');
@@ -24,7 +32,7 @@ export function writeInfoSru(result: SruReportResult, options?: { orgNumber?: st
   lines.push('#MEDIELEV_SLUT');
   lines.push('');
 
-  return lines.join('\n');
+  return lines.join('\r\n') + '\r\n';
 }
 
 function formatDate(d: Date): string {
