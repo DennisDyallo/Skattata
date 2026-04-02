@@ -4,7 +4,6 @@ import { parseFile } from '../../shared/parseFile.js';
 import { formatRows, type OutputFormat } from '../../shared/formatters/index.js';
 import { MomsCalculator } from './MomsCalculator.js';
 import { writeMomsXml } from './MomsXmlWriter.js';
-import { validateSniCode } from '../../shared/sniCodes.js';
 
 export function register(program: Command): void {
   program
@@ -12,41 +11,55 @@ export function register(program: Command): void {
     .description('VAT return (momsdeklaration) with SKV 4700 field codes from BAS VAT accounts')
     .option('-f, --format <format>', 'Output format: table|json|csv', 'table')
     .option('--period <YYYYMM>', 'Filter to a single period using #PSALDO data (e.g. 202403 = March 2024)')
-    .option('--output-xml <file>', 'Write momsdeklaration XML to file (draft format — requires --period)')
+    .option('--output-xml <file>', 'Write eSKDUpload v6.0 momsdeklaration XML (requires --period)')
     .option('--org-number <value>', 'Organisation number (falls back to #ORGNR from SIE file)')
-    .option('--sni <code>', 'SNI industry code (5 digits, e.g. 62010) — only included in XML output')
     .addHelpText('after', `
 Maps Swedish BAS VAT accounts to SKV 4700 declaration fields:
-  Field 05  Taxable sales base       (accounts 3000-3999)
-  Field 10  Output VAT 25%           (accounts 2610-2619)
-  Field 11  Output VAT 12%           (accounts 2620-2629)
-  Field 12  Output VAT 6%            (accounts 2630-2639)
-  Field 48  Deductible input VAT     (accounts 2640-2669)
-  Field 49  Net VAT payable/refund   (sum output − input)
 
-EU fields (shown only when EU accounts have non-zero balances):
-  Field 20  EU acquisitions           (accounts 4500-4599)
-  Field 30  EU sales of goods         (accounts 3100-3199)
-  Field 31  EU sales of services      (accounts 3300-3399)
-  Field 35  Reverse charge purchases  (accounts 4530-4599)
-  Field 36  Reverse charge output VAT (accounts 2614-2615)
-  Field 37  Reverse charge input VAT  (accounts 2645-2647)
+  Sales bases:
+    Ruta 05  Taxable sales              (accounts 3000-3999)
+
+  Output VAT on sales:
+    Ruta 10  Output VAT 25%             (accounts 2610-2613, 2616-2619)
+    Ruta 11  Output VAT 12%             (accounts 2620-2623, 2626-2629)
+    Ruta 12  Output VAT 6%              (accounts 2630-2633, 2636-2639)
+
+  EU purchase bases (shown when non-zero):
+    Ruta 20  Goods from EU              (accounts 4500-4519)
+    Ruta 21  Services from EU           (accounts 4520-4529)
+
+  Output VAT on purchases / reverse charge (shown when non-zero):
+    Ruta 30  Output VAT 25% purchases   (account 2614)
+    Ruta 31  Output VAT 12% purchases   (account 2624)
+    Ruta 32  Output VAT 6% purchases    (account 2634)
+
+  VAT-exempt sales (shown when non-zero):
+    Ruta 35  Goods sold to EU           (accounts 3100-3199)
+    Ruta 39  Services sold to EU        (accounts 3300-3399)
+
+  Import VAT (shown when non-zero):
+    Ruta 50  Import tax base            (accounts 4545-4548)
+    Ruta 60  Import output VAT 25%      (account 2615)
+    Ruta 61  Import output VAT 12%      (account 2625)
+    Ruta 62  Import output VAT 6%       (account 2635)
+
+  Input VAT and net:
+    Ruta 48  Deductible input VAT       (accounts 2640-2669)
+    Ruta 49  Net VAT payable/refund     (all output - input)
 
 Without --period: uses closing balances (#UB) for the full year.
 With --period YYYYMM: uses period balance records (#PSALDO) for that month.
 
+XML output follows Skatteverket eSKDUpload Version 6.0 format (ISO-8859-1,
+DOCTYPE, named elements in DTD-defined order).
+
 Examples:
   $ skattata moms annual.se
   $ skattata moms annual.se --period 202403
-  $ skattata moms annual.se --format json
+  $ skattata moms annual.se --period 202301 --output-xml moms.xml --org-number 5566000006
 `)
-    .action(async (file: string, options: { format: OutputFormat; period?: string; outputXml?: string; orgNumber?: string; sni?: string }) => {
+    .action(async (file: string, options: { format: OutputFormat; period?: string; outputXml?: string; orgNumber?: string }) => {
       try {
-        if (options.sni && !validateSniCode(options.sni)) {
-          console.error('Error: --sni must be exactly 5 digits (e.g. 62010)');
-          process.exit(1);
-        }
-
         const doc = await parseFile(file);
         const calc = new MomsCalculator();
         const result = calc.calculate(doc, options.period);
@@ -56,19 +69,18 @@ Examples:
             console.error('Error: --output-xml requires --period (e.g. --period 202301)');
             process.exit(1);
           }
-          const orgNumber = options.orgNumber ?? doc.organizationNumber;
+          const rawOrg = options.orgNumber ?? doc.organizationNumber;
+          const orgNumber = rawOrg?.replace(/-/g, '') ?? '';
           if (!orgNumber || !/^\d{10}$|^\d{12}$/.test(orgNumber)) {
             console.error('Error: Valid organisation number required (10 or 12 digits). Use --org-number or ensure SIE file has #ORGNR.');
             process.exit(1);
           }
-          const xml = writeMomsXml(result, {
-            orgNumber,
-            period: options.period,
-            companyName: doc.companyName || undefined,
-            sniCode: options.sni,
-          });
+          const xml = writeMomsXml(result, { orgNumber, period: options.period });
           const absPath = resolve(options.outputXml);
-          await Bun.write(absPath, xml);
+          // Write as ISO-8859-1 bytes (charCode 0-255 maps directly)
+          const bytes = new Uint8Array(xml.length);
+          for (let i = 0; i < xml.length; i++) bytes[i] = xml.charCodeAt(i);
+          await Bun.write(absPath, bytes);
           console.log(`Written to ${absPath}`);
           return;
         }

@@ -78,27 +78,129 @@ describe('moms', () => {
     expect(fields.find(f => f.code === '36')).toBeUndefined();
   });
 
-  test('skattata-test-moms-eu.se: EU fields present with correct values', () => {
+  test('skattata-test-moms-eu.se: corrected ruta numbers per eSKDUpload DTD', () => {
     const data = runCli('moms', `${SYNTHETIC}/skattata-test-moms-eu.se`, '--format', 'json');
-    const fields = data.fields as Array<{ code: string; amount: number }>;
-    // Domestic: out25 includes 2610 (-50000) + 2614 (-5000) = 55000 (negated)
+    const fields = data.fields as Array<{ code: string; amount: number; xmlElementName: string }>;
+
+    // Ruta 10: Domestic output VAT 25% — excludes 2614 (ruta 30) and 2615 (ruta 60)
+    // 2610=-50000, 2614=-5000, 2615=-3000 → full=58000, domestic=58000-5000-3000=50000
     const f10 = fields.find(f => f.code === '10');
-    expect(f10?.amount).toBeCloseTo(55000, 1);
-    // Field 20: EU acquisitions (4515: 20000, positive debit — no negate)
+    expect(f10?.amount).toBeCloseTo(50000, 1);
+    expect(f10?.xmlElementName).toBe('MomsUtgHog');
+
+    // Ruta 20: Goods from EU (4515: 20000, narrowed to 4500-4519)
     const f20 = fields.find(f => f.code === '20');
     expect(f20?.amount).toBeCloseTo(20000, 1);
-    // Field 30: EU sales of goods (3105: -30000, negated = 30000)
+    expect(f20?.xmlElementName).toBe('InkopVaruAnnatEg');
+
+    // Ruta 21: Services from EU (4520: 15000)
+    const f21 = fields.find(f => f.code === '21');
+    expect(f21?.amount).toBeCloseTo(15000, 1);
+    expect(f21?.xmlElementName).toBe('InkopTjanstAnnatEg');
+
+    // Ruta 35: Goods sold to EU (3105: -30000, negated = 30000) — was wrongly ruta 30
+    const f35 = fields.find(f => f.code === '35');
+    expect(f35?.amount).toBeCloseTo(30000, 1);
+    expect(f35?.xmlElementName).toBe('ForsVaruAnnatEg');
+
+    // Ruta 39: Services sold to EU (3305: -25000, negated = 25000)
+    const f39 = fields.find(f => f.code === '39');
+    expect(f39?.amount).toBeCloseTo(25000, 1);
+    expect(f39?.xmlElementName).toBe('ForsTjSkskAnnatEg');
+
+    // Ruta 30: Output VAT 25% on purchases (2614: -5000, negated = 5000) — was wrongly ruta 36
     const f30 = fields.find(f => f.code === '30');
-    expect(f30?.amount).toBeCloseTo(30000, 1);
-    // Field 36: Reverse charge output VAT (2614: -5000, negated = 5000)
-    const f36 = fields.find(f => f.code === '36');
-    expect(f36?.amount).toBeCloseTo(5000, 1);
-    // Field 37: Reverse charge input VAT (2645: 5000)
-    const f37 = fields.find(f => f.code === '37');
-    expect(f37?.amount).toBeCloseTo(5000, 1);
+    expect(f30?.amount).toBeCloseTo(5000, 1);
+    expect(f30?.xmlElementName).toBe('MomsInkopUtgHog');
+
+    // Ruta 50: Import tax base (4546: 12000)
+    const f50 = fields.find(f => f.code === '50');
+    expect(f50?.amount).toBeCloseTo(12000, 1);
+    expect(f50?.xmlElementName).toBe('MomsUlagImport');
+
+    // Ruta 60: Import output VAT 25% (2615: -3000, negated = 3000)
+    const f60 = fields.find(f => f.code === '60');
+    expect(f60?.amount).toBeCloseTo(3000, 1);
+    expect(f60?.xmlElementName).toBe('MomsImportUtgHog');
+
+    // Old ruta 36/37 should NOT exist
+    expect(fields.find(f => f.code === '36')).toBeUndefined();
+    expect(fields.find(f => f.code === '37')).toBeUndefined();
+
     // Warning about EU transactions
     const warnings = data.warnings as string[];
     expect(warnings.some(w => w.includes('EU'))).toBe(true);
+  });
+
+  test('skattata-test-moms-eu.se --period 202301: EU fields from PSALDO data', () => {
+    const data = runCli('moms', `${SYNTHETIC}/skattata-test-moms-eu.se`, '--period', '202301', '--format', 'json');
+    const fields = data.fields as Array<{ code: string; amount: number }>;
+
+    // Ruta 20: Goods from EU (PSALDO 4515=8000)
+    expect(fields.find(f => f.code === '20')?.amount).toBeCloseTo(8000, 1);
+    // Ruta 21: Services from EU (PSALDO 4520=6000)
+    expect(fields.find(f => f.code === '21')?.amount).toBeCloseTo(6000, 1);
+    // Ruta 35: Goods sold to EU (PSALDO 3105=-12000, negated=12000)
+    expect(fields.find(f => f.code === '35')?.amount).toBeCloseTo(12000, 1);
+    // Ruta 39: Services sold to EU (PSALDO 3305=-10000, negated=10000)
+    expect(fields.find(f => f.code === '39')?.amount).toBeCloseTo(10000, 1);
+    // Ruta 30: Reverse charge output VAT 25% (PSALDO 2614=-2000, negated=2000)
+    expect(fields.find(f => f.code === '30')?.amount).toBeCloseTo(2000, 1);
+    // Ruta 60: Import output VAT 25% (PSALDO 2615=-1250, negated=1250)
+    expect(fields.find(f => f.code === '60')?.amount).toBeCloseTo(1250, 1);
+    // Ruta 50: Import tax base (PSALDO 4546=5000)
+    expect(fields.find(f => f.code === '50')?.amount).toBeCloseTo(5000, 1);
+  });
+
+  test('skattata-test-moms-eu.se: XML output follows eSKDUpload v6.0 format', () => {
+    const tmpXml = '/tmp/skattata-test-moms.xml';
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'moms', `${SYNTHETIC}/skattata-test-moms-eu.se`,
+      '--period', '202301', '--output-xml', tmpXml, '--org-number', '5566000006'], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    if (result.exitCode !== 0) {
+      throw new Error(`CLI exited ${result.exitCode}: ${result.stderr.toString()}`);
+    }
+    const { readFileSync } = require('node:fs');
+    const xmlContent = readFileSync(tmpXml, 'latin1');
+
+    // eSKDUpload root and DOCTYPE
+    expect(xmlContent).toContain('<?xml version="1.0" encoding="iso-8859-1"?>');
+    expect(xmlContent).toContain('<!DOCTYPE eSKDUpload');
+    expect(xmlContent).toContain('<eSKDUpload Version="6.0">');
+
+    // OrgNr: 10-digit gets "16" prefix
+    expect(xmlContent).toContain('<OrgNr>165566000006</OrgNr>');
+
+    // Period
+    expect(xmlContent).toContain('<Period>202301</Period>');
+
+    // Named elements (not <Uppgift kod="...">)
+    expect(xmlContent).toContain('<ForsMomsEjAnnan>');
+    expect(xmlContent).toContain('<MomsUtgHog>');
+    expect(xmlContent).toContain('<MomsIngAvdr>');
+    expect(xmlContent).toContain('<MomsBetala>');
+    expect(xmlContent).toContain('<InkopVaruAnnatEg>');
+    expect(xmlContent).toContain('<MomsInkopUtgHog>');
+
+    // DTD order: ForsMomsEjAnnan before MomsUtgHog (section A before section B)
+    const posA = xmlContent.indexOf('<ForsMomsEjAnnan>');
+    const posB = xmlContent.indexOf('<MomsUtgHog>');
+    expect(posA).toBeLessThan(posB);
+
+    // DTD order: ForsVaruAnnatEg (35) before MomsUtgHog (10)
+    const pos35 = xmlContent.indexOf('<ForsVaruAnnatEg>');
+    expect(pos35).toBeLessThan(posB);
+
+    // MomsBetala is last data element
+    const pos49 = xmlContent.indexOf('<MomsBetala>');
+    const posClose = xmlContent.indexOf('</Moms>');
+    expect(pos49).toBeLessThan(posClose);
+
+    // No old draft format elements
+    expect(xmlContent).not.toContain('<Momsdeklaration>');
+    expect(xmlContent).not.toContain('<Uppgift');
+    expect(xmlContent).not.toContain('<SNI>');
   });
 });
 

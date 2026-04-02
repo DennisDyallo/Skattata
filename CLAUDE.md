@@ -329,14 +329,27 @@ SRU (Standardiserade Räkenskapsutdrag) codes appear in SIE files as `#SRU accou
 
 ## Momsdeklaration (moms command)
 
-| Account | SKV 4700 field | Description |
-|---|---|---|
-| 3010 | 05 | Taxable sales base |
-| 2610 | 10 | Output VAT 25% |
-| 2620 | 11 | Output VAT 12% |
-| 2630 | 12 | Output VAT 6% |
-| 2640 | 48 | Input VAT (deductible) |
-| computed | 49 | Net VAT = (2610+2620+2630) − 2640 |
+Field mapping verified against official Skatteverket eSKDUpload_6p0.dtd.
+
+| BAS Accounts | Ruta | XML Element | Description |
+|---|---|---|---|
+| 3000-3999 | 05 | ForsMomsEjAnnan | Taxable sales base |
+| 2610-2613,2616-2619 | 10 | MomsUtgHog | Output VAT 25% (domestic) |
+| 2620-2623,2626-2629 | 11 | MomsUtgMedel | Output VAT 12% (domestic) |
+| 2630-2633,2636-2639 | 12 | MomsUtgLag | Output VAT 6% (domestic) |
+| 4500-4519 | 20 | InkopVaruAnnatEg | Goods from EU |
+| 4520-4529 | 21 | InkopTjanstAnnatEg | Services from EU |
+| 2614 | 30 | MomsInkopUtgHog | Output VAT 25% on purchases |
+| 2624 | 31 | MomsInkopUtgMedel | Output VAT 12% on purchases |
+| 2634 | 32 | MomsInkopUtgLag | Output VAT 6% on purchases |
+| 3100-3199 | 35 | ForsVaruAnnatEg | Goods sold to EU |
+| 3300-3399 | 39 | ForsTjSkskAnnatEg | Services sold to EU |
+| 4545-4548 | 50 | MomsUlagImport | Import tax base |
+| 2615 | 60 | MomsImportUtgHog | Import output VAT 25% |
+| 2625 | 61 | MomsImportUtgMedel | Import output VAT 12% |
+| 2635 | 62 | MomsImportUtgLag | Import output VAT 6% |
+| 2640-2669 | 48 | MomsIngAvdr | Input VAT (deductible) |
+| computed | 49 | MomsBetala | Net VAT = all output − input |
 
 ---
 
@@ -391,25 +404,29 @@ getDefaultTaxYear(): number               // latest supported year (fallback whe
 
 ## Moms XML (`MomsXmlWriter.ts`)
 
-`--output-xml <file>` on `moms` writes a draft XML momsdeklaration.
+`--output-xml <file>` on `moms` writes Skatteverket eSKDUpload Version 6.0 XML.
 
+- Format verified against official DTD: `eSKDUpload_6p0.dtd`
+- Root element: `<eSKDUpload Version="6.0">`
+- Encoding: `iso-8859-1` (written as Latin-1 bytes)
+- DOCTYPE: includes full PUBLIC identifier and system URL
+- Elements emitted in DTD-defined order (NOT numerically sorted by ruta)
 - Requires `--period` (exit 1 without it)
 - `--org-number` optional — falls back to `doc.organizationNumber` from `#ORGNR`
-- Org number validated: 10 or 12 digits
+- OrgNr: 10-digit corporate prefixed with `16` to make 12 digits; 12-digit personnummer as-is
 - Amounts are truncated integers (`Math.trunc`)
-- XML includes `<!-- Draft format -->` disclaimer comment
-- `--sni <code>` adds `<SNI>` element when provided
-- Company names with `&`, `<`, `>` properly XML-escaped
+- Only non-zero fields emitted (except `MomsBetala` which is always included)
+- `RUTA_DEFINITIONS` constant in `MomsCalculator.ts` is the single source of truth for element ordering
 
 ---
 
 ## SNI Codes (`shared/sniCodes.ts`)
 
-`--sni <code>` on `moms` and `sru-report` validates and includes SNI industry codes.
+`--sni <code>` on `sru-report` validates and includes SNI industry codes.
 
 - Format: exactly 5 digits (`/^\d{5}$/`, SNI 2007 / NACE Rev. 2)
-- In moms XML: `<SNI>62010</SNI>` element
 - In info.sru: comment line `* SNI: 62010` (not a `#SNI` tag — unconfirmed in SKV 269 spec)
+- Not included in moms XML (SNI is not part of the eSKDUpload DTD)
 
 ---
 

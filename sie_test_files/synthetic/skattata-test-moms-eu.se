@@ -1,4 +1,4 @@
-; skattata-test-moms-eu.se | origin: synthetic | created: 2026-04-02 | purpose: verify EU moms fields (20, 30, 35-37)
+; skattata-test-moms-eu.se | origin: synthetic | created: 2026-04-02 | purpose: verify EU moms fields, import VAT, and eSKDUpload XML
 #FLAGGA 0
 #FORMAT PC8
 #GEN 20240101
@@ -6,28 +6,53 @@
 #FNAMN "Test EU Moms AB"
 #ORGNR 556600-0006
 #RAR 0 20230101 20231231
-; Domestic VAT accounts
+; --- Domestic VAT accounts (2xxx use #UB, 3xxx/4xxx use #RES per SIE convention) ---
 #KONTO 3010 "Forsaljning 25% moms"
 #KTYP 3010 I
-#UB 0 3010 -200000.00
+#RES 0 3010 -200000.00
 #KONTO 2610 "Utgaende moms 25%"
 #KTYP 2610 S
 #UB 0 2610 -50000.00
 #KONTO 2640 "Ingaende moms"
 #KTYP 2640 T
 #UB 0 2640 20000.00
-; EU reverse charge accounts
+; --- EU reverse charge accounts ---
 #KONTO 2614 "Utg moms omvand skattskyldighet 25%"
 #KTYP 2614 S
 #UB 0 2614 -5000.00
 #KONTO 2645 "Ing moms omvand skattskyldighet"
 #KTYP 2645 T
 #UB 0 2645 5000.00
-; EU purchases
+; --- EU purchase bases ---
 #KONTO 4515 "Inkop varor EU"
 #KTYP 4515 K
-#UB 0 4515 20000.00
-; EU sales of goods
+#RES 0 4515 20000.00
+#KONTO 4520 "Inkop tjanster EU"
+#KTYP 4520 K
+#RES 0 4520 15000.00
+; --- EU sales (VAT-exempt) ---
 #KONTO 3105 "Forsaljning varor EU"
 #KTYP 3105 I
-#UB 0 3105 -30000.00
+#RES 0 3105 -30000.00
+#KONTO 3305 "Forsaljning tjanster EU"
+#KTYP 3305 I
+#RES 0 3305 -25000.00
+; --- Import VAT accounts ---
+#KONTO 4546 "Import varor"
+#KTYP 4546 K
+#RES 0 4546 12000.00
+#KONTO 2615 "Utg moms import 25%"
+#KTYP 2615 S
+#UB 0 2615 -3000.00
+; --- Period balances for --period testing ---
+#PSALDO 0 202301 3010 {} -80000.00
+#PSALDO 0 202301 2610 {} -20000.00
+#PSALDO 0 202301 2640 {} 8000.00
+#PSALDO 0 202301 2614 {} -2000.00
+#PSALDO 0 202301 2645 {} 2000.00
+#PSALDO 0 202301 4515 {} 8000.00
+#PSALDO 0 202301 4520 {} 6000.00
+#PSALDO 0 202301 3105 {} -12000.00
+#PSALDO 0 202301 3305 {} -10000.00
+#PSALDO 0 202301 4546 {} 5000.00
+#PSALDO 0 202301 2615 {} -1250.00
