@@ -119,6 +119,21 @@ describe('applyDefaultNeSru', () => {
     expect(doc.accounts.get('3980')!.sruCode).toBe('7401');
   });
 
+  test('3700-3969 maps to R1 (7400) — documented blocker', () => {
+    const doc = makeDoc([
+      { id: '3700' },
+      { id: '3800' },
+      { id: '3900' },
+      { id: '3969' },
+    ]);
+    const count = applyDefaultNeSru(doc);
+    expect(count).toBe(4);
+    expect(doc.accounts.get('3700')!.sruCode).toBe('7400');
+    expect(doc.accounts.get('3800')!.sruCode).toBe('7400');
+    expect(doc.accounts.get('3900')!.sruCode).toBe('7400');
+    expect(doc.accounts.get('3969')!.sruCode).toBe('7400');
+  });
+
   test('returns 0 when all accounts already have sruCode', () => {
     const doc = makeDoc([
       { id: '1930', sruCode: '7281' },

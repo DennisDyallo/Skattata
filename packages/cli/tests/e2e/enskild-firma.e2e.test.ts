@@ -1,5 +1,6 @@
 import { describe, test, expect } from 'bun:test';
 import { resolve } from 'node:path';
+import { existsSync, readFileSync, unlinkSync } from 'node:fs';
 
 const CLI = resolve(import.meta.dir, '../../src/index.ts');
 const SYNTHETIC = resolve(import.meta.dir, '../../../../sie_test_files/synthetic');
@@ -119,15 +120,13 @@ describe('sru-report --form ne --output file-write', () => {
     const tmpSru = '/tmp/skattata-test-ne.sru';
     const tmpInfoSru = '/tmp/info.sru';
     // Clean up any leftover files from previous runs
-    try { require('node:fs').unlinkSync(tmpSru); } catch {}
-    try { require('node:fs').unlinkSync(tmpInfoSru); } catch {}
+    try { unlinkSync(tmpSru); } catch {}
+    try { unlinkSync(tmpInfoSru); } catch {}
 
     const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ne', '--output', tmpSru, `${SYNTHETIC}/skattata-test-ne-no-sru.se`], {
       cwd: resolve(import.meta.dir, '../../../..'),
     });
     expect(result.exitCode).toBe(0);
-
-    const { readFileSync, existsSync } = require('node:fs');
 
     // Verify .sru file written with correct content
     expect(existsSync(tmpSru)).toBe(true);
@@ -149,8 +148,67 @@ describe('sru-report --form ne --output file-write', () => {
     expect(infoContent).toContain('#ORGNR 198505151234');
 
     // Clean up
-    try { require('node:fs').unlinkSync(tmpSru); } catch {}
-    try { require('node:fs').unlinkSync(tmpInfoSru); } catch {}
+    try { unlinkSync(tmpSru); } catch {}
+    try { unlinkSync(tmpInfoSru); } catch {}
+  });
+});
+
+describe('sru-report --form ne tax adjustment fields', () => {
+  test('positive capitalBase: SRU includes R41/7713 egenavgifter and R30/7708 rantefordelning', () => {
+    // skattata-test-rantefordelning.se: revenue=400000, costs=100000, netIncome=300000
+    // capitalBase=200000 (IB 2081=-200000, negated)
+    // egenavgifter = Math.trunc(300000 * 0.2897) = 86910
+    // rantefordelningPositive = Math.trunc(200000 * 0.0796) = 15920
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ne', '--format', 'sru', `${SYNTHETIC}/skattata-test-rantefordelning.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    const stdout = result.stdout.toString();
+    expect(stdout).toContain('#UPPGIFT 7713 86910');
+    expect(stdout).toContain('#UPPGIFT 7708 15920');
+    expect(stdout).toContain('#UPPGIFT 7714');  // schablonavdrag also present
+  });
+
+  test('negative capitalBase: SRU includes R31/7607 negative rantefordelning, no R30', () => {
+    // skattata-test-rantefordelning-neg.se: capitalBase=-50000
+    // rantefordelningNegative = Math.trunc(50000 * 0.0296) = 1480
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ne', '--format', 'sru', `${SYNTHETIC}/skattata-test-rantefordelning-neg.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    const stdout = result.stdout.toString();
+    expect(stdout).toContain('#UPPGIFT 7607 1480');
+    expect(stdout).not.toContain('#UPPGIFT 7708');
+  });
+
+  test('expansionsfond: SRU includes R36/7710 increase', () => {
+    // skattata-test-expansionsfond.se: 2081 IB=-100000, UB=-300000
+    // equityChange = 300000 - 100000 = 200000
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ne', '--format', 'sru', '--org-number', '198501011234', `${SYNTHETIC}/skattata-test-expansionsfond.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    const stdout = result.stdout.toString();
+    expect(stdout).toContain('#UPPGIFT 7710 200000');
+  });
+
+  test('existing SRU tags are not overwritten by computed entries', () => {
+    // skattata-test-sru-report.se has explicit #SRU tags — computed entries should not duplicate
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ne', '--format', 'sru', `${SYNTHETIC}/skattata-test-sru-report.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    const stdout = result.stdout.toString();
+    // Count occurrences of #UPPGIFT 7714 — should appear exactly once
+    const matches7714 = stdout.match(/#UPPGIFT 7714/g);
+    expect(matches7714?.length ?? 0).toBe(1);
+  });
+});
+
+describe('sru-report --form ne blocker: 3700-3969 R1 default', () => {
+  test('NE default mapping warns about 3700-3969 defaulting to R1', () => {
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ne', '--format', 'json', `${SYNTHETIC}/skattata-test-ne-no-sru.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    const stderr = result.stderr.toString();
+    expect(stderr).toContain('3700-3969');
+    expect(stderr).toContain('R1');
   });
 });
 

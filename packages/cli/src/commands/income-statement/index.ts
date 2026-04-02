@@ -3,6 +3,7 @@ import { parseFile } from '../../shared/parseFile.js';
 import { formatRows, type OutputFormat } from '../../shared/formatters/index.js';
 import { IncomeStatementCalculator } from './IncomeStatementCalculator.js';
 import { getTaxRates, getDefaultTaxYear } from '../../shared/taxRates.js';
+import { NeTaxCalculator } from '../../shared/NeTaxCalculator.js';
 
 export function register(program: Command): void {
   program
@@ -82,44 +83,30 @@ Examples:
         if (options.enskildFirma) {
           const taxYear = options.taxYear ? parseInt(options.taxYear, 10) : getDefaultTaxYear();
           const rates = getTaxRates(taxYear);
-          const egenavgifter = Math.trunc(result.netIncome * rates.egenavgifterRate);
-          const taxBase = Math.trunc(result.netIncome * (1 - rates.schablonavdrag));
+          const neTax = new NeTaxCalculator().calculate(doc, yearId, rates, options.period);
+
           console.log('\n--- Enskild firma estimates (Estimates only. Actual amounts depend on Skatteverket\'s iterative calculation.) ---');
-          console.log(`Egenavgifter ~${(rates.egenavgifterRate * 100).toFixed(2)}% (${rates.year} rate, estimate): ${egenavgifter.toFixed(0)} SEK`);
-          console.log(`Taxable income approx. (after ${(rates.schablonavdrag * 100).toFixed(0)}% schablonavdrag): ${taxBase.toFixed(0)} SEK`);
+          console.log(`Egenavgifter ~${(rates.egenavgifterRate * 100).toFixed(2)}% (${rates.year} rate, estimate): ${neTax.egenavgifter.toFixed(0)} SEK`);
+          console.log(`Taxable income approx. (after ${(rates.schablonavdrag * 100).toFixed(0)}% schablonavdrag): ${neTax.taxBase.toFixed(0)} SEK`);
 
           if (options.rantefordelning) {
-
-            // Capital base = sum of 2xxx opening balances, negated (credit → positive equity)
-            let capitalBase = 0;
-            for (const [id, acc] of doc.accounts) {
-              const num = parseInt(id, 10);
-              if (num >= 2000 && num <= 2999) {
-                const yr = acc.yearBalances.get(yearId);
-                const opening = yr ? yr.opening : acc.openingBalance;
-                capitalBase += -opening; // negate: credit balance → positive equity
-              }
-            }
-
             console.log(`\n--- Rantefordelning (interest allocation, ${rates.year} rates) ---`);
-            console.log(`Capital base (2xxx opening balances): ${Math.trunc(capitalBase)} SEK`);
+            console.log(`Capital base (2xxx opening balances): ${neTax.capitalBase} SEK`);
 
-            if (capitalBase > 0) {
-              const allocation = Math.trunc(capitalBase * rates.rantefordelningPositive);
-              const adjustedBase = result.netIncome - allocation;
+            if (neTax.capitalBase > 0) {
+              const adjustedBase = neTax.netIncome - neTax.rantefordelningPositive;
               const adjustedEgenavgifter = Math.trunc(Math.max(0, adjustedBase) * rates.egenavgifterRate);
-              const saving = egenavgifter - adjustedEgenavgifter;
+              const saving = neTax.egenavgifter - adjustedEgenavgifter;
               console.log(`Allocation rate (positive): ${(rates.rantefordelningPositive * 100).toFixed(2)}%`);
-              console.log(`Amount reclassified to capital income: ${allocation} SEK`);
+              console.log(`Amount reclassified to capital income: ${neTax.rantefordelningPositive} SEK`);
               console.log(`Adjusted egenavgifter base: ${Math.trunc(adjustedBase)} SEK`);
               console.log(`Adjusted egenavgifter ~${(rates.egenavgifterRate * 100).toFixed(2)}%: ${adjustedEgenavgifter} SEK`);
               console.log(`Estimated egenavgifter saving: ${saving} SEK`);
-            } else if (capitalBase < 0) {
-              const addition = Math.trunc(Math.abs(capitalBase) * rates.rantefordelningNegative);
-              const adjustedBase = result.netIncome + addition;
+            } else if (neTax.capitalBase < 0) {
+              const adjustedBase = neTax.netIncome + neTax.rantefordelningNegative;
               const adjustedEgenavgifter = Math.trunc(Math.max(0, adjustedBase) * rates.egenavgifterRate);
               console.log(`Negative capital base — mandatory allocation at ${(rates.rantefordelningNegative * 100).toFixed(2)}%`);
-              console.log(`Amount added to active income: ${addition} SEK`);
+              console.log(`Amount added to active income: ${neTax.rantefordelningNegative} SEK`);
               console.log(`Adjusted egenavgifter base: ${Math.trunc(adjustedBase)} SEK`);
               console.log(`Adjusted egenavgifter ~${(rates.egenavgifterRate * 100).toFixed(2)}%: ${adjustedEgenavgifter} SEK`);
             } else {
@@ -128,28 +115,14 @@ Examples:
           }
 
           if (options.expansionsfond) {
-            // Expansion fund base = closing equity − opening equity (2000-2099 only, NOT liabilities)
-            let closingEquity = 0, openingEquity = 0;
-            for (const [id, acc] of doc.accounts) {
-              const num = parseInt(id, 10);
-              if (num >= 2000 && num <= 2099) {
-                const yr = acc.yearBalances.get(yearId);
-                closingEquity += -(yr ? yr.closing : acc.closingBalance);
-                openingEquity += -(yr ? yr.opening : acc.openingBalance);
-              }
-            }
-            const expansionBase = closingEquity - openingEquity;
-
             console.log(`\n--- Expansionsfond (expansion fund, ${rates.year} rates) ---`);
-            console.log(`Opening equity (2000-2099): ${Math.trunc(openingEquity)} SEK`);
-            console.log(`Closing equity (2000-2099): ${Math.trunc(closingEquity)} SEK`);
-            console.log(`Expansion fund base: ${Math.trunc(expansionBase)} SEK`);
+            console.log(`Opening equity (2000-2099): ${neTax.equityOpening} SEK`);
+            console.log(`Closing equity (2000-2099): ${neTax.equityClosing} SEK`);
+            console.log(`Expansion fund base: ${neTax.expansionsfondBase} SEK`);
 
-            if (expansionBase > 0) {
-              const maxAllocation = Math.trunc(expansionBase);
-              const tax = Math.trunc(maxAllocation * rates.expansionsfondRate);
-              console.log(`Max allocation: ${maxAllocation} SEK`);
-              console.log(`Tax on allocation (${(rates.expansionsfondRate * 100).toFixed(1)}%): ${tax} SEK`);
+            if (neTax.expansionsfondBase > 0) {
+              console.log(`Max allocation: ${neTax.expansionsfondBase} SEK`);
+              console.log(`Tax on allocation (${(rates.expansionsfondRate * 100).toFixed(1)}%): ${neTax.expansionsfondTax} SEK`);
               console.log('(Simplified estimate. Actual base involves adjustments per SKV blankett N6.)');
             } else {
               console.log('Expansion fund base is zero or negative — no allocation possible.');

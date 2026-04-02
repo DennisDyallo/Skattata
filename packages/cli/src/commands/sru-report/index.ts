@@ -6,8 +6,8 @@ import { SruReportCalculator } from './SruReportCalculator.js';
 import { writeSruFile, type SruFileOptions } from './SruFileWriter.js';
 import { writeInfoSru } from './InfoSruWriter.js';
 import { applyDefaultNeSru } from './neDefaultSru.js';
-import { IncomeStatementCalculator } from '../income-statement/IncomeStatementCalculator.js';
 import { getTaxRates, getDefaultTaxYear } from '../../shared/taxRates.js';
+import { NeTaxCalculator } from '../../shared/NeTaxCalculator.js';
 import { validateSniCode } from '../../shared/sniCodes.js';
 
 export function register(program: Command): void {
@@ -66,7 +66,7 @@ Examples:
         const doc = await parseFile(file);
         const yearId = parseInt(options.year ?? '0', 10);
 
-        if ((options.form ?? 'ink2r').toUpperCase() === 'NE') {
+        if (options.form.toUpperCase() === 'NE') {
           const applied = applyDefaultNeSru(doc);
           if (applied > 0) {
             console.warn(`Note: Applied default NE K1 mapping to ${applied} account(s) missing #SRU tags.`);
@@ -77,7 +77,7 @@ Examples:
         const result = new SruReportCalculator().calculate(doc, yearId);
 
         // NE-bilaga validation: warn if no SRU codes found
-        if (options.form?.toLowerCase() === 'ne') {
+        if (options.form.toLowerCase() === 'ne') {
           if (result.entries.length === 0) {
             console.warn(`Warning: No NE SRU codes found in this SIE file. The accounting software did not export #SRU tags. NE-bilaga output will be empty.`);
             if (result.missingCode.length > 0) {
@@ -100,7 +100,7 @@ Examples:
         }
 
         // INK2R validation: warn if no SRU codes found or sections missing
-        if (options.form?.toLowerCase() === 'ink2r') {
+        if (options.form.toLowerCase() === 'ink2r') {
           if (result.entries.length === 0) {
             console.warn('Warning: No INK2R SRU codes found in this SIE file. The accounting software did not export #SRU tags.');
             if (result.missingCode.length > 0) {
@@ -129,36 +129,56 @@ Examples:
         }
 
         // INK2S validation: informational only (empty is valid — no adjustments needed)
-        if (options.form?.toLowerCase() === 'ink2s') {
+        if (options.form.toLowerCase() === 'ink2s') {
           if (result.entries.length === 0) {
             console.warn('Note: No INK2S adjustment codes found. This is normal if no tax adjustments apply.');
           }
         }
 
         if (options.output || options.format === 'sru') {
-          const formUpper = (options.form ?? 'ink2r').toUpperCase() as 'INK2R' | 'INK2S' | 'NE';
+          const formUpper = options.form.toUpperCase() as 'INK2R' | 'INK2S' | 'NE';
           const sruFileOptions: SruFileOptions = {
             form: formUpper,
             orgNumber: options.orgNumber,
             taxYear: options.taxYear ? parseInt(options.taxYear, 10) : undefined,
           };
 
-          // NE form: compute egenavgifter schablonavdrag (R43/7714) from income statement
-          // SRU codes verified from srufiler.se NE fältförteckning:
-          //   R43 → 7714: "Årets beräknade avdrag för egenavgifter och särskild löneskatt"
-          //   Schablonavdrag rate from tax rates module (25% for 2024-2025)
+          // NE form: compute tax adjustment fields from income statement
+          // SRU codes from srufiler.se NE fältförteckning (BAS Kontogruppen)
           if (formUpper === 'NE') {
-            const alreadyHas7714 = result.entries.some(e => e.sruCode === '7714');
-            if (!alreadyHas7714) {
-              const taxYear = options.taxYear ? parseInt(options.taxYear, 10) : getDefaultTaxYear();
-              const rates = getTaxRates(taxYear);
-              const incomeResult = new IncomeStatementCalculator().calculate(doc, yearId);
-              if (incomeResult.netIncome > 0) {
-                const schablonavdrag = Math.trunc(incomeResult.netIncome * rates.schablonavdrag);
-                sruFileOptions.computedEntries = [
-                  { sruCode: '7714', amount: schablonavdrag },
-                ];
+            const taxYear = options.taxYear ? parseInt(options.taxYear, 10) : getDefaultTaxYear();
+            const rates = getTaxRates(taxYear);
+            const neTax = new NeTaxCalculator().calculate(doc, yearId, rates);
+            const alreadyHas = (code: string) => result.entries.some(e => e.sruCode === code);
+            const computed: { sruCode: string; amount: number }[] = [];
+
+            if (neTax.netIncome > 0) {
+              // R41/7713: Årets beräknade egenavgifter
+              if (!alreadyHas('7713')) {
+                computed.push({ sruCode: '7713', amount: neTax.egenavgifter });
               }
+              // R43/7714: Årets beräknade avdrag för egenavgifter (schablonavdrag)
+              if (!alreadyHas('7714')) {
+                computed.push({ sruCode: '7714', amount: neTax.schablonavdrag });
+              }
+            }
+
+            // R30/7708: Positiv räntefördelning
+            if (!alreadyHas('7708') && neTax.rantefordelningPositive > 0) {
+              computed.push({ sruCode: '7708', amount: neTax.rantefordelningPositive });
+            }
+            // R31/7607: Negativ räntefördelning
+            if (!alreadyHas('7607') && neTax.rantefordelningNegative > 0) {
+              computed.push({ sruCode: '7607', amount: neTax.rantefordelningNegative });
+            }
+
+            // R36/7710: Ökning expansionsfond
+            if (!alreadyHas('7710') && neTax.expansionsfondBase > 0) {
+              computed.push({ sruCode: '7710', amount: neTax.expansionsfondBase });
+            }
+
+            if (computed.length > 0) {
+              sruFileOptions.computedEntries = computed;
             }
           }
 
