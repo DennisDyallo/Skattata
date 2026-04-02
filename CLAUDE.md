@@ -1,106 +1,290 @@
-# CLAUDE.md
+# CLAUDE.md — Agent reference for Skattata
 
-This file provides guidance to Claude Code when working with code in this repository.
+Skattata is a TypeScript (Bun) CLI + library for parsing, writing, and reporting on Swedish SIE accounting files. The codebase is a Bun workspace monorepo. Read this file before touching any code.
 
-## Project Overview
-
-Skattata is a TypeScript library for parsing and writing Swedish accounting files in the SIE format (Standard Import Export). The library supports both SIE 4 (tag-based text format with IBM Codepage 437 encoding) and SIE 5 (XML format) specifications.
+---
 
 ## Project Structure
 
 ```
 packages/
-  sie-core/          # Core library: parsers, writer, models, utilities
-  cli/               # skattata CLI: parse, validate, balance-sheet, moms, test-all
-sie_test_files/      # 82 real-world SIE files used for integration testing
-docs/                # SIE format specifications
-Plans/               # Implementation plans
+  sie-core/                    # Publishable library — no CLI deps
+    src/
+      models/                  # Pure data classes, no logic
+      parser/
+        SieTagParser.ts        # SIE 1–4 tag-based parser (CP437 + tab handling)
+        SieXmlParser.ts        # SIE 5 XML parser (fast-xml-parser)
+      writer/
+        SieDocumentWriter.ts   # Writes SieDocument → SIE 4 CP437 Buffer
+      comparer/
+        SieDocumentComparer.ts # Field-by-field diff for round-trip testing
+      utils/
+        encoding.ts            # iconv-lite CP437 encode/decode
+        lineParser.ts          # State-machine token splitter for SIE 4 lines
+    tests/
+      unit/                    # Per-module unit tests
+      integration/             # Parse all 127 real SIE files
+  cli/
+    src/
+      index.ts                 # commander.js entry — all 7 commands live here
+      statements/
+        BalanceSheetCalculator.ts
+        IncomeStatementCalculator.ts
+        MomsCalculator.ts
+        SruReportCalculator.ts
+        SruFileWriter.ts       # Writes SKV 269 .sru flat-file format
+      formatters/
+        index.ts               # formatRows(), formatKeyValue(), OutputFormat
+    tests/
+      e2e/                     # Spawns CLI binary, asserts stdout/exit code
+sie_test_files/                # 127 real-world SIE files (SIE 1–5, various vendors)
+docs/                          # SIE format PDFs
+Plans/                         # Approved implementation plans (read-only history)
 ```
 
-## Common Development Commands
+---
+
+## Dev Commands
 
 ```bash
-# Install dependencies
-bun install
-
-# Run all tests
-bun test
-
-# Run only the core library tests
-bun test packages/sie-core
-
-# E2E: parse and validate all 82 SIE test files
-bun run packages/cli/src/index.ts test-all ./sie_test_files
-
-# CLI commands
+bun install                              # install all workspace deps
+bun test                                 # run all tests (146 unit + integration)
+bun test packages/sie-core               # library tests only
+bun test packages/cli                    # CLI tests only
+bun run packages/cli/src/index.ts --help                          # list all 7 commands
 bun run packages/cli/src/index.ts parse <file>
 bun run packages/cli/src/index.ts validate <file>
-bun run packages/cli/src/index.ts balance-sheet <file>
+bun run packages/cli/src/index.ts balance-sheet <file> [--year -1]
 bun run packages/cli/src/index.ts income-statement <file>
 bun run packages/cli/src/index.ts moms <file> [--period YYYYMM]
+bun run packages/cli/src/index.ts sru-report <file> [--output ink2r.sru]
+bun run packages/cli/src/index.ts test-all ./sie_test_files           # E2E: 127/127 must pass
 ```
 
-## Key Architecture
+**Gate:** before committing any parser change, `test-all ./sie_test_files` must show 127/127.
 
-### sie-core
+---
 
-- **`src/models/`** — Data model classes: `SieDocument`, `SieAccount`, `SieVoucher`, `SieVoucherRow`, `SieDimension`, `SieObject`, `SieBookingYear`, `SiePeriodValue`
-- **`src/parser/SieTagParser.ts`** — SIE 4 tag-based parser. Auto-detects format, handles CP437, parses all tags (`#KONTO`, `#VER`, `#TRANS`, `#PSALDO`, etc.)
-- **`src/parser/SieXmlParser.ts`** — SIE 5 XML parser. Handles both `<Sie>` and `<SieEntry>` root variants
-- **`src/writer/SieDocumentWriter.ts`** — Writes `SieDocument` back to SIE 4 format with correct CP437 encoding
-- **`src/comparer/SieDocumentComparer.ts`** — Compares two parsed documents for round-trip validation
-- **`src/utils/encoding.ts`** — CP437 (IBM PC-8) encode/decode via iconv-lite
-- **`src/utils/lineParser.ts`** — Regex line splitter that handles quoted strings and `{dim obj}` notation
+## Key Models (`packages/sie-core/src/models/`)
 
-### Critical Parsing Notes
+### SieDocument
+```
+companyName: string
+organizationNumber: string
+format: string                   // 'PC8' for SIE 4, 'SIE5' for XML
+sieType: number                  // from #SIETYP (1/2/3/4)
+flagga: number                   // 0=export, 1=import (SIE 4i)
+currency: string                 // from #VALUTA, default 'SEK'
+program: string                  // from #PROGRAM (exporting software name)
+generatedAt: string              // from #GEN (raw date string)
+bookingYears: SieBookingYear[]
+accounts: Map<string, SieAccount>
+vouchers: SieVoucher[]
+dimensions: SieDimension[]
+errors: string[]
+```
 
-- SIE 4 files use **Codepage 437 (IBM PC-8)** — always decode with `iconv-lite` before parsing
-- Line splitter regex handles quoted strings with spaces and `{dimNo "objNo"}` object notation
-- The `#PSALDO` tag has a quirk: element 4 may contain joined `{objects} balance` — split at `}` first
-- Date format: `yyyyMMdd` (e.g. `20240101`). Decimal: invariant culture (dot separator)
-- `#KTYP` stores account type: `T`=assets, `S`=liabilities, `I`=income, `K`=expenses
+### SieAccount
+```
+accountId: string
+name: string
+type: 'T'|'S'|'I'|'K'|''        // T=tillgång S=skuld I=intäkt K=kostnad
+sruCode: string                  // from #SRU — used by SruReportCalculator
+unit: string
+openingBalance: number           // year-0 convenience scalar (from #IB 0)
+closingBalance: number           // year-0 convenience scalar (from #UB 0)
+result: number                   // year-0 convenience scalar (from #RES 0)
+yearBalances: Map<number, { opening: number; closing: number; result: number }>
+  // keyed by year index: 0=current, -1=prior, -2=two years back
+periodValues: SiePeriodValue[]   // from #PSALDO / #PRES
+```
 
-### SIE File Types
+### SieDimension
+```
+number: string
+name: string
+parentNumber: string             // from optional 3rd param of #DIM
+objects: Map<string, SieObject>
+```
 
-- **SIE 1** (`.se`) — year-end balances only
-- **SIE 2** (`.se`) — monthly period balances
-- **SIE 3** (`.se`) — with dimension/cost center balances
-- **SIE 4** (`.se`) — full transactional data
-- **SIE 4i** (`.si`) — import format (vouchers only)
-- **SIE 5** (`.sie`) — XML format
+### SiePeriodValue
+```
+bookingYear: SieBookingYear | null
+period: string                   // YYYYMM
+value: number
+objects: Array<{ dimensionNumber: string; number: string }>
+```
 
-## Testing Strategy
+### SieVoucher / SieVoucherRow
+```
+// Voucher: series, number, date, text, registrationDate, registrationSign, rows[]
+// Row: accountNumber, amount, transactionDate, rowText, objects[], quantity
+```
 
-- **Unit tests** (`packages/sie-core/tests/unit/`) — encoding, line parser, tag parser, writer, comparer
-- **Integration tests** (`packages/sie-core/tests/integration/`) — parse all 82 SIE files, round-trip validation
-- **E2E** (`skattata test-all ./sie_test_files`) — CLI-level validation of all files
+---
 
-Some SIE test files are known to produce no parsed content (e.g. certain Norstedts exports with non-standard encoding). This is expected and matches the original C# behaviour.
+## Critical Parser Notes (`SieTagParser.ts`)
 
-## BAS Account Ranges (for financial statement calculators)
+**Always read the parser before modifying it.**
 
-| Range | Category |
-|-------|----------|
-| 1000–1999 | Assets (Tillgångar) |
-| 2000–2099 | Equity (Eget kapital) |
-| 2100–2999 | Liabilities (Skulder) |
-| 3000–3999 | Revenue (Intäkter) |
-| 4000–7999 | Expenses (Kostnader) |
-| 8000–8999 | Financial items |
+- **Encoding:** Read entire file as Buffer, decode CP437 via `iconv-lite` (`decodeSie4(buf)`). Never open SIE 4 files as UTF-8.
+- **UTF-8 BOM detection:** Check raw bytes 0xEF 0xBB 0xBF before CP437 decode — BOM means the file is XML (SIE 5), route to `SieXmlParser`.
+- **Tab separator:** Some vendors (Visma Compact, SoftOne XE, Norstedts) use `\t` or `\t\t` instead of spaces. Line is normalized with `rawLine.replace(/\t+/g, ' ')` before `splitLine()`. Do NOT remove this.
+- **Line endings:** Handled by split regex `/\r\n|\r|\n/` — supports CRLF, LF, and bare CR (old Mac exports).
+- **`#PSALDO` quirk:** When `tokens.length === 5` and `tokens[4]` contains a space, token 4 may be a joined `{objects} balance` string. `normalizePsaldoTokens()` splits it at `}`. Also handles case of no `{}` at all (injects implicit `{}`).
+- **On-demand creation:** `#IB`/`#UB`/`#RES` and `#PSALDO` create accounts on-demand if not declared by `#KONTO`. `#OBJEKT` creates dimensions on-demand if not declared by `#DIM`. This is required — some SIE 4i files have balances with no chart of accounts.
+- **`safeParseFloat()`:** All balance parsing uses this helper — returns 0 for NaN. Never use raw `parseFloat()` on tokens from SIE files.
+- **`parseDate()`:** Validates 8 digits before constructing — returns `new Date(0)` sentinel for malformed dates (not `Invalid Date`).
+- **`#KONTO` with no name:** `if (tokens.length >= 2)` — creates account with empty name if name is absent.
+- **Malformed `#VER`:** If `tokens.length < 4`, still scans forward past `{...}` to avoid leaking rows into the top-level switch.
 
-## Momsdeklaration (SKV 4700) Account Mapping
+---
 
-| Account | Field | Description |
-|---------|-------|-------------|
-| 2610 | Ruta 10 | Outgoing VAT 25% |
-| 2620 | Ruta 11 | Outgoing VAT 12% |
-| 2630 | Ruta 12 | Outgoing VAT 6% |
-| 2640 | Ruta 48 | Incoming VAT (deductible) |
-| Net | Ruta 49 | (2610+2620+2630) − 2640 |
+## Line Parser (`lineParser.ts`)
+
+State-machine tokeniser. Key invariants:
+- Spaces inside `"..."` do NOT split
+- Spaces inside `{...}` do NOT split (braceDepth tracking)
+- `\"` inside quoted strings is an escaped quote (prevCh tracking)
+- `\\` collapses to one backslash and resets prevCh to `''`
+- `{1 "P100"}` is always ONE token — verified in tests
+
+---
+
+## Adding a New CLI Command
+
+**Recipe:**
+
+1. Create `packages/cli/src/statements/MyCalculator.ts`:
+   ```typescript
+   import type { SieDocument } from '@skattata/sie-core';
+   export interface MyResult { ... }
+   export class MyCalculator {
+     calculate(doc: SieDocument, ...args): MyResult { ... }
+   }
+   ```
+
+2. Add to `packages/cli/src/index.ts` after an existing command:
+   ```typescript
+   import { MyCalculator } from './statements/MyCalculator.js';
+   // ...
+   program
+     .command('my-command <file>')
+     .description('One sentence description')
+     .option('-f, --format <format>', 'Output format: table|json|csv', 'table')
+     .addHelpText('after', `\nExamples:\n  $ skattata my-command annual.se\n`)
+     .action(async (file, options) => {
+       const doc = await parseFile(file);
+       const result = new MyCalculator().calculate(doc);
+       const headers = ['Col1', 'Col2'];
+       const rows = result.items.map(i => [i.a, i.b]);
+       console.log(formatRows(headers, rows, options.format ?? 'table'));
+     });
+   ```
+
+3. Follow existing patterns: `BalanceSheetCalculator.ts` and `MomsCalculator.ts` are the canonical examples.
+
+---
+
+## Testing
+
+```
+packages/sie-core/tests/unit/
+  encoding.test.ts          CP437 encode/decode
+  lineParser.test.ts        splitLine() edge cases incl. escapes
+  sieTagParser.test.ts      tag-by-tag parser coverage
+  sieDocumentWriter.test.ts round-trip write/parse
+  sieDocumentComparer.test.ts diff logic
+  newFeatures.test.ts       yearBalances, sieType, PSALDO objects,
+                            on-demand creation, parseDate validation
+
+packages/sie-core/tests/integration/
+  integration.test.ts       Parses all 127 SIE files, checks errors[]
+
+sie_test_files/             127 real SIE files:
+  - Original 72 from C# test suite (SIE 1–5, Visma/MAMUT/Magenta/SoftOne)
+  - 51 from blinfo/Sie4j (deliberate edge cases: UTF-8, imbalanced, missing fields)
+  - 4 from iCalcreator/Sie5Sdk (SIE 5 XML variants)
+```
+
+**When to run what:**
+- After any parser change → `bun test packages/sie-core` + `test-all ./sie_test_files`
+- After any CLI change → `bun test packages/cli` + manual `--help` spot-check
+- Before committing → both, 0 fail required
+
+---
+
+## SIE Tag Reference
+
+| Tag | Format | Stored on |
+|---|---|---|
+| `#FNAMN` | name | `doc.companyName` |
+| `#ORGNR` | orgNo | `doc.organizationNumber` |
+| `#SIETYP` | n | `doc.sieType` |
+| `#FLAGGA` | n | `doc.flagga` |
+| `#VALUTA` | code | `doc.currency` |
+| `#PROGRAM` | name | `doc.program` |
+| `#GEN` | date [sign] | `doc.generatedAt` |
+| `#FORMAT` | PC8 | `doc.format` |
+| `#RAR` | id start end | `doc.bookingYears[]` |
+| `#KONTO` | id name [unit] | `doc.accounts` |
+| `#KTYP` | id T\|S\|I\|K | `acc.type` |
+| `#SRU` | accountId sruCode | `acc.sruCode` |
+| `#DIM` | id name [parentId] | `doc.dimensions[]` |
+| `#OBJEKT` | dimId objId name | `dim.objects` |
+| `#IB` | yearId accountId balance | `acc.yearBalances` + scalar |
+| `#UB` | yearId accountId balance | `acc.yearBalances` + scalar |
+| `#RES` | yearId accountId balance | `acc.yearBalances` + scalar |
+| `#OIB`/`#OUB` | yearId accountId {dimId objId} balance | `obj.openingBalance`/`closingBalance` |
+| `#PSALDO` | yearId period accountId {objects} balance | `acc.periodValues[]` |
+| `#VER` | series number date [text [regDate [sign]]] | `doc.vouchers[]` |
+| `#TRANS` | accountId {objects} amount [date [text]] | `voucher.rows[]` |
+
+---
+
+## BAS Account Ranges
+
+| Range | Category | Balance field |
+|---|---|---|
+| ≤2999 | Balance sheet (assets/equity/liabilities) | `closingBalance` |
+| 3000–3999 | Revenue | `result` |
+| 4000–7999 | Costs and expenses | `result` |
+| 8000–8999 | Financial items | `result` |
+
+Exact splits used by calculators:
+- **balance-sheet:** 1000–1999 assets · 2000–2099 equity · 2100–2999 liabilities
+- **income-statement:** 3000–3999 revenue · 4000–4999 COGS · 5000–6999 opex · 7000–7999 depreciation · 8000–8999 financial
+
+---
+
+## SRU System
+
+SRU (Standardiserade Räkenskapsutdrag) codes appear in SIE files as `#SRU accountId code`. They map accounting data to Swedish tax declaration lines. The mapping was done by the exporting software — we don't need to re-derive it.
+
+- `SruReportCalculator.ts` — groups `acc.sruCode`, sums correct field per account type
+- `SruFileWriter.ts` — outputs SKV 269 flat-file format (`#BLANKETT`, `#UPPGIFT`, etc.)
+- Form types: `INK2R` (aktiebolag balance+P&L) · `INK2S` (tax adjustments) · `NE` (enskild firma)
+- Values are truncated integers (`Math.trunc`) per Swedish tax convention
+
+---
+
+## Momsdeklaration (moms command)
+
+| Account | SKV 4700 field | Description |
+|---|---|---|
+| 3010 | 05 | Taxable sales base |
+| 2610 | 10 | Output VAT 25% |
+| 2620 | 11 | Output VAT 12% |
+| 2630 | 12 | Output VAT 6% |
+| 2640 | 48 | Input VAT (deductible) |
+| computed | 49 | Net VAT = (2610+2620+2630) − 2640 |
+
+---
 
 ## Runtime
 
-- **Bun** — runtime, package manager, test runner
-- **iconv-lite** — CP437 encoding/decoding
+- **Bun** — runtime, test runner, package manager (`bun test`, `bun run`)
+- **iconv-lite** — CP437 encode/decode (no native Bun CP437 support)
 - **fast-xml-parser** — SIE 5 XML parsing
 - **commander** — CLI framework
+- **chalk + cli-table3** — terminal output formatting
