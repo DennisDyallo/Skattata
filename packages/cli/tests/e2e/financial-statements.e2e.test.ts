@@ -155,3 +155,33 @@ describe('sru-report', () => {
     expect(e7281?.totalAmount).toBeCloseTo(50000, 1);
   });
 });
+
+describe('sru-report INK2R/INK2S validation', () => {
+  test('INK2R with no SRU codes exits with error', () => {
+    // skattata-test-balanced-annual.se has no SRU tags
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ink2r', '--format', 'json', `${SYNTHETIC}/skattata-test-balanced-annual.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    expect(result.exitCode).not.toBe(0);
+    const stderr = result.stderr.toString();
+    expect(stderr.toLowerCase()).toContain('ink2r');
+  });
+
+  test('INK2R with SRU codes passes (no error exit)', () => {
+    // skattata-test-sru-report.se has SRU tags
+    const data = runCli('sru-report', '--form', 'ink2r', `${SYNTHETIC}/skattata-test-sru-report.se`, '--format', 'json');
+    const entries = data.entries as Array<{ sruCode: string }>;
+    expect(entries.length).toBeGreaterThan(0);
+  });
+
+  test('INK2S with no adjustment codes exits 0 with note on stderr', () => {
+    // skattata-test-balanced-annual.se has no SRU tags — but INK2S empty is OK
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ink2s', '--format', 'json', `${SYNTHETIC}/skattata-test-balanced-annual.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    // INK2S empty is valid — should NOT exit 1
+    expect(result.exitCode).toBe(0);
+    const stderr = result.stderr.toString();
+    expect(stderr.toLowerCase()).toContain('no ink2s');
+  });
+});

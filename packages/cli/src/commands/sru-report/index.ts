@@ -81,6 +81,42 @@ Examples:
           }
         }
 
+        // INK2R validation: warn if no SRU codes found or sections missing
+        if (options.form?.toLowerCase() === 'ink2r') {
+          if (result.entries.length === 0) {
+            console.warn('Warning: No INK2R SRU codes found in this SIE file. The accounting software did not export #SRU tags.');
+            if (result.missingCode.length > 0) {
+              const sample = result.missingCode.slice(0, 5).map(a => `${a.id} (${a.name || 'unnamed'})`).join(', ');
+              console.warn(`  Accounts without SRU codes: ${sample}${result.missingCode.length > 5 ? ` and ${result.missingCode.length - 5} more` : ''}`);
+            }
+            process.exit(1);
+          }
+
+          // Check for balance sheet and P&L sections
+          // INK2R balance sheet: 7200-7399 (assets, equity, liabilities)
+          // INK2R P&L: 7400+ (revenue, costs, financial items)
+          const hasBalanceSheet = result.entries.some(e => {
+            const code = parseInt(e.sruCode, 10);
+            return code >= 7200 && code <= 7399;
+          });
+          const hasPnL = result.entries.some(e => {
+            const code = parseInt(e.sruCode, 10);
+            return code >= 7400;
+          });
+          if (hasBalanceSheet && !hasPnL) {
+            console.warn('Warning: INK2R has balance sheet codes but no P&L section (7400-7599). Income/expense accounts may be missing #SRU tags.');
+          } else if (!hasBalanceSheet && hasPnL) {
+            console.warn('Warning: INK2R has P&L codes but no balance sheet section (7201-7383). Asset/equity/liability accounts may be missing #SRU tags.');
+          }
+        }
+
+        // INK2S validation: informational only (empty is valid — no adjustments needed)
+        if (options.form?.toLowerCase() === 'ink2s') {
+          if (result.entries.length === 0) {
+            console.warn('Note: No INK2S adjustment codes found. This is normal if no tax adjustments apply.');
+          }
+        }
+
         if (options.output || options.format === 'sru') {
           const formUpper = (options.form ?? 'ink2r').toUpperCase() as 'INK2R' | 'INK2S' | 'NE';
           const sruFileOptions: SruFileOptions = {
