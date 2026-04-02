@@ -1,6 +1,7 @@
 bin/
 obj/
-/packages/
+# NuGet packages (now unused — TypeScript packages/ is source)
+# /packages/
 riderModule.iml
 /_ReSharper.Caches/
 .idea/
