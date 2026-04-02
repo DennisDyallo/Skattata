@@ -1,0 +1,17 @@
+; skattata-test-f-skatt.se | origin: synthetic | created: 2026-04-02 | purpose: verify F-skatt calc: profit=400000, egenavgifter deduction=100000, grundavdrag=33600 (PBB 2025)
+#FLAGGA 0
+#FORMAT PC8
+#GEN 20240101
+#SIETYP 1
+#FNAMN "Test F-skatt EF"
+#ORGNR 198501011234
+#RAR 0 20230101 20231231
+#KONTO 3010 "Forsaljning"
+#KTYP 3010 I
+#RES 0 3010 -500000.00
+#KONTO 4010 "Inkop"
+#KTYP 4010 K
+#RES 0 4010 100000.00
+#KONTO 1930 "Bank"
+#KTYP 1930 T
+#UB 0 1930 400000.00

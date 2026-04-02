@@ -6,6 +6,7 @@ import { register as registerBalanceSheet }    from './commands/balance-sheet/in
 import { register as registerIncomeStatement } from './commands/income-statement/index.js';
 import { register as registerMoms }            from './commands/moms/index.js';
 import { register as registerSruReport }       from './commands/sru-report/index.js';
+import { register as registerFSkatt }          from './commands/f-skatt/index.js';
 import { register as registerTestAll }         from './commands/test-all/index.js';
 
 const program = new Command();
@@ -26,6 +27,7 @@ Commands at a glance:
   income-statement Revenue and costs from period result values
   moms             VAT return fields (SKV 4700) from VAT accounts
   sru-report       Tax declaration lines (INK2R/NE) from #SRU account codes
+  f-skatt          Preliminary tax estimate for enskild firma
   test-all         Batch parse every SIE file in a directory
 
 File formats accepted:  .se (SIE 1–4)  .si (SIE 4i import)  .sie (SIE 5 XML)
@@ -41,6 +43,7 @@ registerBalanceSheet(program);
 registerIncomeStatement(program);
 registerMoms(program);
 registerSruReport(program);
+registerFSkatt(program);
 registerTestAll(program);
 
 await program.parseAsync(process.argv);
