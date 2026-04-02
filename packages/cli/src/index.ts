@@ -12,6 +12,8 @@ import {
 import { BalanceSheetCalculator } from './statements/BalanceSheetCalculator.js';
 import { IncomeStatementCalculator } from './statements/IncomeStatementCalculator.js';
 import { MomsCalculator } from './statements/MomsCalculator.js';
+import { SruReportCalculator, type SruReportResult } from './statements/SruReportCalculator.js';
+import { writeSruFile, type SruFileOptions } from './statements/SruFileWriter.js';
 import { formatRows, formatKeyValue, type OutputFormat } from './formatters/index.js';
 
 /**
@@ -219,6 +221,55 @@ program
       const headers = ['Code', 'Label', 'Amount'];
       const rows = result.fields.map(f => [f.code, f.label, f.amount.toFixed(2)]);
       console.log(formatRows(headers, rows, options.format));
+    } catch (err) {
+      console.error(`Error: ${(err as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// ── sru-report ──
+program
+  .command('sru-report <file>')
+  .description('Generate SRU report grouping accounts by SRU tax declaration code')
+  .option('-f, --format <format>', 'Output format: table|json|csv|sru', 'table')
+  .option('--year <n>', 'Booking year index (default: 0)', '0')
+  .option('--form <form>', 'Declaration form for .sru output: ink2r|ink2s|ne', 'ink2r')
+  .option('--output <file>', 'Write .sru file to this path (implies --format sru)')
+  .option('--org-number <value>', 'Override organization number in .sru output')
+  .action(async (file: string, options: { format: string; year: string; form: string; output?: string; orgNumber?: string }) => {
+    try {
+      const doc = await parseFile(file);
+      const yearId = parseInt(options.year ?? '0', 10);
+      const result = new SruReportCalculator().calculate(doc, yearId);
+
+      if (options.output || options.format === 'sru') {
+        const sruText = writeSruFile(result, {
+          form: (options.form ?? 'ink2r').toUpperCase() as 'INK2R' | 'INK2S' | 'NE',
+          orgNumber: options.orgNumber,
+        });
+        if (options.output) {
+          // No directory restriction enforced — intentional for a tax filing tool
+          const absOutput = resolve(options.output);
+          await Bun.write(absOutput, sruText);
+          console.log(`Written to ${absOutput}`);
+        } else {
+          console.log(sruText);
+        }
+        return;
+      }
+
+      // table/json/csv output
+      const headers = ['SRU Code', 'Total (SEK)', 'Accounts'];
+      const rows = result.entries.map(e => [
+        e.sruCode,
+        e.totalAmount.toFixed(2),
+        e.accounts.map(a => a.id).join(', '),
+      ]);
+      console.log(formatRows(headers, rows, (options.format ?? 'table') as OutputFormat));
+
+      if (result.missingCode.length > 0) {
+        console.log(`\n${result.missingCode.length} account(s) have no SRU code.`);
+      }
     } catch (err) {
       console.error(`Error: ${(err as Error).message}`);
       process.exit(1);

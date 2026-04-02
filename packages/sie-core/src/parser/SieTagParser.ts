@@ -294,18 +294,26 @@ export class SieTagParser {
    * "{objects} balance" concatenated without a separating split.
    */
   private normalizePsaldoTokens(tokens: string[]): string[] {
-    if (tokens.length === 5 && tokens[4].includes(' ')) {
+    if (tokens.length === 5) {
       const remaining = tokens[4];
-      const braceEnd = remaining.indexOf('}');
-      const normalized = tokens.slice(0, 4);
-      if (braceEnd >= 0) {
-        normalized.push(remaining.substring(0, braceEnd + 1));
-        const rest = remaining.substring(braceEnd + 1).trim();
-        if (rest) normalized.push(...rest.split(/\s+/).filter(Boolean));
+      if (remaining.includes(' ')) {
+        const braceEnd = remaining.indexOf('}');
+        const normalized = tokens.slice(0, 4);
+        if (braceEnd >= 0) {
+          normalized.push(remaining.substring(0, braceEnd + 1));
+          const rest = remaining.substring(braceEnd + 1).trim();
+          if (rest) normalized.push(...rest.split(/\s+/).filter(Boolean));
+        } else {
+          normalized.push('{}');
+          normalized.push(remaining.trim());
+        }
+        return normalized;
       } else {
-        normalized.push(...remaining.split(/\s+/).filter(Boolean));
+        const normalized = tokens.slice(0, 4);
+        normalized.push('{}');
+        normalized.push(remaining.trim());
+        return normalized;
       }
-      return normalized;
     }
     return tokens;
   }
@@ -432,11 +440,14 @@ export class SieTagParser {
   }
 
   private parseDate(str: string): Date {
-    // yyyyMMdd format
+    if (!str || str.length !== 8 || !/^\d{8}$/.test(str)) {
+      return new Date(0);
+    }
     const y = parseInt(str.substring(0, 4), 10);
     const m = parseInt(str.substring(4, 6), 10) - 1;
     const d = parseInt(str.substring(6, 8), 10);
-    return new Date(y, m, d);
+    const result = new Date(y, m, d);
+    return result;
   }
 
   private tryParseDate(str: string): Date | null {
