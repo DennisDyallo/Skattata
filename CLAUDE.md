@@ -54,7 +54,7 @@ packages/
         test-all/index.ts
     tests/
       e2e/                     # Spawns CLI binary, asserts stdout/exit code
-sie_test_files/                # 133 test files: 127 real-world (SIE 1–5, various vendors) + 6 synthetic
+sie_test_files/                # 142 test files: 127 real-world (SIE 1–5, various vendors) + 15 synthetic
 docs/                          # SIE format PDFs
 Plans/                         # Approved implementation plans (read-only history)
 ```
@@ -242,20 +242,27 @@ packages/sie-core/tests/unit/
 packages/sie-core/tests/integration/
   integration.test.ts       Parses all 127 real SIE files, checks errors[]
 
-sie_test_files/             135 test files total:
+sie_test_files/             142 test files total:
   127 real-world files (named <sietype>-<vendor>-<description>.<ext>):
   - Original 72 from C# test suite (SIE 1–5, Visma/MAMUT/Magenta/SoftOne)
   - 51 from blinfo/Sie4j (deliberate edge cases: UTF-8, imbalanced, missing fields)
   - 4 from iCalcreator/Sie5Sdk (SIE 5 XML variants)
-  synthetic/                8 hand-crafted files with provable expected outputs:
+  synthetic/                15 hand-crafted files with provable expected outputs:
   - skattata-test-balanced-annual.se     Balance sheet: assets=equity=150000, diff=0
+  - skattata-test-expansionsfond.se      Expansionsfond: equity increase 200000, tax 41200 (20.6%)
+  - skattata-test-f-skatt.se             F-skatt preliminary tax estimation
+  - skattata-test-income-multiyear.se    Multi-year income: year 0=50000, year -1=40000
   - skattata-test-income-statement.se    Income statement: revenue=100000, COGS=80000, net=20000
   - skattata-test-moms-annual.se         Moms: output VAT 25000, input 10000, net payable 15000
+  - skattata-test-moms-eu.se             Moms with EU fields: rutor 20/21/30/35/39/50/60
   - skattata-test-moms-period.se         Moms by period: Jan=7500, Feb=7500
   - skattata-test-moms-refund.se         Moms: net -20000 (refund scenario)
-  - skattata-test-sru-report.se          SRU: 7281=50000, 7301=-50000, 7410=40000
+  - skattata-test-ne-no-sru.se           NE K1 default mapping: no #SRU tags, verify computed codes
   - skattata-test-period-financial.se    Period filtering: 202301 assets=80000, net=20000; 202304 net=30000
-  - skattata-test-expansionsfond.se      Expansionsfond: equity increase 200000, tax 41200 (20.6%)
+  - skattata-test-rantefordelning-neg.se Rantefordelning with negative capital base
+  - skattata-test-rantefordelning.se     Rantefordelning: capital base=200000, allocation=15920
+  - skattata-test-sru-no-income.se       SRU with tags but zero net income (balance sheet only)
+  - skattata-test-sru-report.se          SRU: 7281=50000, 7301=50000 (equity negated), 7410=40000
 ```
 
 **When to run what:**

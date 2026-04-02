@@ -256,6 +256,14 @@ describe('sru-report', () => {
     const e7281 = entries.find(e => e.sruCode === '7281');
     expect(e7281?.totalAmount).toBeCloseTo(50000, 1);
   });
+
+  test('skattata-test-sru-report.se: SRU 7301 = 50000 (equity negated from SIE credit)', () => {
+    const data = runCli('sru-report', `${SYNTHETIC}/skattata-test-sru-report.se`, '--format', 'json');
+    const entries = data.entries as Array<{ sruCode: string; totalAmount: number }>;
+    const e7301 = entries.find(e => e.sruCode === '7301');
+    // Account 2081 has #UB -50000 in SIE (credit convention). SKV 269 expects positive.
+    expect(e7301?.totalAmount).toBeCloseTo(50000, 1);
+  });
 });
 
 describe('sru-report INK2R/INK2S validation', () => {

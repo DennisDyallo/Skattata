@@ -80,10 +80,10 @@ describe('sru-report --form ne default K1 mapping', () => {
     const data = JSON.parse(stdout);
     const entries = data.entries as Array<{ sruCode: string; totalAmount: number }>;
 
-    // Balance sheet (equity/liabilities are raw SIE credit balances -- negative)
+    // Balance sheet — SKV 269 expects positive amounts for all entries
     expect(entries.find(e => e.sruCode === '7280')?.totalAmount).toBeCloseTo(80000, 1);   // B9: asset
-    expect(entries.find(e => e.sruCode === '7300')?.totalAmount).toBeCloseTo(-30000, 1);  // B10: equity (credit)
-    expect(entries.find(e => e.sruCode === '7382')?.totalAmount).toBeCloseTo(-10000, 1);  // B15: AP (credit)
+    expect(entries.find(e => e.sruCode === '7300')?.totalAmount).toBeCloseTo(30000, 1);   // B10: equity (negated from SIE credit)
+    expect(entries.find(e => e.sruCode === '7382')?.totalAmount).toBeCloseTo(10000, 1);   // B15: AP (negated from SIE credit)
 
     // Income statement
     expect(entries.find(e => e.sruCode === '7400')?.totalAmount).toBeCloseTo(200000, 1); // R1 (revenue negated)
@@ -111,6 +111,46 @@ describe('sru-report --form ne default K1 mapping', () => {
     const entries = data.entries as Array<{ sruCode: string; totalAmount: number }>;
     expect(entries.find(e => e.sruCode === '7281')?.totalAmount).toBeCloseTo(50000, 1);
     expect(entries.find(e => e.sruCode === '7410')?.totalAmount).toBeCloseTo(40000, 1);
+  });
+});
+
+describe('sru-report --form ne --output file-write', () => {
+  test('NE with no #SRU tags: --output writes .sru with #BLANKETT NE, info.sru companion, and 7714 computed', () => {
+    const tmpSru = '/tmp/skattata-test-ne.sru';
+    const tmpInfoSru = '/tmp/info.sru';
+    // Clean up any leftover files from previous runs
+    try { require('node:fs').unlinkSync(tmpSru); } catch {}
+    try { require('node:fs').unlinkSync(tmpInfoSru); } catch {}
+
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ne', '--output', tmpSru, `${SYNTHETIC}/skattata-test-ne-no-sru.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    expect(result.exitCode).toBe(0);
+
+    const { readFileSync, existsSync } = require('node:fs');
+
+    // Verify .sru file written with correct content
+    expect(existsSync(tmpSru)).toBe(true);
+    const sruContent = readFileSync(tmpSru, 'utf-8');
+    expect(sruContent).toContain('#BLANKETT NE');
+    expect(sruContent).toContain('#BLANKETTSLUT');
+    expect(sruContent).toContain('#FIL_SLUT');
+
+    // Verify 7714 computed entry (egenavgifter schablonavdrag)
+    // netIncome = 200000 + 1000 - 50000 - 30000 - 5000 - 15000 = 101000
+    // schablonavdrag = Math.trunc(101000 * 0.25) = 25250
+    expect(sruContent).toContain('#UPPGIFT 7714 25250');
+
+    // Verify info.sru companion file created
+    expect(existsSync(tmpInfoSru)).toBe(true);
+    const infoContent = readFileSync(tmpInfoSru, 'utf-8');
+    expect(infoContent).toContain('#DATABESKRIVNING_START');
+    expect(infoContent).toContain('#MEDIELEV_START');
+    expect(infoContent).toContain('#ORGNR 198505151234');
+
+    // Clean up
+    try { require('node:fs').unlinkSync(tmpSru); } catch {}
+    try { require('node:fs').unlinkSync(tmpInfoSru); } catch {}
   });
 });
 

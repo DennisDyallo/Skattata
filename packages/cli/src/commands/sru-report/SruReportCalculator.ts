@@ -29,10 +29,13 @@ export class SruReportCalculator {
 
       const field = this.balanceField(acc, id);
       const raw = this.getAmount(acc, field, yearId);
-      // Revenue accounts (type 'I' or 3xxx) store credit balances as negative in SIE.
-      // Negate to match IncomeStatementCalculator display convention (positive = revenue earned).
-      const isRevenue = acc.type === 'I' || (!acc.type && parseInt(id, 10) >= 3000 && parseInt(id, 10) <= 3999);
-      const amount = (isRevenue && field === 'result') ? -raw : raw;
+      // SIE stores credits as negative (revenue=I, equity/liabilities=S).
+      // SKV 269 expects positive amounts. Negate credit-balance accounts.
+      const num = parseInt(id, 10);
+      const isRevenue = acc.type === 'I' || (!acc.type && num >= 3000 && num <= 3999);
+      const isEquityOrLiability = acc.type === 'S' || (!acc.type && num >= 2000 && num <= 2999);
+      const shouldNegate = (isRevenue && field === 'result') || (isEquityOrLiability && field === 'closingBalance');
+      const amount = shouldNegate ? -raw : raw;
 
       if (!map.has(acc.sruCode)) {
         map.set(acc.sruCode, { sruCode: acc.sruCode, totalAmount: 0, accounts: [] });
