@@ -14,6 +14,7 @@ import { IncomeStatementCalculator } from './statements/IncomeStatementCalculato
 import { MomsCalculator } from './statements/MomsCalculator.js';
 import { SruReportCalculator, type SruReportResult } from './statements/SruReportCalculator.js';
 import { writeSruFile, type SruFileOptions } from './statements/SruFileWriter.js';
+import { writeInfoSru } from './statements/InfoSruWriter.js';
 import { formatRows, formatKeyValue, type OutputFormat } from './formatters/index.js';
 
 /**
@@ -352,8 +353,9 @@ The --format sru output follows Skatteverket's SKV 269 flat-file format:
   #BLANKETTSLUT
   #FIL_SLUT
 
-Note: a full Skatteverket submission also requires an info.sru companion
-file (not generated here). The .sru output is the blanketter.sru component.
+When --output is used, an info.sru companion file is also written to the
+same directory (required for a complete Skatteverket SRU submission).
+The --output file is the blanketter.sru component; info.sru is the sender metadata.
 
 Examples:
   $ skattata sru-report annual.se
@@ -379,6 +381,13 @@ Examples:
           const absOutput = resolve(options.output);
           await Bun.write(absOutput, sruText);
           console.log(`Written to ${absOutput}`);
+
+          // Write info.sru companion file in the same directory (required for full SKV submission)
+          const { dirname, join } = await import('node:path');
+          const infoPath = join(dirname(absOutput), 'info.sru');
+          const infoText = writeInfoSru(result, { orgNumber: options.orgNumber });
+          await Bun.write(infoPath, infoText);
+          console.log(`Written to ${infoPath}`);
         } else {
           console.log(sruText);
         }
