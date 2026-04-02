@@ -1,10 +1,11 @@
 import type { Command } from 'commander';
-import { resolve } from 'node:path';
+import { resolve, dirname, join } from 'node:path';
 import { parseFile } from '../../shared/parseFile.js';
 import { formatRows, type OutputFormat } from '../../shared/formatters/index.js';
 import { SruReportCalculator } from './SruReportCalculator.js';
-import { writeSruFile } from './SruFileWriter.js';
+import { writeSruFile, type SruFileOptions } from './SruFileWriter.js';
 import { writeInfoSru } from './InfoSruWriter.js';
+import { IncomeStatementCalculator } from '../income-statement/IncomeStatementCalculator.js';
 
 export function register(program: Command): void {
   program
@@ -81,11 +82,31 @@ Examples:
         }
 
         if (options.output || options.format === 'sru') {
-          const sruText = writeSruFile(result, {
-            form: (options.form ?? 'ink2r').toUpperCase() as 'INK2R' | 'INK2S' | 'NE',
+          const formUpper = (options.form ?? 'ink2r').toUpperCase() as 'INK2R' | 'INK2S' | 'NE';
+          const sruFileOptions: SruFileOptions = {
+            form: formUpper,
             orgNumber: options.orgNumber,
             taxYear: options.taxYear ? parseInt(options.taxYear, 10) : undefined,
-          });
+          };
+
+          // NE form: compute egenavgifter schablonavdrag (R43/7714) from income statement
+          // SRU codes verified from srufiler.se NE fältförteckning:
+          //   R43 → 7714: "Årets beräknade avdrag för egenavgifter och särskild löneskatt"
+          //   Schablonavdrag = 25% of profit (simplified deduction, applicable for tax year 2024-2025)
+          if (formUpper === 'NE') {
+            const alreadyHas7714 = result.entries.some(e => e.sruCode === '7714');
+            if (!alreadyHas7714) {
+              const incomeResult = new IncomeStatementCalculator().calculate(doc, yearId);
+              if (incomeResult.netIncome > 0) {
+                const schablonavdrag = Math.trunc(incomeResult.netIncome * 0.25);
+                sruFileOptions.computedEntries = [
+                  { sruCode: '7714', amount: schablonavdrag },
+                ];
+              }
+            }
+          }
+
+          const sruText = writeSruFile(result, sruFileOptions);
           if (options.output) {
             // No directory restriction enforced — intentional for a tax filing tool
             const absOutput = resolve(options.output);
@@ -93,7 +114,6 @@ Examples:
             console.log(`Written to ${absOutput}`);
 
             // Write info.sru companion file in the same directory (required for full SKV submission)
-            const { dirname, join } = await import('node:path');
             const infoPath = join(dirname(absOutput), 'info.sru');
             const infoText = writeInfoSru(result, { orgNumber: options.orgNumber });
             await Bun.write(infoPath, infoText);

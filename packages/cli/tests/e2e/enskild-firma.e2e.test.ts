@@ -25,3 +25,33 @@ describe('income-statement --enskild-firma', () => {
     expect(stdout.toLowerCase()).not.toContain('egenavgifter');
   });
 });
+
+describe('sru-report --form ne egenavgifter', () => {
+  test('NE SRU output includes egenavgifter schablonavdrag (R43/7714)', () => {
+    // skattata-test-sru-report.se: revenue 40000 (3010+3011), no costs → netIncome=40000
+    // Schablonavdrag = Math.trunc(40000 * 0.25) = 10000
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ne', '--format', 'sru', `${SYNTHETIC}/skattata-test-sru-report.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    const stdout = result.stdout.toString();
+    expect(stdout).toContain('#UPPGIFT 7714 10000');
+  });
+
+  test('NE SRU output omits egenavgifter when netIncome <= 0', () => {
+    // skattata-test-sru-no-income.se has SRU tags (balance sheet only), netIncome=0
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ne', '--format', 'sru', `${SYNTHETIC}/skattata-test-sru-no-income.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    const stdout = result.stdout.toString();
+    expect(stdout).toContain('#BLANKETT NE');
+    expect(stdout).not.toContain('#UPPGIFT 7714');
+  });
+
+  test('non-NE form does not include egenavgifter codes', () => {
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ink2r', '--format', 'sru', `${SYNTHETIC}/skattata-test-sru-report.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    const stdout = result.stdout.toString();
+    expect(stdout).not.toContain('#UPPGIFT 7714');
+  });
+});

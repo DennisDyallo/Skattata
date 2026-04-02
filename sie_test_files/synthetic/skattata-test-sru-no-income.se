@@ -1,0 +1,16 @@
+; skattata-test-sru-no-income.se | origin: synthetic | created: 2026-04-02 | purpose: SRU file with tags but zero net income (no revenue/cost accounts)
+#FLAGGA 0
+#FORMAT PC8
+#GEN 20240101
+#SIETYP 1
+#FNAMN "Test Zero Income AB"
+#ORGNR 556600-0005
+#RAR 0 20230101 20231231
+#KONTO 1930 "Bankkonto"
+#KTYP 1930 T
+#SRU 1930 7281
+#UB 0 1930 50000.00
+#KONTO 2081 "Aktiekapital"
+#KTYP 2081 S
+#SRU 2081 7301
+#UB 0 2081 -50000.00

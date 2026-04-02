@@ -6,6 +6,8 @@ export interface SruFileOptions {
   orgNumber?: string;
   companyName?: string;
   softwareName?: string;
+  /** Computed entries added for NE form (egenavgifter schablonavdrag etc.) */
+  computedEntries?: { sruCode: string; amount: number }[];
 }
 
 export function writeSruFile(result: SruReportResult, options: SruFileOptions): string {
@@ -33,6 +35,13 @@ export function writeSruFile(result: SruReportResult, options: SruFileOptions): 
   for (const entry of result.entries) {
     const val = formatSruValue(entry.totalAmount);
     lines.push(`#UPPGIFT ${entry.sruCode} ${val}`);
+  }
+
+  // Append computed entries (e.g. egenavgifter schablonavdrag for NE form)
+  if (options.computedEntries) {
+    for (const entry of options.computedEntries) {
+      lines.push(`#UPPGIFT ${entry.sruCode} ${formatSruValue(entry.amount)}`);
+    }
   }
 
   lines.push('#BLANKETTSLUT');
