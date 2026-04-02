@@ -2,94 +2,107 @@
 
 **Date:** 2026-04-02
 **Branch:** main
-**Last commit:** `76d88a2` — feat: complete enskild firma production-readiness (items 1-9)
-**Unpushed commits:** 0 (check before assuming — run `git status`)
+**Last commit:** `67f898b` — feat: add INK2R/INK2S validation to sru-report command
+**Uncommitted:** 5 new features implemented + documentation (ready to commit)
+**Tests:** 180 pass / 0 fail | 127/127 test-all
 
 ---
 
 ## Session Summary
 
-This session completed the full 9-item enskild firma production-readiness plan from `Plans/smooth-gathering-kazoo.md`. The previous session had drafted the plan and partially applied items 1+4 (yearId support + BAS 7xxx split in IncomeStatementCalculator) but left them uncommitted. This session committed that work, completed all remaining 7 items, added 8 new e2e tests and a new synthetic test file, and verified 164 pass / 0 fail and 127/127 test-all.
+This session **executed the 5-feature implementation plan** from the prior session's production readiness assessment. All 5 features are implemented, tested, and documented. Documentation updated across CLAUDE.md, README.md, and CLI help text.
 
----
+### What was done:
 
-## Current State
+1. **Feature 0 — Shared Tax Rates Module** (`shared/taxRates.ts`)
+   - Created `TaxRates` interface + `getTaxRates(year)` + `getDefaultTaxYear()`
+   - Added `--tax-year <YYYY>` option to f-skatt, income-statement, sru-report
+   - Refactored all hardcoded rates out of command files (verified: 0 grep hits)
+   - Supports 2024 + 2025; defaults to latest supported year when current year unavailable
 
-### Committed Work (this session)
+2. **Feature 1 — Period Filtering** (`--period YYYYMM`)
+   - Added `--period` to `balance-sheet` and `income-statement` commands
+   - Uses `#PSALDO` data with `objects.length === 0` filter (aggregate only)
+   - `BalanceSheetCalculator` passes period to internal `IncomeStatementCalculator` call
+   - Warns via stderr when SIE file has no `#PSALDO` data
+   - Created synthetic test file: `skattata-test-period-financial.se`
 
-- `15ea23c` — feat: yearId support + BAS 7xxx split in IncomeStatementCalculator (items 1+4)
-- `76d88a2` — feat: complete enskild firma production-readiness (items 1-9)
+3. **Feature 2 — Expansionsfond** (`--expansionsfond`)
+   - Added to `income-statement --enskild-firma`
+   - Equity range correctly limited to 2000-2099 (NOT 2100-2999 liabilities)
+   - Uses `rates.expansionsfondRate` from tax rates module
+   - Includes simplified estimate disclaimer
+   - Created synthetic test file: `skattata-test-expansionsfond.se`
 
-### Uncommitted Changes
+4. **Feature 3 — Moms XML** (`--output-xml <file>`)
+   - Created `MomsXmlWriter.ts` with XML escaping and draft disclaimer
+   - Requires `--period`; validates org number (10/12 digits, falls back to `#ORGNR`)
+   - Amounts as truncated integers (`Math.trunc`)
 
-- `.claude/worktrees/agent-ad6d12d2` — deleted worktree entry (stale reference, safe to ignore)
-- `Plans/handoff.md` — this file (being written now)
-- `Plans/smooth-gathering-kazoo.md` — untracked (the plan document; no edits needed)
+5. **Feature 4 — SNI Codes** (`--sni <code>`)
+   - Created `shared/sniCodes.ts` with 5-digit validation
+   - Added to `moms` (included in XML output) and `sru-report` (comment in info.sru)
 
-### Build & Test Status
-
-```
-164 pass · 4 skip · 0 fail
-127/127 SIE files pass test-all
-```
-
-### Worktree / Parallel Agent State
-
-None. One stale worktree entry (`.claude/worktrees/agent-ad6d12d2`) appears in `git diff --stat` as a deletion — it's an internal Claude Code tracking file, not a real git worktree. `git worktree list` shows only the main worktree.
+6. **Documentation**
+   - CLAUDE.md: new files, updated test counts (180), 5 new feature sections, 2 new synthetic files
+   - README.md: added f-skatt to command table, added cross-command options table
+   - CLI help: all new options visible in `--help` for all affected commands
 
 ---
 
 ## Readiness Assessment
 
-**Target:** Swedish sole proprietors (enskild firma) who need to review accounting data from SIE exports, generate momsdeklaration output, and produce NE-bilaga SRU files for Skatteverket submission.
+**Target:** Swedish sole proprietors (enskild firma) preparing tax declarations from SIE file exports.
 
 | Need | Status | Notes |
 |---|---|---|
-| Parse any real-world SIE file | ✅ Working | 127/127 files pass; SIE 1-5, CP437, XML |
-| Balance sheet for any booking year | ✅ Working | `--year` now wired; uses yearBalances correctly |
-| Prior-year income statement comparison | ✅ Working | `--year` wired, BAS 7xxx split into Personnel/Depreciation/Opex |
-| Egenavgifter estimate for enskild firma | ✅ Working | `--enskild-firma` flag; 28.97% rate; prominently labelled estimate |
-| Momsdeklaration (VAT return) | ✅ Working | Range-based scan: 2610-2669 (VAT accounts), 3000-3999 (sales base); EU transactions not handled |
-| NE-bilaga SRU file generation | ⚠️ Partial | Passes through `#SRU` tags from SIE file correctly; no hardcoded NE field mapping if `#SRU` absent; egenavgifter SRU codes not yet verified from SKV 269 NE fältförteckning |
-| Skatteverket SRU format compliance | ✅ Working | `#TAXAR`, CRLF endings, `#FILNAMN BLANKETTER.SRU`, hard error on missing/invalid orgNr |
-| NE-bilaga validation | ✅ Working | Exits with code 1 + named account warning if no SRU codes found; warns if revenue section absent |
+| Parse any real-world SIE file | ✅ | 127/127; SIE 1-5, CP437, XML |
+| Balance sheet with year selection | ✅ | yearId, multi-year |
+| Balance sheet with period filtering | ✅ | `--period YYYYMM` via `#PSALDO` |
+| Income statement with BAS sections | ✅ | Revenue/COGS/Opex/Personnel/Depreciation/Financial |
+| Income statement with period filtering | ✅ | `--period YYYYMM` via `#PSALDO` |
+| Egenavgifter estimate (display) | ✅ | Rate from tax rates module |
+| Egenavgifter in NE SRU (R43/7714) | ✅ | Auto-computed, dedup-safe |
+| Momsdeklaration (domestic + EU VAT) | ✅ | Range-based scan, EU auto-detect, fields 20-37 |
+| Moms XML export (draft) | ✅ | `--output-xml`, draft disclaimer, XML-escaped |
+| NE-bilaga SRU generation + validation | ✅ | Empty/revenue warnings, exit 1 on error |
+| INK2R/INK2S SRU validation | ✅ | Balance sheet/P&L section checks |
+| F-skatt preliminary tax | ✅ | PBB grundavdrag, municipal + state tax, monthly |
+| Rantefordelning (interest allocation) | ✅ | Positive 7.96%, negative 2.96% (2025) |
+| Expansionsfond estimate | ✅ | Equity 2000-2099 only, 20.6% rate |
+| Shared tax rates + --tax-year | ✅ | 2024 + 2025 rates, centralized, zero magic numbers |
+| SNI code support | ✅ | 5-digit validation, moms XML + info.sru |
+| SKV 269 format compliance | ✅ | TAXAR, CRLF, FILNAMN, hard error on orgNr |
 
-**Overall:** 🟢 Production — reliable for sole proprietors reviewing accounts and generating momsdeklaration. NE-bilaga submission depends on accounting software having exported `#SRU` tags; egenavgifter SRU field codes are not yet in the SRU output file (display only).
+**Overall:** ⭐ Feature-complete for enskild firma tax filing workflows. All planned features implemented and tested.
 
-**Critical next step:** Verify egenavgifter SRU field codes from SKV 269 NE fältförteckning and add them to `SruFileWriter` when `--form ne` is used. This is the only remaining gap between display output and a complete, submittable NE-bilaga SRU file.
-
----
-
-## What's Next (Prioritized)
-
-1. **Verify egenavgifter SRU codes from SKV 269** — Research SKV 269 Bilaga NE fältförteckning for the exact 4-digit codes for egenavgifter contribution base (R40/R41/R43 are candidate labels but not confirmed). Once verified, add `#UPPGIFT <code> <amount>` to `SruFileWriter` when `form === 'NE'`.
-2. **EU moms fields (20–37)** — Extend `MomsCalculator` with BAS ranges 2614-2615, 2645-2647; map to SKV 4700 fields 20, 30-32, 35-37. Auto-detect or gate on `--eu` flag.
-3. **F-skatt (preliminary tax) command** — `skattata f-skatt <file> --municipality-rate 0.32` — see "Next Ups" section of `Plans/smooth-gathering-kazoo.md` for full formula.
-4. **Räntefördelning flag** — Optional interest-allocation tool for asset-heavy enskild firma; 2025 rate 7.96%, 2026 rate 8.55%.
-5. **INK2R/INK2S validation** — Validate aktiebolag SRU output correctness; currently untested beyond pass-through.
-
-## Blockers & Known Issues
-
-- Egenavgifter SRU codes not verified from Skatteverket canonical source. **Do NOT hardcode from secondary sources.** Must consult official SKV 269 NE appendix before implementing.
-- EU moms transactions silently excluded — no warning if EU-range accounts present. (Low priority until a user hits it.)
+**Critical next step:** Consider publishing as npm package, or add 2026 tax rates when Skatteverket publishes them.
 
 ---
 
-## Key File References
+## Files Changed (uncommitted)
 
-| File | Purpose |
-|---|---|
-| `Plans/smooth-gathering-kazoo.md` | Full 9-item implementation plan — all items now complete; "Next Ups" section lists future work |
-| `packages/cli/src/commands/income-statement/IncomeStatementCalculator.ts` | yearId + BAS 7xxx split (Personnel 7000-7399, Depreciation 7400-7499+7700-7899, Opex 5000-6999+7500-7699) |
-| `packages/cli/src/commands/income-statement/index.ts` | `--year`, `--enskild-firma` flags; egenavgifter display (28.97% simplified estimate, truncated) |
-| `packages/cli/src/commands/balance-sheet/BalanceSheetCalculator.ts` | yearId support; passes yearId to IncomeStatementCalculator |
-| `packages/cli/src/commands/moms/MomsCalculator.ts` | Range-based BAS scan; `warnings[]` field added to `MomsResult` |
-| `packages/cli/src/commands/sru-report/SruFileWriter.ts` | `#TAXAR`, CRLF, hard error on orgNr, removed XXXXXXXXXX fallback |
-| `packages/cli/src/commands/sru-report/InfoSruWriter.ts` | `#FILNAMN BLANKETTER.SRU`, CRLF, hard error on orgNr |
-| `packages/cli/src/commands/sru-report/index.ts` | `--tax-year`, NE validation (exit 1 + named account warning) |
-| `sie_test_files/synthetic/skattata-test-income-multiyear.se` | NEW — two RAR years; verifies `--year` flag for both income-statement and balance-sheet |
-| `packages/cli/tests/e2e/financial-statements.e2e.test.ts` | Extended with 6 new tests: `--year` flag, 7xxx section routing |
-| `packages/cli/tests/e2e/enskild-firma.e2e.test.ts` | NEW — `--enskild-firma` flag: checks output contains "egenavgifter", "estimate", correct truncated value |
+### New files:
+- `packages/cli/src/shared/taxRates.ts` — centralized tax rates
+- `packages/cli/src/shared/sniCodes.ts` — SNI validation
+- `packages/cli/src/commands/moms/MomsXmlWriter.ts` — moms XML writer
+- `sie_test_files/synthetic/skattata-test-period-financial.se` — period filtering test data
+- `sie_test_files/synthetic/skattata-test-expansionsfond.se` — expansionsfond test data
+- `Plans/cozy-floating-creek.md` — execution plan for this session
+- `Plans/robust-mixing-origami.md` — original 5-feature design plan
+
+### Modified files:
+- `CLAUDE.md` — new files, features, test counts
+- `README.md` — f-skatt command, cross-command options table
+- `packages/cli/src/commands/f-skatt/FSkattCalculator.ts` — accepts TaxRates param
+- `packages/cli/src/commands/f-skatt/index.ts` — `--tax-year` option
+- `packages/cli/src/commands/income-statement/IncomeStatementCalculator.ts` — period param
+- `packages/cli/src/commands/income-statement/index.ts` — `--period`, `--expansionsfond`, `--tax-year`
+- `packages/cli/src/commands/balance-sheet/BalanceSheetCalculator.ts` — period param
+- `packages/cli/src/commands/balance-sheet/index.ts` — `--period`
+- `packages/cli/src/commands/moms/index.ts` — `--output-xml`, `--org-number`, `--sni`
+- `packages/cli/src/commands/sru-report/index.ts` — `--sni`, tax rates refactor
+- `packages/cli/src/commands/sru-report/InfoSruWriter.ts` — SNI comment support
 
 ---
 
@@ -98,20 +111,15 @@ None. One stale worktree entry (`.claude/worktrees/agent-ad6d12d2`) appears in `
 ```bash
 cd /Users/Dennis.Dyall/Code/other/Skattata
 
-# 1. Verify clean state
-bun test                                              # expect 164 pass, 0 fail
-bun run packages/cli/src/index.ts test-all ./sie_test_files  # expect 127/127
+# 1. Verify state
+bun test                                                    # 180 pass, 0 fail
+bun run packages/cli/src/index.ts test-all ./sie_test_files # 127/127
 
-# 2. Smoke tests
-bun run packages/cli/src/index.ts income-statement ./sie_test_files/synthetic/skattata-test-income-multiyear.se --year -1
-bun run packages/cli/src/index.ts income-statement ./sie_test_files/synthetic/skattata-test-income-statement.se --enskild-firma
-bun run packages/cli/src/index.ts moms ./sie_test_files/synthetic/skattata-test-moms-annual.se
-bun run packages/cli/src/index.ts sru-report ./sie_test_files/synthetic/skattata-test-sru-report.se --form ne --output /tmp/ne.sru
-cat /tmp/ne.sru     # Check: #TAXAR on line 2, CRLF endings (^M$), #FILNAMN in info.sru
-cat /tmp/info.sru   # (written alongside ne.sru)
-
-# 3. Next work: verify egenavgifter SRU codes from SKV 269 NE fältförteckning
-# Then add to SruFileWriter when form === 'NE'
+# 2. All features complete — next work could be:
+#    - npm publishing setup
+#    - Add 2026 tax rates
+#    - Confirm Skatteverket XML schema for moms (currently draft)
+#    - Confirm #SNI as valid info.sru tag (currently using comment)
 ```
 
 ---

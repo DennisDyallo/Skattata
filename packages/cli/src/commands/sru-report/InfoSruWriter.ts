@@ -5,7 +5,7 @@ import type { SruReportResult } from './SruReportCalculator.js';
  * The blanketter.sru file (form data) is written by SruFileWriter.
  * info.sru identifies the submitting company (§3 SKV 269).
  */
-export function writeInfoSru(result: SruReportResult, options?: { orgNumber?: string; companyName?: string }): string {
+export function writeInfoSru(result: SruReportResult, options?: { orgNumber?: string; companyName?: string; sniCode?: string }): string {
   const org = (options?.orgNumber ?? result.organizationNumber ?? '').replace(/-/g, '');
   const name = options?.companyName ?? result.companyName ?? '';
 
@@ -29,6 +29,7 @@ export function writeInfoSru(result: SruReportResult, options?: { orgNumber?: st
   lines.push('#MEDIELEV_START');
   if (org) lines.push(`#ORGNR ${org}`);
   if (name) lines.push(`#NAMN ${name}`);
+  if (options?.sniCode) lines.push(`* SNI: ${options.sniCode}`);
   lines.push('#MEDIELEV_SLUT');
   lines.push('');
 

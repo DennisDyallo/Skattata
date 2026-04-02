@@ -1,4 +1,5 @@
 import type { SieDocument } from '@skattata/sie-core';
+import type { TaxRates } from '../../shared/taxRates.js';
 import { IncomeStatementCalculator } from '../income-statement/IncomeStatementCalculator.js';
 
 export interface FSkattResult {
@@ -14,18 +15,12 @@ export interface FSkattResult {
   stateTaxThreshold: number;
 }
 
-// Prisbasbelopp for tax year 2025
-const PBB_2025 = 58800;
-// State income tax threshold (statlig inkomstskatt brytpunkt) 2025
-const STATE_TAX_THRESHOLD_2025 = 613900;
-const STATE_TAX_RATE = 0.20;
-
 /**
  * Grundavdrag (basic deduction) for persons under 66, based on prisbasbelopp.
- * Formula from inkomstskattelagen 63 kap, applicable for tax year 2025 (PBB=58800).
+ * Formula from inkomstskattelagen 63 kap.
  * The bracket structure (as PBB multiples) is stable across years; only PBB changes.
  */
-function calculateGrundavdrag(taxableIncome: number, pbb = PBB_2025): number {
+function calculateGrundavdrag(taxableIncome: number, pbb: number): number {
   const inPbb = taxableIncome / pbb;
 
   let grundavdrag: number;
@@ -49,24 +44,25 @@ export class FSkattCalculator {
   calculate(
     doc: SieDocument,
     municipalRate: number,
+    rates: TaxRates,
     yearId = 0,
     grundavdragOverride?: number,
   ): FSkattResult {
     const incomeResult = new IncomeStatementCalculator().calculate(doc, yearId);
     const businessProfit = incomeResult.netIncome;
 
-    // Egenavgifter deduction: 25% schablonavdrag (same as NE-bilaga R43)
-    const egenavgifterDeduction = Math.max(0, Math.trunc(businessProfit * 0.25));
+    // Egenavgifter deduction: schablonavdrag (simplified)
+    const egenavgifterDeduction = Math.max(0, Math.trunc(businessProfit * rates.schablonavdrag));
 
     const incomeAfterEgenavgifter = businessProfit - egenavgifterDeduction;
 
     // Grundavdrag: use override if provided, else calculate from PBB formula
-    const grundavdrag = grundavdragOverride ?? calculateGrundavdrag(Math.max(0, incomeAfterEgenavgifter));
+    const grundavdrag = grundavdragOverride ?? calculateGrundavdrag(Math.max(0, incomeAfterEgenavgifter), rates.pbb);
 
     const taxableIncome = Math.max(0, incomeAfterEgenavgifter - grundavdrag);
 
     const municipalTax = Math.trunc(taxableIncome * municipalRate);
-    const stateTax = Math.trunc(Math.max(0, taxableIncome - STATE_TAX_THRESHOLD_2025) * STATE_TAX_RATE);
+    const stateTax = Math.trunc(Math.max(0, taxableIncome - rates.stateTaxThreshold) * rates.stateTaxRate);
     const totalAnnualTax = municipalTax + stateTax;
     const monthlyInstalment = Math.trunc(totalAnnualTax / 12);
 
@@ -80,7 +76,7 @@ export class FSkattCalculator {
       totalAnnualTax,
       monthlyInstalment,
       municipalRate,
-      stateTaxThreshold: STATE_TAX_THRESHOLD_2025,
+      stateTaxThreshold: rates.stateTaxThreshold,
     };
   }
 }

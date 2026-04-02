@@ -2,6 +2,7 @@ import type { Command } from 'commander';
 import { parseFile } from '../../shared/parseFile.js';
 import { formatRows, type OutputFormat } from '../../shared/formatters/index.js';
 import { FSkattCalculator } from './FSkattCalculator.js';
+import { getTaxRates, getDefaultTaxYear } from '../../shared/taxRates.js';
 
 export function register(program: Command): void {
   program
@@ -30,7 +31,8 @@ Examples:
   $ skattata f-skatt annual.se --municipality-rate 0.32 --grundavdrag 42000
   $ skattata f-skatt annual.se --municipality-rate 0.32 --format json
 `)
-    .action(async (file: string, options: { format: OutputFormat; year?: string; municipalityRate?: string; grundavdrag?: string }) => {
+    .option('--tax-year <YYYY>', 'Tax year for rate selection (default: current year)')
+    .action(async (file: string, options: { format: OutputFormat; year?: string; municipalityRate?: string; grundavdrag?: string; taxYear?: string }) => {
       try {
         if (!options.municipalityRate) {
           console.error('Error: --municipality-rate is required (e.g. 0.3274 for Stockholm kommun)');
@@ -45,6 +47,8 @@ Examples:
 
         const doc = await parseFile(file);
         const yearId = parseInt(options.year ?? '0', 10);
+        const taxYear = options.taxYear ? parseInt(options.taxYear, 10) : getDefaultTaxYear();
+        const rates = getTaxRates(taxYear);
         let grundavdragOverride: number | undefined;
         if (options.grundavdrag) {
           grundavdragOverride = parseInt(options.grundavdrag, 10);
@@ -54,7 +58,7 @@ Examples:
           }
         }
         const calc = new FSkattCalculator();
-        const result = calc.calculate(doc, municipalRate, yearId, grundavdragOverride);
+        const result = calc.calculate(doc, municipalRate, rates, yearId, grundavdragOverride);
 
         if (options.format === 'json') {
           console.log(JSON.stringify(result, null, 2));

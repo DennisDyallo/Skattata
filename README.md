@@ -28,9 +28,20 @@ bun run packages/cli/src/index.ts <command> [file] [options]
 | `income-statement <file>` | P&L grouped by revenue / cost / operating expense |
 | `moms <file>` | VAT return (momsdeklaration) with SKV 4700 field codes |
 | `sru-report <file>` | Tax declaration lines (INK2R / NE) from SRU codes in the file |
+| `f-skatt <file>` | Preliminary tax estimate (F-skatt) for enskild firma |
 | `test-all <dir>` | Parse every `.se` `.si` `.sie` file in a directory |
 
 Every command supports `--format table|json|csv` and `--help` for full options.
+
+### Cross-command options
+
+| Option | Available on | What it does |
+|---|---|---|
+| `--tax-year <YYYY>` | f-skatt, income-statement, sru-report | Select tax year for rate calculations (default: latest supported) |
+| `--period <YYYYMM>` | balance-sheet, income-statement, moms | Filter to a single period using `#PSALDO` data |
+| `--enskild-firma` | income-statement | Show egenavgifter, räntefördelning, expansionsfond estimates |
+| `--output-xml <file>` | moms | Write momsdeklaration XML (draft format) |
+| `--sni <code>` | moms, sru-report | SNI industry code (5 digits) — included in XML/SRU output |
 
 ## Examples
 

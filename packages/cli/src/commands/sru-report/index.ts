@@ -6,6 +6,8 @@ import { SruReportCalculator } from './SruReportCalculator.js';
 import { writeSruFile, type SruFileOptions } from './SruFileWriter.js';
 import { writeInfoSru } from './InfoSruWriter.js';
 import { IncomeStatementCalculator } from '../income-statement/IncomeStatementCalculator.js';
+import { getTaxRates, getDefaultTaxYear } from '../../shared/taxRates.js';
+import { validateSniCode } from '../../shared/sniCodes.js';
 
 export function register(program: Command): void {
   program
@@ -17,6 +19,7 @@ export function register(program: Command): void {
     .option('--output <file>', 'Write Skatteverket .sru flat-file to this path (implies --format sru)')
     .option('--org-number <value>', 'Override organisation number used in #IDENTITET line of .sru file')
     .option('--tax-year <YYYY>', 'Tax year for #TAXAR declaration (default: current year - 1)')
+    .option('--sni <code>', 'SNI industry code (5 digits, e.g. 62010) — included in info.sru')
     .addHelpText('after', `
 SRU (Standardiserade Räkenskapsutdrag) codes are assigned by your accounting
 software when it exports the SIE file (e.g. Fortnox, Visma). Each #SRU tag
@@ -52,8 +55,13 @@ Examples:
   $ skattata sru-report annual.se --form ne --output ne.sru
   $ skattata sru-report annual.se --org-number 5566547898 --output ink2r.sru
 `)
-    .action(async (file: string, options: { format: string; year: string; form: string; output?: string; orgNumber?: string; taxYear?: string }) => {
+    .action(async (file: string, options: { format: string; year: string; form: string; output?: string; orgNumber?: string; taxYear?: string; sni?: string }) => {
       try {
+        if (options.sni && !validateSniCode(options.sni)) {
+          console.error('Error: --sni must be exactly 5 digits (e.g. 62010)');
+          process.exit(1);
+        }
+
         const doc = await parseFile(file);
         const yearId = parseInt(options.year ?? '0', 10);
         const result = new SruReportCalculator().calculate(doc, yearId);
@@ -128,13 +136,15 @@ Examples:
           // NE form: compute egenavgifter schablonavdrag (R43/7714) from income statement
           // SRU codes verified from srufiler.se NE fältförteckning:
           //   R43 → 7714: "Årets beräknade avdrag för egenavgifter och särskild löneskatt"
-          //   Schablonavdrag = 25% of profit (simplified deduction, applicable for tax year 2024-2025)
+          //   Schablonavdrag rate from tax rates module (25% for 2024-2025)
           if (formUpper === 'NE') {
             const alreadyHas7714 = result.entries.some(e => e.sruCode === '7714');
             if (!alreadyHas7714) {
+              const taxYear = options.taxYear ? parseInt(options.taxYear, 10) : getDefaultTaxYear();
+              const rates = getTaxRates(taxYear);
               const incomeResult = new IncomeStatementCalculator().calculate(doc, yearId);
               if (incomeResult.netIncome > 0) {
-                const schablonavdrag = Math.trunc(incomeResult.netIncome * 0.25);
+                const schablonavdrag = Math.trunc(incomeResult.netIncome * rates.schablonavdrag);
                 sruFileOptions.computedEntries = [
                   { sruCode: '7714', amount: schablonavdrag },
                 ];
@@ -151,7 +161,7 @@ Examples:
 
             // Write info.sru companion file in the same directory (required for full SKV submission)
             const infoPath = join(dirname(absOutput), 'info.sru');
-            const infoText = writeInfoSru(result, { orgNumber: options.orgNumber });
+            const infoText = writeInfoSru(result, { orgNumber: options.orgNumber, sniCode: options.sni });
             await Bun.write(infoPath, infoText);
             console.log(`Written to ${infoPath}`);
           } else {

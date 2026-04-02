@@ -1,4 +1,4 @@
-import type { SieDocument } from '@skattata/sie-core';
+import type { SieDocument, SieAccount } from '@skattata/sie-core';
 import { IncomeStatementCalculator } from '../income-statement/IncomeStatementCalculator.js';
 
 export interface BalanceSheetSection {
@@ -18,17 +18,16 @@ export interface BalanceSheetResult {
 }
 
 export class BalanceSheetCalculator {
-  calculate(doc: SieDocument, yearId = 0): BalanceSheetResult {
+  calculate(doc: SieDocument, yearId = 0, period?: string): BalanceSheetResult {
     const assets: BalanceSheetSection = { title: 'Assets', accounts: [], total: 0 };
     const equity: BalanceSheetSection = { title: 'Equity', accounts: [], total: 0 };
     const liabilities: BalanceSheetSection = { title: 'Liabilities', accounts: [], total: 0 };
 
     for (const [id, acc] of doc.accounts) {
       const num = parseInt(id, 10);
-      const closing = (() => {
-        const yr = acc.yearBalances.get(yearId);
-        return yr ? yr.closing : acc.closingBalance;
-      })();
+      const closing = period
+        ? this.getPeriodClosing(acc, period)
+        : this.getYearClosing(acc, yearId);
       if (isNaN(num) || closing === 0) continue;  // skip zero-balance
 
       const type = acc.type;
@@ -52,7 +51,7 @@ export class BalanceSheetCalculator {
     }
 
     const incomeCalc = new IncomeStatementCalculator();
-    const incomeResult = incomeCalc.calculate(doc, yearId);
+    const incomeResult = incomeCalc.calculate(doc, yearId, period);
     const netIncome = incomeResult.netIncome;
 
     // Simple balance check: Assets = Equity + Liabilities.
@@ -67,5 +66,15 @@ export class BalanceSheetCalculator {
       netIncome,
       balanceDiff,
     };
+  }
+
+  private getYearClosing(acc: SieAccount, yearId: number): number {
+    const yr = acc.yearBalances.get(yearId);
+    return yr ? yr.closing : acc.closingBalance;
+  }
+
+  private getPeriodClosing(acc: SieAccount, period: string): number {
+    const pv = acc.periodValues.find(p => p.period === period && p.objects.length === 0);
+    return pv?.value ?? 0;
   }
 }

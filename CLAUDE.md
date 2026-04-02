@@ -29,6 +29,8 @@ packages/
       index.ts                 # ~30 lines: program setup + register() calls only
       shared/
         parseFile.ts           # Auto-detects SIE 4/5 and parses to SieDocument
+        taxRates.ts            # TaxRates interface + getTaxRates(year) — all yearly-changing constants
+        sniCodes.ts            # validateSniCode() — 5-digit SNI format check
         formatters/
           index.ts             # formatRows(), formatKeyValue(), OutputFormat
       commands/                # Vertical slices — each command owns its logic
@@ -42,6 +44,7 @@ packages/
           index.ts
         moms/
           MomsCalculator.ts
+          MomsXmlWriter.ts     # Writes momsdeklaration XML (draft format)
           index.ts
         sru-report/
           SruReportCalculator.ts
@@ -62,7 +65,7 @@ Plans/                         # Approved implementation plans (read-only histor
 
 ```bash
 bun install                              # install all workspace deps
-bun test                                 # run all tests (156 unit + integration)
+bun test                                 # run all tests (180 unit + integration)
 bun test packages/sie-core               # library tests only
 bun test packages/cli                    # CLI tests only
 bun run packages/cli/src/index.ts --help                          # list all 7 commands
@@ -239,18 +242,20 @@ packages/sie-core/tests/unit/
 packages/sie-core/tests/integration/
   integration.test.ts       Parses all 127 real SIE files, checks errors[]
 
-sie_test_files/             133 test files total:
+sie_test_files/             135 test files total:
   127 real-world files (named <sietype>-<vendor>-<description>.<ext>):
   - Original 72 from C# test suite (SIE 1–5, Visma/MAMUT/Magenta/SoftOne)
   - 51 from blinfo/Sie4j (deliberate edge cases: UTF-8, imbalanced, missing fields)
   - 4 from iCalcreator/Sie5Sdk (SIE 5 XML variants)
-  synthetic/                6 hand-crafted files with provable expected outputs:
+  synthetic/                8 hand-crafted files with provable expected outputs:
   - skattata-test-balanced-annual.se     Balance sheet: assets=equity=150000, diff=0
   - skattata-test-income-statement.se    Income statement: revenue=100000, COGS=80000, net=20000
   - skattata-test-moms-annual.se         Moms: output VAT 25000, input 10000, net payable 15000
   - skattata-test-moms-period.se         Moms by period: Jan=7500, Feb=7500
   - skattata-test-moms-refund.se         Moms: net -20000 (refund scenario)
   - skattata-test-sru-report.se          SRU: 7281=50000, 7301=-50000, 7410=40000
+  - skattata-test-period-financial.se    Period filtering: 202301 assets=80000, net=20000; 202304 net=30000
+  - skattata-test-expansionsfond.se      Expansionsfond: equity increase 200000, tax 41200 (20.6%)
 ```
 
 **When to run what:**
@@ -332,6 +337,79 @@ SRU (Standardiserade Räkenskapsutdrag) codes appear in SIE files as `#SRU accou
 | 2630 | 12 | Output VAT 6% |
 | 2640 | 48 | Input VAT (deductible) |
 | computed | 49 | Net VAT = (2610+2620+2630) − 2640 |
+
+---
+
+## Tax Rates Module (`shared/taxRates.ts`)
+
+All yearly-changing Swedish tax constants are centralized here. No command file contains hardcoded rates.
+
+```typescript
+getTaxRates(taxYear: number): TaxRates   // throws if unsupported year
+getDefaultTaxYear(): number               // latest supported year (fallback when current year unsupported)
+```
+
+**Supported years:** 2024, 2025. Adding a year = one new entry in the `RATES` record.
+
+| Constant | 2024 | 2025 | Source |
+|---|---|---|---|
+| `egenavgifterRate` | 0.2897 | 0.2897 | Skatteverket |
+| `schablonavdrag` | 0.25 | 0.25 | Stable |
+| `rantefordelningPositive` | 0.0774 | 0.0796 | Statslåneräntan + 6% |
+| `rantefordelningNegative` | 0.0274 | 0.0296 | Statslåneräntan + 1% |
+| `expansionsfondRate` | 0.206 | 0.206 | Corporate tax rate |
+| `pbb` | 57300 | 58800 | SCB |
+| `stateTaxThreshold` | 598500 | 613900 | Skatteverket |
+| `stateTaxRate` | 0.20 | 0.20 | Since 2020 |
+
+**Consumers:** f-skatt, income-statement (enskild firma + räntefördelning + expansionsfond), sru-report (NE schablonavdrag).
+
+---
+
+## Period Filtering
+
+`--period YYYYMM` on `balance-sheet` and `income-statement` uses `#PSALDO` data instead of `#UB`/`#RES`.
+
+- Filters to aggregate-level entries only (`pv.objects.length === 0`)
+- `BalanceSheetCalculator` passes period to its internal `IncomeStatementCalculator` call
+- Warns via stderr when SIE file has no `#PSALDO` data
+- Validates format: exactly 6 digits (`/^\d{6}$/`)
+
+---
+
+## Expansionsfond
+
+`--expansionsfond` on `income-statement --enskild-firma` shows expansion fund allocation potential.
+
+- Equity range: **2000-2099 only** (NOT 2100-2999 which are liabilities)
+- Base = closing equity − opening equity (negated from SIE credit convention)
+- Tax = `Math.trunc(base * rates.expansionsfondRate)`
+- Negative/zero base → "no allocation possible"
+- Output includes disclaimer: simplified estimate per SKV blankett N6
+
+---
+
+## Moms XML (`MomsXmlWriter.ts`)
+
+`--output-xml <file>` on `moms` writes a draft XML momsdeklaration.
+
+- Requires `--period` (exit 1 without it)
+- `--org-number` optional — falls back to `doc.organizationNumber` from `#ORGNR`
+- Org number validated: 10 or 12 digits
+- Amounts are truncated integers (`Math.trunc`)
+- XML includes `<!-- Draft format -->` disclaimer comment
+- `--sni <code>` adds `<SNI>` element when provided
+- Company names with `&`, `<`, `>` properly XML-escaped
+
+---
+
+## SNI Codes (`shared/sniCodes.ts`)
+
+`--sni <code>` on `moms` and `sru-report` validates and includes SNI industry codes.
+
+- Format: exactly 5 digits (`/^\d{5}$/`, SNI 2007 / NACE Rev. 2)
+- In moms XML: `<SNI>62010</SNI>` element
+- In info.sru: comment line `* SNI: 62010` (not a `#SNI` tag — unconfirmed in SKV 269 spec)
 
 ---
 

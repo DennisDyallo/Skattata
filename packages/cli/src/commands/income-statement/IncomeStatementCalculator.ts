@@ -13,7 +13,7 @@ export interface IncomeStatementResult {
 }
 
 export class IncomeStatementCalculator {
-  calculate(doc: SieDocument, yearId = 0): IncomeStatementResult {
+  calculate(doc: SieDocument, yearId = 0, period?: string): IncomeStatementResult {
     const revenue: IncomeStatementSection = { title: 'Revenue', accounts: [], total: 0 };
     const cogs: IncomeStatementSection = { title: 'Cost of Goods Sold', accounts: [], total: 0 };
     const opex: IncomeStatementSection = { title: 'Operating Expenses (5-6xxx, 7500-7699)', accounts: [], total: 0 };
@@ -25,7 +25,9 @@ export class IncomeStatementCalculator {
       const num = parseInt(id, 10);
       if (isNaN(num)) continue;
 
-      const value = this.getYearValue(acc, yearId);
+      const value = period
+        ? this.getPeriodValue(acc, period)
+        : this.getYearValue(acc, yearId);
       if (value === 0) continue;
 
       if (num >= 3000 && num <= 3999) {
@@ -67,5 +69,11 @@ export class IncomeStatementCalculator {
     const yr = acc.yearBalances.get(yearId);
     if (yr) return yr.result !== 0 ? yr.result : yr.closing;
     return acc.result !== 0 ? acc.result : acc.closingBalance;
+  }
+
+  private getPeriodValue(acc: SieAccount, period: string): number {
+    // Filter to aggregate-level PSALDO entries only (no object-level)
+    const pv = acc.periodValues.find(p => p.period === period && p.objects.length === 0);
+    return pv?.value ?? 0;
   }
 }

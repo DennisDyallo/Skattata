@@ -2,6 +2,7 @@ import type { Command } from 'commander';
 import { parseFile } from '../../shared/parseFile.js';
 import { formatRows, type OutputFormat } from '../../shared/formatters/index.js';
 import { IncomeStatementCalculator } from './IncomeStatementCalculator.js';
+import { getTaxRates, getDefaultTaxYear } from '../../shared/taxRates.js';
 
 export function register(program: Command): void {
   program
@@ -10,7 +11,10 @@ export function register(program: Command): void {
     .option('-f, --format <format>', 'Output format: table|json|csv', 'table')
     .option('--year <n>', 'Booking year: 0=current (default), -1=prior year, -2=two years back')
     .option('--enskild-firma', 'Show egenavgifter estimate for sole proprietors (enskild firma)')
+    .option('--period <YYYYMM>', 'Filter to a single period using #PSALDO data (e.g. 202301)')
     .option('--rantefordelning', 'Show rantefordelning (interest allocation) — requires --enskild-firma')
+    .option('--expansionsfond', 'Show expansion fund estimate — requires --enskild-firma')
+    .option('--tax-year <YYYY>', 'Tax year for rate selection (default: current year)')
     .addHelpText('after', `
 Groups accounts by BAS chart of accounts categories using result values (#RES):
   3000–3999  Revenue (Intäkter)
@@ -25,16 +29,36 @@ Examples:
   $ skattata income-statement annual.se --year -1
   $ skattata income-statement annual.se --format csv > pl.csv
 `)
-    .action(async (file: string, options: { format: OutputFormat; year?: string; enskildFirma?: boolean; rantefordelning?: boolean }) => {
+    .action(async (file: string, options: { format: OutputFormat; year?: string; period?: string; enskildFirma?: boolean; rantefordelning?: boolean; expansionsfond?: boolean; taxYear?: string }) => {
       try {
         const doc = await parseFile(file);
         const calc = new IncomeStatementCalculator();
         const yearId = parseInt(options.year ?? '0', 10);
-        const result = calc.calculate(doc, yearId);
+
+        if (options.period && !/^\d{6}$/.test(options.period)) {
+          console.error('Error: --period must be exactly 6 digits (YYYYMM format, e.g. 202301)');
+          process.exit(1);
+        }
+
+        if (options.period) {
+          let hasPsaldo = false;
+          for (const acc of doc.accounts.values()) {
+            if (acc.periodValues.length > 0) { hasPsaldo = true; break; }
+          }
+          if (!hasPsaldo) {
+            console.warn('Warning: This SIE file contains no #PSALDO data. Period filtering will show zero values.');
+          }
+        }
+
+        const result = calc.calculate(doc, yearId, options.period);
 
         if (options.format === 'json') {
           console.log(JSON.stringify(result, null, 2));
           return;
+        }
+
+        if (options.period) {
+          console.log(`Period: ${options.period}`);
         }
 
         for (const section of result.sections) {
@@ -51,20 +75,20 @@ Examples:
         if (options.rantefordelning && !options.enskildFirma) {
           console.warn('Warning: --rantefordelning requires --enskild-firma. Ignoring.');
         }
+        if (options.expansionsfond && !options.enskildFirma) {
+          console.warn('Warning: --expansionsfond requires --enskild-firma. Ignoring.');
+        }
 
         if (options.enskildFirma) {
-          const egenavgifter = Math.trunc(result.netIncome * 0.2897);
-          const taxBase = Math.trunc(result.netIncome * 0.75);
+          const taxYear = options.taxYear ? parseInt(options.taxYear, 10) : getDefaultTaxYear();
+          const rates = getTaxRates(taxYear);
+          const egenavgifter = Math.trunc(result.netIncome * rates.egenavgifterRate);
+          const taxBase = Math.trunc(result.netIncome * (1 - rates.schablonavdrag));
           console.log('\n--- Enskild firma estimates (Estimates only. Actual amounts depend on Skatteverket\'s iterative calculation.) ---');
-          console.log(`Egenavgifter ~28.97% (2025 rate, estimate): ${egenavgifter.toFixed(0)} SEK`);
-          console.log(`Taxable income approx. (after 25% schablonavdrag): ${taxBase.toFixed(0)} SEK`);
+          console.log(`Egenavgifter ~${(rates.egenavgifterRate * 100).toFixed(2)}% (${rates.year} rate, estimate): ${egenavgifter.toFixed(0)} SEK`);
+          console.log(`Taxable income approx. (after ${(rates.schablonavdrag * 100).toFixed(0)}% schablonavdrag): ${taxBase.toFixed(0)} SEK`);
 
           if (options.rantefordelning) {
-            // Räntefördelning: reclassify part of profit as capital income (taxed at 30% flat)
-            // Rate 2025: statslåneräntan (1.96%) + 6% = 7.96% (positive), + 1% = 2.96% (negative)
-            // Source: Skatteverket — statslåneräntan per 30 Nov prior year
-            const POSITIVE_RATE = 0.0796;
-            const NEGATIVE_RATE = 0.0296;
 
             // Capital base = sum of 2xxx opening balances, negated (credit → positive equity)
             let capitalBase = 0;
@@ -77,29 +101,58 @@ Examples:
               }
             }
 
-            console.log('\n--- Rantefordelning (interest allocation, 2025 rates) ---');
+            console.log(`\n--- Rantefordelning (interest allocation, ${rates.year} rates) ---`);
             console.log(`Capital base (2xxx opening balances): ${Math.trunc(capitalBase)} SEK`);
 
             if (capitalBase > 0) {
-              const allocation = Math.trunc(capitalBase * POSITIVE_RATE);
+              const allocation = Math.trunc(capitalBase * rates.rantefordelningPositive);
               const adjustedBase = result.netIncome - allocation;
-              const adjustedEgenavgifter = Math.trunc(Math.max(0, adjustedBase) * 0.2897);
+              const adjustedEgenavgifter = Math.trunc(Math.max(0, adjustedBase) * rates.egenavgifterRate);
               const saving = egenavgifter - adjustedEgenavgifter;
-              console.log(`Allocation rate (positive): ${(POSITIVE_RATE * 100).toFixed(2)}%`);
+              console.log(`Allocation rate (positive): ${(rates.rantefordelningPositive * 100).toFixed(2)}%`);
               console.log(`Amount reclassified to capital income: ${allocation} SEK`);
               console.log(`Adjusted egenavgifter base: ${Math.trunc(adjustedBase)} SEK`);
-              console.log(`Adjusted egenavgifter ~28.97%: ${adjustedEgenavgifter} SEK`);
+              console.log(`Adjusted egenavgifter ~${(rates.egenavgifterRate * 100).toFixed(2)}%: ${adjustedEgenavgifter} SEK`);
               console.log(`Estimated egenavgifter saving: ${saving} SEK`);
             } else if (capitalBase < 0) {
-              const addition = Math.trunc(Math.abs(capitalBase) * NEGATIVE_RATE);
+              const addition = Math.trunc(Math.abs(capitalBase) * rates.rantefordelningNegative);
               const adjustedBase = result.netIncome + addition;
-              const adjustedEgenavgifter = Math.trunc(Math.max(0, adjustedBase) * 0.2897);
-              console.log(`Negative capital base — mandatory allocation at ${(NEGATIVE_RATE * 100).toFixed(2)}%`);
+              const adjustedEgenavgifter = Math.trunc(Math.max(0, adjustedBase) * rates.egenavgifterRate);
+              console.log(`Negative capital base — mandatory allocation at ${(rates.rantefordelningNegative * 100).toFixed(2)}%`);
               console.log(`Amount added to active income: ${addition} SEK`);
               console.log(`Adjusted egenavgifter base: ${Math.trunc(adjustedBase)} SEK`);
-              console.log(`Adjusted egenavgifter ~28.97%: ${adjustedEgenavgifter} SEK`);
+              console.log(`Adjusted egenavgifter ~${(rates.egenavgifterRate * 100).toFixed(2)}%: ${adjustedEgenavgifter} SEK`);
             } else {
               console.log('Capital base is zero — no rantefordelning applicable.');
+            }
+          }
+
+          if (options.expansionsfond) {
+            // Expansion fund base = closing equity − opening equity (2000-2099 only, NOT liabilities)
+            let closingEquity = 0, openingEquity = 0;
+            for (const [id, acc] of doc.accounts) {
+              const num = parseInt(id, 10);
+              if (num >= 2000 && num <= 2099) {
+                const yr = acc.yearBalances.get(yearId);
+                closingEquity += -(yr ? yr.closing : acc.closingBalance);
+                openingEquity += -(yr ? yr.opening : acc.openingBalance);
+              }
+            }
+            const expansionBase = closingEquity - openingEquity;
+
+            console.log(`\n--- Expansionsfond (expansion fund, ${rates.year} rates) ---`);
+            console.log(`Opening equity (2000-2099): ${Math.trunc(openingEquity)} SEK`);
+            console.log(`Closing equity (2000-2099): ${Math.trunc(closingEquity)} SEK`);
+            console.log(`Expansion fund base: ${Math.trunc(expansionBase)} SEK`);
+
+            if (expansionBase > 0) {
+              const maxAllocation = Math.trunc(expansionBase);
+              const tax = Math.trunc(maxAllocation * rates.expansionsfondRate);
+              console.log(`Max allocation: ${maxAllocation} SEK`);
+              console.log(`Tax on allocation (${(rates.expansionsfondRate * 100).toFixed(1)}%): ${tax} SEK`);
+              console.log('(Simplified estimate. Actual base involves adjustments per SKV blankett N6.)');
+            } else {
+              console.log('Expansion fund base is zero or negative — no allocation possible.');
             }
           }
         }
