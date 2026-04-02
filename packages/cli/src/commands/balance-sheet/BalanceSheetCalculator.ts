@@ -1,5 +1,5 @@
 import type { SieDocument } from '@skattata/sie-core';
-import { IncomeStatementCalculator } from './IncomeStatementCalculator.js';
+import { IncomeStatementCalculator } from '../income-statement/IncomeStatementCalculator.js';
 
 export interface BalanceSheetSection {
   title: string;
