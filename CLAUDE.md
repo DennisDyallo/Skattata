@@ -1,118 +1,106 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with code in this repository.
 
 ## Project Overview
 
-Skattata is a C# library for parsing and writing Swedish accounting files in the SIE format (Standard Import Export). The library supports both SIE 4 (tag-based text format) and SIE 5 (XML format) specifications. SIE files are the standard format for exchanging accounting data between Swedish accounting systems.
+Skattata is a TypeScript library for parsing and writing Swedish accounting files in the SIE format (Standard Import Export). The library supports both SIE 4 (tag-based text format with IBM Codepage 437 encoding) and SIE 5 (XML format) specifications.
 
 ## Project Structure
 
-- **Skattata.Core/**: Core library containing the main parsing and writing functionality
-- **Skattata.Tests/**: MSTest unit and integration tests
-- **Skattata.Tests.ConsoleApp/**: Console application for manual testing with SIE files
-- **docs/**: Documentation including SIE format specifications
-- **sie_test_files/**: Extensive collection of real SIE files for testing
-
-## Key Architecture Components
-
-### Core Classes
-
-- **SieDocument** (`SieDocument.cs:12`): Main entry point containing dual parsers for SIE 4 (tag-based) and SIE 5 (XML) formats
-  - Auto-detects format by checking for XML declaration
-  - Contains nested `SieTagParser` for SIE 4 format parsing
-  - Contains nested `SieXmlParser` for SIE 5 XML format parsing
-
-- **SieDocumentWriter** (`SieDocumentWriter.cs:5`): Writes SieDocument objects back to SIE 4 format files
-
-- **EncodingHelper** (`EncodingHelper.cs:8`): Handles IBM PC-8 (codepage 437) encoding required for SIE files
-
-### Data Model Classes
-- **SieAccount**: Represents chart of accounts entries
-- **SieVoucher** & **SieVoucherRow**: Transaction vouchers and their constituent rows
-- **SieDimension** & **SieObject**: Multi-dimensional accounting objects (projects, cost centers)
-- **SieBookingYear**: Fiscal year definitions
-- **SieCompany**: Company information
-
-### Testing Infrastructure
-- **SieDocumentComparer**: Compares two SieDocument instances for round-trip testing
-- **IntegrationTests** (`IntegrationTests.cs:8`): Comprehensive tests using real SIE files
+```
+packages/
+  sie-core/          # Core library: parsers, writer, models, utilities
+  cli/               # skattata CLI: parse, validate, balance-sheet, moms, test-all
+sie_test_files/      # 82 real-world SIE files used for integration testing
+docs/                # SIE format specifications
+Plans/               # Implementation plans
+```
 
 ## Common Development Commands
 
-### Build and Test
 ```bash
-# Build the solution
-dotnet build
+# Install dependencies
+bun install
 
 # Run all tests
-dotnet test
+bun test
 
-# Run integration tests with real SIE files
-dotnet test --filter "TestCategory=Integration"
+# Run only the core library tests
+bun test packages/sie-core
 
-# Run the console test application
-dotnet run --project Skattata.Tests.ConsoleApp
+# E2E: parse and validate all 82 SIE test files
+bun run packages/cli/src/index.ts test-all ./sie_test_files
 
-# Run a specific test class
-dotnet test --filter "ClassName=IntegrationTests"
-
-# Run tests for a specific project
-dotnet test Skattata.Tests/Skattata.Tests.csproj
+# CLI commands
+bun run packages/cli/src/index.ts parse <file>
+bun run packages/cli/src/index.ts validate <file>
+bun run packages/cli/src/index.ts balance-sheet <file>
+bun run packages/cli/src/index.ts income-statement <file>
+bun run packages/cli/src/index.ts moms <file> [--period YYYYMM]
 ```
 
-### Test with Specific SIE Files
-The console app in `Skattata.Tests.ConsoleApp` automatically discovers and tests all `.se`, `.si`, and `.sie` files in the `sie_test_files` directory, performing both parsing and round-trip validation. Note that tests expect the `sie_test_files` directory at path `../sie_test_files/` relative to test execution.
+## Key Architecture
 
-## SIE Format Context
+### sie-core
 
-### File Types and Extensions
-- **.se**: SIE 1 files (yearly balances only)
-- **.si**: SIE 2 files (monthly period balances) 
-- **.sie**: General SIE 5 files. 
+- **`src/models/`** — Data model classes: `SieDocument`, `SieAccount`, `SieVoucher`, `SieVoucherRow`, `SieDimension`, `SieObject`, `SieBookingYear`, `SiePeriodValue`
+- **`src/parser/SieTagParser.ts`** — SIE 4 tag-based parser. Auto-detects format, handles CP437, parses all tags (`#KONTO`, `#VER`, `#TRANS`, `#PSALDO`, etc.)
+- **`src/parser/SieXmlParser.ts`** — SIE 5 XML parser. Handles both `<Sie>` and `<SieEntry>` root variants
+- **`src/writer/SieDocumentWriter.ts`** — Writes `SieDocument` back to SIE 4 format with correct CP437 encoding
+- **`src/comparer/SieDocumentComparer.ts`** — Compares two parsed documents for round-trip validation
+- **`src/utils/encoding.ts`** — CP437 (IBM PC-8) encode/decode via iconv-lite
+- **`src/utils/lineParser.ts`** — Regex line splitter that handles quoted strings and `{dim obj}` notation
 
-### Key Format Differences
-- **SIE 4**: Tag-based plaintext format with IBM PC-8 encoding (`#KONTO`, `#VER`, etc.)
-- **SIE 5**: Modern XML format with UTF-8 encoding and digital signatures
+### Critical Parsing Notes
 
-### Critical Parsing Considerations
-- SIE 4 files use Codepage 437 (IBM PC-8) encoding - always use `EncodingHelper.GetSieEncoding()`
-- Tag-based format requires careful regex splitting to handle quoted strings containing spaces
-- XML format detection is done by checking for `<?xml` at file start
-- Object references in voucher rows use curly brace syntax: `{1 "100"}` for dimension 1, object "100"
+- SIE 4 files use **Codepage 437 (IBM PC-8)** — always decode with `iconv-lite` before parsing
+- Line splitter regex handles quoted strings with spaces and `{dimNo "objNo"}` object notation
+- The `#PSALDO` tag has a quirk: element 4 may contain joined `{objects} balance` — split at `}` first
+- Date format: `yyyyMMdd` (e.g. `20240101`). Decimal: invariant culture (dot separator)
+- `#KTYP` stores account type: `T`=assets, `S`=liabilities, `I`=income, `K`=expenses
+
+### SIE File Types
+
+- **SIE 1** (`.se`) — year-end balances only
+- **SIE 2** (`.se`) — monthly period balances
+- **SIE 3** (`.se`) — with dimension/cost center balances
+- **SIE 4** (`.se`) — full transactional data
+- **SIE 4i** (`.si`) — import format (vouchers only)
+- **SIE 5** (`.sie`) — XML format
 
 ## Testing Strategy
 
-The project uses extensive real-world SIE files for validation. The test suite:
-1. Parses each SIE file successfully
-2. Performs round-trip validation (parse → write → parse → compare)
-3. Validates object parsing with multi-dimensional data
-4. Tests both console app and MSTest frameworks
+- **Unit tests** (`packages/sie-core/tests/unit/`) — encoding, line parser, tag parser, writer, comparer
+- **Integration tests** (`packages/sie-core/tests/integration/`) — parse all 82 SIE files, round-trip validation
+- **E2E** (`skattata test-all ./sie_test_files`) — CLI-level validation of all files
 
-When adding new functionality, ensure it works with the existing test file collection in `sie_test_files/`.
+Some SIE test files are known to produce no parsed content (e.g. certain Norstedts exports with non-standard encoding). This is expected and matches the original C# behaviour.
 
-## .NET Framework Details
+## BAS Account Ranges (for financial statement calculators)
 
-- **Target Framework**: .NET 9.0
-- **Key Dependencies**: System.Text.Encoding.CodePages (for IBM PC-8 support)
-- **Language Features**: Implicit usings and nullable reference types enabled
-- **Test Framework**: MSTest for unit/integration tests
+| Range | Category |
+|-------|----------|
+| 1000–1999 | Assets (Tillgångar) |
+| 2000–2099 | Equity (Eget kapital) |
+| 2100–2999 | Liabilities (Skulder) |
+| 3000–3999 | Revenue (Intäkter) |
+| 4000–7999 | Expenses (Kostnader) |
+| 8000–8999 | Financial items |
 
-## Development Plan Tracking
+## Momsdeklaration (SKV 4700) Account Mapping
 
-**IMPORTANT**: This project follows a structured development plan located in `DEVELOPMENT_PLAN.md`.
+| Account | Field | Description |
+|---------|-------|-------------|
+| 2610 | Ruta 10 | Outgoing VAT 25% |
+| 2620 | Ruta 11 | Outgoing VAT 12% |
+| 2630 | Ruta 12 | Outgoing VAT 6% |
+| 2640 | Ruta 48 | Incoming VAT (deductible) |
+| Net | Ruta 49 | (2610+2620+2630) − 2640 |
 
-**When working on this project:**
-1. **Always read** `DEVELOPMENT_PLAN.md` first to understand current priorities
-2. **Check task status** before starting work - look for unchecked `[ ]` items
-3. **Update progress** by changing `[ ]` to `[x]` when completing tasks
-4. **Follow the phase order** - complete Phase 1 before moving to Phase 2, etc.
-5. **Use hot reload workflow** - run `dotnet watch run --hot-reload` for fast iteration
+## Runtime
 
-**Current Focus**: Building a cross-platform SIE accounting app using .NET MAUI Blazor Hybrid approach for maximum code reuse and development speed.
-
-## Important Notes
-
-- Always trust the copilot instructions first if commands fail, then explore codebase
-- Read `docs/sie-info.md` for detailed SIE format specifications when implementing parsers/writers
-- SIE test files are critical for validation - ensure they're accessible at the expected relative path
+- **Bun** — runtime, package manager, test runner
+- **iconv-lite** — CP437 encoding/decoding
+- **fast-xml-parser** — SIE 5 XML parsing
+- **commander** — CLI framework
