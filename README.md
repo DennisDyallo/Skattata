@@ -18,14 +18,15 @@ bun run packages/cli/src/index.ts <command> [options]
 
 | Command | Description |
 |---|---|
-| `parse <file>` | Display document summary (company, accounts, vouchers) |
-| `validate <file>` | Round-trip test: parse → write → parse → compare |
-| `balance-sheet <file>` | Balance sheet from BAS account ranges |
-| `income-statement <file>` | Profit & loss from BAS account ranges |
-| `moms <file>` | Momsdeklaration (SKV 4700 fields) |
-| `test-all <dir>` | Parse and validate every SIE file in a directory |
+| `parse <file>` | Display document summary: company, org number, accounts, vouchers, errors |
+| `validate <file>` | Round-trip test: parse → write SIE 4 → re-parse → compare. Exits 0 on PASS. |
+| `balance-sheet <file>` | Balance sheet (balansräkning) from closing balances, BAS accounts 1000–2999 |
+| `income-statement <file>` | P&L (resultaträkning) from period results, BAS accounts 3000–8999 |
+| `moms <file>` | VAT return (momsdeklaration) with SKV 4700 field codes (05/10/11/12/48/49) |
+| `sru-report <file>` | Tax declaration report (INK2R/NE) aggregating balances by SRU code |
+| `test-all <dir>` | Batch-parse every `.se`/`.si`/`.sie` file and report PASS/FAIL |
 
-All commands support `--format table|json|csv`. Use `--help` on any command for full options.
+All commands support `--format table|json|csv`. Use `--help` on any command for full options including examples.
 
 ### Examples
 
@@ -79,7 +80,32 @@ bun run packages/cli/src/index.ts test-all ./sie_test_files --report results.jso
 ```
 
 ```
-Total: 81 | Passed: 81 | Failed: 0
+Total: 127 | Passed: 127 | Failed: 0
+```
+
+**Generate SRU tax declaration file:**
+
+```bash
+bun run packages/cli/src/index.ts sru-report ./sie_test_files/Sie4.se --output ink2r.sru
+```
+
+```
+Written to /path/to/ink2r.sru
+```
+
+```bash
+bun run packages/cli/src/index.ts sru-report ./sie_test_files/Sie4.se --format sru
+```
+
+```
+#BLANKETT INK2R
+#IDENTITET 5566547898 20240401 143022
+#NAMN Demoföretaget AB
+#SYSTEMINFO skattata 0.1.0
+#UPPGIFT 7201 1500000
+#UPPGIFT 7410 2200000
+#BLANKETTSLUT
+#FIL_SLUT
 ```
 
 ## Library

@@ -37,16 +37,46 @@ const program = new Command();
 
 program
   .name('skattata')
-  .description('CLI for parsing and validating Swedish SIE accounting files')
-  .version('0.1.0');
+  .description(
+    'Parse, validate, and report on Swedish SIE accounting files.\n' +
+    'Supports SIE 1–4 (tag-based, IBM Codepage 437) and SIE 5 (XML).\n' +
+    'Data follows the Swedish BAS chart of accounts and Skatteverket standards.'
+  )
+  .version('0.1.0')
+  .addHelpText('after', `
+Commands at a glance:
+  parse            Show what's in a SIE file (company, accounts, vouchers)
+  validate         Confirm the parser and writer are lossless for a file
+  balance-sheet    Assets / equity / liabilities from closing balances
+  income-statement Revenue and costs from period result values
+  moms             VAT return fields (SKV 4700) from VAT accounts
+  sru-report       Tax declaration lines (INK2R/NE) from #SRU account codes
+  test-all         Batch parse every SIE file in a directory
+
+File formats accepted:  .se (SIE 1–4)  .si (SIE 4i import)  .sie (SIE 5 XML)
+
+Example:
+  $ skattata parse ./sie_test_files/Sie4.se
+  $ skattata sru-report annual.se --output ink2r.sru
+`);
 
 // ── parse ──
 program
   .command('parse <file>')
-  .description('Parse a SIE file and display document summary')
+  .description('Display a SIE file summary: company, org number, accounts, vouchers, errors')
   .option('-f, --format <format>', 'Output format: table|json|csv', 'table')
-  .option('--accounts', 'Include accounts in output')
-  .option('--vouchers', 'Include vouchers in output')
+  .option('--accounts', 'List all accounts with type (T/S/I/K) and closing balance')
+  .option('--vouchers', 'List all transaction vouchers with date, text, and row count')
+  .addHelpText('after', `
+Auto-detects SIE 1–5 format. SIE 4 files are decoded from IBM Codepage 437.
+Account types: T=tillgång (asset) S=skuld (liability) I=intäkt (income) K=kostnad (cost)
+
+Examples:
+  $ skattata parse annual.se
+  $ skattata parse annual.se --accounts
+  $ skattata parse annual.se --vouchers --format json
+  $ skattata parse annual.se --accounts --format csv > accounts.csv
+`)
   .action(async (file: string, options: { format: OutputFormat; accounts?: boolean; vouchers?: boolean }) => {
     try {
       const doc = await parseFile(file);
@@ -97,8 +127,18 @@ program
 // ── validate ──
 program
   .command('validate <file>')
-  .description('Round-trip validate: parse -> write -> parse -> compare')
-  .option('--verbose', 'Show detailed diff output')
+  .description('Round-trip test: parse → write SIE 4 → re-parse → compare. Exits 0 on PASS.')
+  .option('--verbose', 'Print each field that differs between the two parsed documents')
+  .addHelpText('after', `
+Confirms the parser and writer are lossless for a given file.
+SIE 5 XML files are skipped (writer only outputs SIE 4 format).
+Exit code: 0 = PASS, 1 = FAIL or error.
+
+Examples:
+  $ skattata validate annual.se
+  $ skattata validate annual.se --verbose
+  $ skattata validate annual.se && echo "Safe to round-trip"
+`)
   .action(async (file: string, options: { verbose?: boolean }) => {
     try {
       const doc = await parseFile(file);
@@ -134,9 +174,21 @@ program
 // ── balance-sheet ──
 program
   .command('balance-sheet <file>')
-  .description('Generate balance sheet from SIE file')
+  .description('Balance sheet (balansräkning) using closing balances from BAS accounts 1000–2999')
   .option('-f, --format <format>', 'Output format: table|json|csv', 'table')
-  .option('--year <n>', 'Booking year index (default: 0)')
+  .option('--year <n>', 'Booking year: 0=current (default), -1=prior year, -2=two years back')
+  .addHelpText('after', `
+Groups accounts by BAS chart of accounts categories using closing balances (#UB):
+  1000–1999  Assets (Tillgångar)
+  2000–2099  Equity (Eget kapital)
+  2100–2999  Liabilities (Skulder)
+
+Examples:
+  $ skattata balance-sheet annual.se
+  $ skattata balance-sheet annual.se --year -1
+  $ skattata balance-sheet annual.se --format json
+  $ skattata balance-sheet annual.se --format csv > balance.csv
+`)
   .action(async (file: string, options: { format: OutputFormat; year?: string }) => {
     try {
       const doc = await parseFile(file);
@@ -167,9 +219,22 @@ program
 // ── income-statement ──
 program
   .command('income-statement <file>')
-  .description('Generate income statement (P&L) from SIE file')
+  .description('Income statement / P&L (resultaträkning) using period results from BAS accounts 3000–8999')
   .option('-f, --format <format>', 'Output format: table|json|csv', 'table')
-  .option('--year <n>', 'Booking year index (default: 0)')
+  .option('--year <n>', 'Booking year: 0=current (default), -1=prior year, -2=two years back')
+  .addHelpText('after', `
+Groups accounts by BAS chart of accounts categories using result values (#RES):
+  3000–3999  Revenue (Intäkter)
+  4000–4999  Cost of goods sold (Kostnad sålda varor)
+  5000–6999  Operating expenses (Rörelsekostnader)
+  7000–7999  Depreciation and other (Avskrivningar m.m.)
+  8000–8999  Financial items (Finansiella poster)
+
+Examples:
+  $ skattata income-statement annual.se
+  $ skattata income-statement annual.se --year -1
+  $ skattata income-statement annual.se --format csv > pl.csv
+`)
   .action(async (file: string, options: { format: OutputFormat; year?: string }) => {
     try {
       const doc = await parseFile(file);
@@ -200,9 +265,26 @@ program
 // ── moms ──
 program
   .command('moms <file>')
-  .description('Generate momsdeklaration (SKV 4700) from SIE file')
+  .description('VAT return (momsdeklaration) with SKV 4700 field codes from BAS VAT accounts')
   .option('-f, --format <format>', 'Output format: table|json|csv', 'table')
-  .option('--period <YYYYMM>', 'Filter by period (uses #PSALDO data)')
+  .option('--period <YYYYMM>', 'Filter to a single period using #PSALDO data (e.g. 202403 = March 2024)')
+  .addHelpText('after', `
+Maps Swedish BAS VAT accounts to SKV 4700 declaration fields:
+  Field 05  Taxable sales base       (account 3010)
+  Field 10  Output VAT 25%           (account 2610)
+  Field 11  Output VAT 12%           (account 2620)
+  Field 12  Output VAT 6%            (account 2630)
+  Field 48  Deductible input VAT     (account 2640)
+  Field 49  Net VAT payable/refund   (2610+2620+2630 − 2640)
+
+Without --period: uses closing balances (#UB) for the full year.
+With --period YYYYMM: uses period balance records (#PSALDO) for that month.
+
+Examples:
+  $ skattata moms annual.se
+  $ skattata moms annual.se --period 202403
+  $ skattata moms annual.se --format json
+`)
   .action(async (file: string, options: { format: OutputFormat; period?: string }) => {
     try {
       const doc = await parseFile(file);
@@ -230,12 +312,46 @@ program
 // ── sru-report ──
 program
   .command('sru-report <file>')
-  .description('Generate SRU report grouping accounts by SRU tax declaration code')
+  .description('Tax declaration report (INK2R/NE) aggregating account balances by SRU code')
   .option('-f, --format <format>', 'Output format: table|json|csv|sru', 'table')
-  .option('--year <n>', 'Booking year index (default: 0)', '0')
-  .option('--form <form>', 'Declaration form for .sru output: ink2r|ink2s|ne', 'ink2r')
-  .option('--output <file>', 'Write .sru file to this path (implies --format sru)')
-  .option('--org-number <value>', 'Override organization number in .sru output')
+  .option('--year <n>', 'Booking year: 0=current (default), -1=prior year', '0')
+  .option('--form <form>', 'Declaration form: ink2r=aktiebolag, ne=enskild firma (default: ink2r)', 'ink2r')
+  .option('--output <file>', 'Write Skatteverket .sru flat-file to this path (implies --format sru)')
+  .option('--org-number <value>', 'Override organisation number used in #IDENTITET line of .sru file')
+  .addHelpText('after', `
+SRU (Standardiserade Räkenskapsutdrag) codes are assigned by your accounting
+software when it exports the SIE file (e.g. Fortnox, Visma). Each #SRU tag
+maps an account to a line on the Swedish income tax declaration.
+
+This command groups accounts by their SRU code and sums the relevant balance:
+  T/S accounts (or 1000–2999)  → closing balance (#UB)
+  I/K accounts (or 3000+)      → period result  (#RES)
+
+Declaration forms (--form):
+  ink2r   INK2R Räkenskapsschema — balance sheet + P&L for aktiebolag
+  ink2s   INK2S Skattemässiga justeringar — tax adjustments for aktiebolag
+  ne      NE-bilaga Räkenskapsschema — for enskild firma (sole trader)
+
+The --format sru output follows Skatteverket's SKV 269 flat-file format:
+  #BLANKETT INK2R
+  #IDENTITET 5566547898 20240401 143022
+  #NAMN Demoföretaget AB
+  #SYSTEMINFO skattata 0.1.0
+  #UPPGIFT 7201 1500000
+  #BLANKETTSLUT
+  #FIL_SLUT
+
+Note: a full Skatteverket submission also requires an info.sru companion
+file (not generated here). The .sru output is the blanketter.sru component.
+
+Examples:
+  $ skattata sru-report annual.se
+  $ skattata sru-report annual.se --format json
+  $ skattata sru-report annual.se --format sru
+  $ skattata sru-report annual.se --output ink2r.sru
+  $ skattata sru-report annual.se --form ne --output ne.sru
+  $ skattata sru-report annual.se --org-number 5566547898 --output ink2r.sru
+`)
   .action(async (file: string, options: { format: string; year: string; form: string; output?: string; orgNumber?: string }) => {
     try {
       const doc = await parseFile(file);
@@ -279,9 +395,22 @@ program
 // ── test-all ──
 program
   .command('test-all <dir>')
-  .description('E2E test all SIE files in a directory')
-  .option('--stop-on-error', 'Stop on first failure')
-  .option('--report <file>', 'Write JSON report to file')
+  .description('Batch-parse every .se/.si/.sie file in a directory and report PASS/FAIL')
+  .option('--stop-on-error', 'Stop immediately on the first file that fails to parse')
+  .option('--report <file>', 'Write a JSON report to file: { total, passed, failed, results[] }')
+  .addHelpText('after', `
+Discovers all files with extensions .se .si .sie (case-insensitive) in the
+given directory (non-recursive). For each file: parses it and checks that
+doc.errors is empty. A file FAILS if it crashes the parser or produces errors.
+
+Exit code: 0 if all files pass, 1 if any fail.
+
+Examples:
+  $ skattata test-all ./sie_test_files
+  $ skattata test-all ./sie_test_files --report results.json
+  $ skattata test-all ./sie_test_files --stop-on-error
+  $ skattata test-all . --report out.json && echo "All clean"
+`)
   .action(async (dir: string, options: { stopOnError?: boolean; report?: string }) => {
     try {
       const absDir = resolve(dir);
