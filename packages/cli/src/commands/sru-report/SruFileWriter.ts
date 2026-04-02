@@ -30,7 +30,7 @@ export function writeSruFile(result: SruReportResult, options: SruFileOptions): 
   lines.push(`#TAXAR ${taxYear}`);
   lines.push(`#IDENTITET ${org} ${date} ${time}`);
   if (name) lines.push(`#NAMN ${name}`);
-  lines.push(`#SYSTEMINFO ${options.softwareName ?? 'skattata'} 0.1.0`);
+  lines.push(`#SYSTEMINFO ${options.softwareName ?? 'skattata'} 1.0.0`);
 
   for (const entry of result.entries) {
     const val = formatSruValue(entry.totalAmount);

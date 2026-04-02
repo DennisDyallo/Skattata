@@ -18,7 +18,7 @@ program
     'Supports SIE 1–4 (tag-based, IBM Codepage 437) and SIE 5 (XML).\n' +
     'Data follows the Swedish BAS chart of accounts and Skatteverket standards.'
   )
-  .version('0.1.0')
+  .version('1.0.0')
   .addHelpText('after', `
 Commands at a glance:
   parse            Show what's in a SIE file (company, accounts, vouchers)
