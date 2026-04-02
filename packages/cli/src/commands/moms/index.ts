@@ -11,12 +11,20 @@ export function register(program: Command): void {
     .option('--period <YYYYMM>', 'Filter to a single period using #PSALDO data (e.g. 202403 = March 2024)')
     .addHelpText('after', `
 Maps Swedish BAS VAT accounts to SKV 4700 declaration fields:
-  Field 05  Taxable sales base       (account 3010)
-  Field 10  Output VAT 25%           (account 2610)
-  Field 11  Output VAT 12%           (account 2620)
-  Field 12  Output VAT 6%            (account 2630)
-  Field 48  Deductible input VAT     (account 2640)
-  Field 49  Net VAT payable/refund   (2610+2620+2630 − 2640)
+  Field 05  Taxable sales base       (accounts 3000-3999)
+  Field 10  Output VAT 25%           (accounts 2610-2619)
+  Field 11  Output VAT 12%           (accounts 2620-2629)
+  Field 12  Output VAT 6%            (accounts 2630-2639)
+  Field 48  Deductible input VAT     (accounts 2640-2669)
+  Field 49  Net VAT payable/refund   (sum output − input)
+
+EU fields (shown only when EU accounts have non-zero balances):
+  Field 20  EU acquisitions           (accounts 4500-4599)
+  Field 30  EU sales of goods         (accounts 3100-3199)
+  Field 31  EU sales of services      (accounts 3300-3399)
+  Field 35  Reverse charge purchases  (accounts 4530-4599)
+  Field 36  Reverse charge output VAT (accounts 2614-2615)
+  Field 37  Reverse charge input VAT  (accounts 2645-2647)
 
 Without --period: uses closing balances (#UB) for the full year.
 With --period YYYYMM: uses period balance records (#PSALDO) for that month.

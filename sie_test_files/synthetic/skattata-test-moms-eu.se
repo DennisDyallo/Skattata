@@ -1,0 +1,33 @@
+; skattata-test-moms-eu.se | origin: synthetic | created: 2026-04-02 | purpose: verify EU moms fields (20, 30, 35-37)
+#FLAGGA 0
+#FORMAT PC8
+#GEN 20240101
+#SIETYP 1
+#FNAMN "Test EU Moms AB"
+#ORGNR 556600-0006
+#RAR 0 20230101 20231231
+; Domestic VAT accounts
+#KONTO 3010 "Forsaljning 25% moms"
+#KTYP 3010 I
+#UB 0 3010 -200000.00
+#KONTO 2610 "Utgaende moms 25%"
+#KTYP 2610 S
+#UB 0 2610 -50000.00
+#KONTO 2640 "Ingaende moms"
+#KTYP 2640 T
+#UB 0 2640 20000.00
+; EU reverse charge accounts
+#KONTO 2614 "Utg moms omvand skattskyldighet 25%"
+#KTYP 2614 S
+#UB 0 2614 -5000.00
+#KONTO 2645 "Ing moms omvand skattskyldighet"
+#KTYP 2645 T
+#UB 0 2645 5000.00
+; EU purchases
+#KONTO 4515 "Inkop varor EU"
+#KTYP 4515 K
+#UB 0 4515 20000.00
+; EU sales of goods
+#KONTO 3105 "Forsaljning varor EU"
+#KTYP 3105 I
+#UB 0 3105 -30000.00

@@ -70,6 +70,36 @@ describe('moms', () => {
     const f49 = fields.find(f => f.code === '49');
     expect(f49?.amount).toBeCloseTo(-20000, 1);
   });
+
+  test('skattata-test-moms-annual.se: no EU fields when no EU accounts', () => {
+    const data = runCli('moms', `${SYNTHETIC}/skattata-test-moms-annual.se`, '--format', 'json');
+    const fields = data.fields as Array<{ code: string }>;
+    expect(fields.find(f => f.code === '20')).toBeUndefined();
+    expect(fields.find(f => f.code === '36')).toBeUndefined();
+  });
+
+  test('skattata-test-moms-eu.se: EU fields present with correct values', () => {
+    const data = runCli('moms', `${SYNTHETIC}/skattata-test-moms-eu.se`, '--format', 'json');
+    const fields = data.fields as Array<{ code: string; amount: number }>;
+    // Domestic: out25 includes 2610 (-50000) + 2614 (-5000) = 55000 (negated)
+    const f10 = fields.find(f => f.code === '10');
+    expect(f10?.amount).toBeCloseTo(55000, 1);
+    // Field 20: EU acquisitions (4515: 20000, positive debit — no negate)
+    const f20 = fields.find(f => f.code === '20');
+    expect(f20?.amount).toBeCloseTo(20000, 1);
+    // Field 30: EU sales of goods (3105: -30000, negated = 30000)
+    const f30 = fields.find(f => f.code === '30');
+    expect(f30?.amount).toBeCloseTo(30000, 1);
+    // Field 36: Reverse charge output VAT (2614: -5000, negated = 5000)
+    const f36 = fields.find(f => f.code === '36');
+    expect(f36?.amount).toBeCloseTo(5000, 1);
+    // Field 37: Reverse charge input VAT (2645: 5000)
+    const f37 = fields.find(f => f.code === '37');
+    expect(f37?.amount).toBeCloseTo(5000, 1);
+    // Warning about EU transactions
+    const warnings = data.warnings as string[];
+    expect(warnings.some(w => w.includes('EU'))).toBe(true);
+  });
 });
 
 describe('income-statement --year flag', () => {
