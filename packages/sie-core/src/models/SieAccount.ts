@@ -16,4 +16,5 @@ export class SieAccount {
   balance: number = 0;
   quantity: number = 0;
   result: number = 0;
+  yearBalances: Map<number, { opening: number; closing: number; result: number }> = new Map();
 }

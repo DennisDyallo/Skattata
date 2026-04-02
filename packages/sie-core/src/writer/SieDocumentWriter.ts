@@ -46,8 +46,15 @@ export class SieDocumentWriter {
   write(doc: SieDocument): Buffer {
     const lines: string[] = [];
 
-    // 1. FORMAT
+    // 1. Standard header
+    lines.push(`#FLAGGA ${doc.flagga}`);
+    lines.push(`#PROGRAM ${quoteToken(doc.program || 'skattata')}`);
     lines.push(`#FORMAT ${quoteToken(doc.format || 'PC8')}`);
+    lines.push(`#GEN ${doc.generatedAt || formatDate(new Date())}`);
+    lines.push(`#SIETYP ${doc.sieType || 4}`);
+    if (doc.currency && doc.currency !== 'SEK') {
+      lines.push(`#VALUTA ${quoteToken(doc.currency)}`);
+    }
 
     // 2. FNAMN
     if (doc.companyName) {
@@ -66,7 +73,9 @@ export class SieDocumentWriter {
 
     // 5. DIM + OBJEKT
     for (const dim of doc.dimensions) {
-      lines.push(`#DIM ${quoteToken(dim.number)} ${quoteToken(dim.name)}`);
+      let dimLine = `#DIM ${quoteToken(dim.number)} ${quoteToken(dim.name)}`;
+      if (dim.parentNumber) dimLine += ` ${quoteToken(dim.parentNumber)}`;
+      lines.push(dimLine);
       for (const [, obj] of dim.objects) {
         lines.push(`#OBJEKT ${quoteToken(dim.number)} ${quoteToken(obj.number)} ${quoteToken(obj.name)}`);
       }
@@ -89,14 +98,23 @@ export class SieDocumentWriter {
 
     // 7. IB, UB, RES for accounts with non-zero values
     for (const [id, acc] of sortedAccounts) {
-      if (acc.openingBalance !== 0) {
-        lines.push(`#IB 0 ${quoteToken(id)} ${acc.openingBalance.toFixed(2)}`);
-      }
-      if (acc.closingBalance !== 0) {
-        lines.push(`#UB 0 ${quoteToken(id)} ${acc.closingBalance.toFixed(2)}`);
-      }
-      if (acc.result !== 0) {
-        lines.push(`#RES 0 ${quoteToken(id)} ${acc.result.toFixed(2)}`);
+      if (acc.yearBalances.size > 0) {
+        for (const [yearId, bal] of [...acc.yearBalances.entries()].sort((a, b) => b[0] - a[0])) {
+          if (bal.opening !== 0) lines.push(`#IB ${yearId} ${quoteToken(id)} ${bal.opening.toFixed(2)}`);
+          if (bal.closing !== 0) lines.push(`#UB ${yearId} ${quoteToken(id)} ${bal.closing.toFixed(2)}`);
+          if (bal.result !== 0) lines.push(`#RES ${yearId} ${quoteToken(id)} ${bal.result.toFixed(2)}`);
+        }
+      } else {
+        // Fallback to scalar fields for documents created without parsing
+        if (acc.openingBalance !== 0) {
+          lines.push(`#IB 0 ${quoteToken(id)} ${acc.openingBalance.toFixed(2)}`);
+        }
+        if (acc.closingBalance !== 0) {
+          lines.push(`#UB 0 ${quoteToken(id)} ${acc.closingBalance.toFixed(2)}`);
+        }
+        if (acc.result !== 0) {
+          lines.push(`#RES 0 ${quoteToken(id)} ${acc.result.toFixed(2)}`);
+        }
       }
     }
 
@@ -104,7 +122,10 @@ export class SieDocumentWriter {
     for (const [id, acc] of sortedAccounts) {
       for (const pv of acc.periodValues) {
         const yearId = pv.bookingYear?.id ?? 0;
-        lines.push(`#PSALDO ${yearId} ${pv.period} ${quoteToken(id)} {} ${pv.value.toFixed(2)}`);
+        const objRef = pv.objects.length > 0
+          ? `{${pv.objects.map(o => `${o.dimensionNumber} "${o.number}"`).join(' ')}}`
+          : '{}';
+        lines.push(`#PSALDO ${yearId} ${pv.period} ${quoteToken(id)} ${objRef} ${pv.value.toFixed(2)}`);
       }
     }
 

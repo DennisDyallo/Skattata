@@ -23,14 +23,26 @@ export function splitLine(line: string): string[] {
   let current = '';
   let inQuote = false;
   let braceDepth = 0;
+  let prevCh = '';
 
   for (let i = 0; i < trimmed.length; i++) {
     const ch = trimmed[i];
 
     if (ch === '"' && braceDepth === 0) {
-      // Toggle quote state; keep the quote char so we can detect quoted tokens later
-      inQuote = !inQuote;
-      current += ch;
+      if (inQuote && prevCh === '\\') {
+        // Escaped quote inside a quoted string — replace the preceding backslash with literal "
+        current = current.slice(0, -1) + '"';
+      } else {
+        // Toggle quote state; keep the quote char so we can detect quoted tokens later
+        inQuote = !inQuote;
+        current += ch;
+      }
+    } else if (ch === '\\' && inQuote && i + 1 < trimmed.length && trimmed[i + 1] === '\\') {
+      // Escaped backslash inside a quoted string — consume both, emit one
+      current += '\\';
+      i++; // skip next backslash
+      prevCh = '';
+      continue;
     } else if (ch === '{' && !inQuote) {
       braceDepth++;
       current += ch;
@@ -46,6 +58,7 @@ export function splitLine(line: string): string[] {
     } else {
       current += ch;
     }
+    prevCh = ch;
   }
 
   if (current.length > 0) {
@@ -57,7 +70,7 @@ export function splitLine(line: string): string[] {
 
 function stripQuotes(token: string): string {
   if (token.startsWith('"') && token.endsWith('"')) {
-    return token.slice(1, -1);
+    return token.slice(1, -1).replace(/\\"/g, '"').replace(/\\\\/g, '\\');
   }
   return token;
 }

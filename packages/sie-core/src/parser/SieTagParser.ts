@@ -8,6 +8,7 @@ import { SieBookingYear } from '../models/SieBookingYear.js';
 import { SiePeriodValue } from '../models/SiePeriodValue.js';
 import { decodeSie4 } from '../utils/encoding.js';
 import { splitLine } from '../utils/lineParser.js';
+import { SieXmlParser } from './SieXmlParser.js';
 import type { SieAccountType } from '../models/SieAccount.js';
 
 export interface SieCallbacks {
@@ -17,6 +18,20 @@ export interface SieCallbacks {
 
 export class SieTagParser {
   parse(content: Buffer | string, callbacks?: SieCallbacks): SieDocument {
+    // Detect XML before CP437 decoding — UTF-8 BOM bytes get mangled by CP437 decode
+    if (Buffer.isBuffer(content)) {
+      let offset = 0;
+      // Skip UTF-8 BOM if present
+      if (content[0] === 0xef && content[1] === 0xbb && content[2] === 0xbf) offset = 3;
+      // Skip leading whitespace
+      while (offset < content.length && (content[offset] === 0x20 || content[offset] === 0x09 || content[offset] === 0x0a || content[offset] === 0x0d)) offset++;
+      const head = content.subarray(offset, offset + 5).toString('ascii');
+      if (head === '<?xml') {
+        const xmlText = content.subarray(offset).toString('utf-8');
+        return new SieXmlParser().parse(xmlText);
+      }
+    }
+
     const text = Buffer.isBuffer(content) ? decodeSie4(content) : content;
 
     // XML content must be parsed with SieXmlParser — signal caller with an error
@@ -33,11 +48,12 @@ export class SieTagParser {
     let i = 0;
 
     while (i < lines.length) {
-      const line = lines[i];
+      const rawLine = lines[i];
       i++;
 
-      if (!line || !line.trim()) continue;
+      if (!rawLine || !rawLine.trim()) continue;
 
+      const line = rawLine.replace(/\t+/g, ' ');
       const tokens = splitLine(line);
       if (tokens.length === 0) continue;
 
@@ -53,6 +69,21 @@ export class SieTagParser {
             break;
           case '#FORMAT':
             if (tokens.length >= 2) doc.format = tokens[1];
+            break;
+          case '#SIETYP':
+            if (tokens.length >= 2) doc.sieType = parseInt(tokens[1], 10);
+            break;
+          case '#FLAGGA':
+            if (tokens.length >= 2) doc.flagga = parseInt(tokens[1], 10);
+            break;
+          case '#VALUTA':
+            if (tokens.length >= 2) doc.currency = tokens[1];
+            break;
+          case '#PROGRAM':
+            if (tokens.length >= 2) doc.program = tokens[1] ?? '';
+            break;
+          case '#GEN':
+            if (tokens.length >= 2) doc.generatedAt = tokens[1];
             break;
           case '#KONTO':
             this.parseAccount(tokens, doc);
@@ -110,10 +141,10 @@ export class SieTagParser {
   }
 
   private parseAccount(tokens: string[], doc: SieDocument): void {
-    if (tokens.length >= 3) {
+    if (tokens.length >= 2) {
       const acc = new SieAccount();
       acc.accountId = tokens[1];
-      acc.name = tokens[2];
+      acc.name = tokens[2] ?? '';
       if (tokens.length >= 4) acc.unit = tokens[3];
       doc.accounts.set(acc.accountId, acc);
     }
@@ -142,20 +173,25 @@ export class SieTagParser {
       const dim = new SieDimension();
       dim.number = tokens[1];
       dim.name = tokens[2];
+      dim.parentNumber = tokens[3] ?? '';
       doc.dimensions.push(dim);
     }
   }
 
   private parseObject(tokens: string[], doc: SieDocument): void {
     if (tokens.length >= 4) {
-      const dim = doc.dimensions.find(d => d.number === tokens[1]);
-      if (dim) {
-        const obj = new SieObject();
-        obj.dimensionNumber = tokens[1];
-        obj.number = tokens[2];
-        obj.name = tokens[3];
-        dim.objects.set(obj.number, obj);
+      let dim = doc.dimensions.find(d => d.number === tokens[1]);
+      if (!dim) {
+        dim = new SieDimension();
+        dim.number = tokens[1];
+        dim.name = '';
+        doc.dimensions.push(dim);
       }
+      const obj = new SieObject();
+      obj.dimensionNumber = tokens[1];
+      obj.number = tokens[2];
+      obj.name = tokens[3];
+      dim.objects.set(obj.number, obj);
     }
   }
 
@@ -172,15 +208,30 @@ export class SieTagParser {
   private parseBalance(tokens: string[], tag: string, doc: SieDocument): void {
     // #IB/#UB/#RES yearNo accountNo balance [quantity]
     if (tokens.length >= 4) {
+      const yearId = parseInt(tokens[1], 10);
       const accountId = tokens[2];
-      const acc = doc.accounts.get(accountId);
-      if (acc) {
-        const balance = parseFloat(tokens[3]);
-        if (tag === '#IB') acc.openingBalance = balance;
-        else if (tag === '#UB') acc.closingBalance = balance;
-        else if (tag === '#RES') acc.result = balance;
-        if (tokens.length >= 5) acc.quantity = parseFloat(tokens[4]);
+      let acc = doc.accounts.get(accountId);
+      if (!acc) {
+        acc = new SieAccount();
+        acc.accountId = accountId;
+        acc.name = '';
+        doc.accounts.set(accountId, acc);
       }
+      const balance = this.safeParseFloat(tokens[3]);
+      // Store in year-indexed map
+      const existing = acc.yearBalances.get(yearId) ?? { opening: 0, closing: 0, result: 0 };
+      if (tag === '#IB') {
+        existing.opening = balance;
+        if (yearId === 0) acc.openingBalance = balance;
+      } else if (tag === '#UB') {
+        existing.closing = balance;
+        if (yearId === 0) acc.closingBalance = balance;
+      } else if (tag === '#RES') {
+        existing.result = balance;
+        if (yearId === 0) acc.result = balance;
+      }
+      acc.yearBalances.set(yearId, existing);
+      if (tokens.length >= 5) acc.quantity = this.safeParseFloat(tokens[4]);
     }
   }
 
@@ -196,7 +247,7 @@ export class SieTagParser {
         if (dim) {
           const obj = dim.objects.get(objNo);
           if (obj) {
-            const balance = parseFloat(tokens[4]);
+            const balance = this.safeParseFloat(tokens[4]);
             if (tag === '#OIB') obj.openingBalance = balance;
             else if (tag === '#OUB') obj.closingBalance = balance;
           }
@@ -213,13 +264,26 @@ export class SieTagParser {
       const yearId = parseInt(actual[1], 10);
       const period = actual[2];
       const accountId = actual[3];
-      const acc = doc.accounts.get(accountId);
-      if (acc) {
+      let acc = doc.accounts.get(accountId);
+      if (!acc) {
+        acc = new SieAccount();
+        acc.accountId = accountId;
+        doc.accounts.set(accountId, acc);
+      }
+      {
         const year = doc.bookingYears.find(y => y.id === yearId) ?? null;
         const pv = new SiePeriodValue();
         pv.bookingYear = year;
         pv.period = period;
-        pv.value = parseFloat(actual[5]);
+        pv.value = this.safeParseFloat(actual[5]);
+        // Parse objects from the {dimNo objNo ...} block
+        const objectText = (actual[4] ?? '').replace(/^\{/, '').replace(/\}$/, '').trim();
+        if (objectText) {
+          const objTokens = splitLine(objectText);
+          for (let k = 0; k + 1 < objTokens.length; k += 2) {
+            pv.objects.push({ dimensionNumber: objTokens[k], number: objTokens[k + 1] });
+          }
+        }
         acc.periodValues.push(pv);
       }
     }
@@ -252,7 +316,18 @@ export class SieTagParser {
     startIdx: number,
     doc: SieDocument,
   ): { voucher: SieVoucher | null; linesConsumed: number } {
-    if (tokens.length < 4) return { voucher: null, linesConsumed: 0 };
+    if (tokens.length < 4) {
+      // Still consume the { ... } body so the outer loop doesn't misinterpret it
+      let consumed = 0;
+      let j = startIdx;
+      while (j < lines.length) {
+        const trimmed = (lines[j] ?? '').trim();
+        consumed++;
+        j++;
+        if (trimmed === '}') break;
+      }
+      return { voucher: null, linesConsumed: consumed };
+    }
 
     const voucher = new SieVoucher();
     voucher.series = tokens[1];
@@ -272,8 +347,8 @@ export class SieTagParser {
     let i = startIdx;
 
     while (i < lines.length) {
-      const line = lines[i];
-      const trimmed = line ? line.trim() : '';
+      const rawVLine = lines[i];
+      const trimmed = rawVLine ? rawVLine.trim() : '';
       consumed++;
       i++;
 
@@ -281,7 +356,8 @@ export class SieTagParser {
       if (trimmed === '{') continue;
       if (!trimmed) continue;
 
-      const rowTokens = splitLine(line);
+      const vLine = rawVLine.replace(/\t+/g, ' ');
+      const rowTokens = splitLine(vLine);
       if (rowTokens.length > 0) {
         const rowTag = rowTokens[0].toUpperCase();
         if (rowTag === '#TRANS' || rowTag === '#BTRANS' || rowTag === '#RTRANS') {
@@ -323,7 +399,7 @@ export class SieTagParser {
     const restParts = rest.split(/\s+/).filter(Boolean);
     if (restParts.length < 1) return null;
 
-    row.amount = parseFloat(restParts[0]);
+    row.amount = this.safeParseFloat(restParts[0]);
 
     // Optional: transactionDate, rowText, quantity
     if (restParts.length > 1) {
@@ -366,6 +442,11 @@ export class SieTagParser {
   private tryParseDate(str: string): Date | null {
     if (!str || str.length !== 8 || !/^\d{8}$/.test(str)) return null;
     return this.parseDate(str);
+  }
+
+  private safeParseFloat(s: string, fallback = 0): number {
+    const n = parseFloat(s);
+    return isFinite(n) ? n : fallback;
   }
 
   private stripBraces(text: string): string {

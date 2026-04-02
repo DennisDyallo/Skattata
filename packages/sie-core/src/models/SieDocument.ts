@@ -9,6 +9,11 @@ export class SieDocument {
   organizationNumber: string = '';
   /** Format identifier, typically "PC8" for SIE 4 or "SIE5" for XML */
   format: string = 'PC8';
+  sieType: number = 0;
+  flagga: number = 0;
+  currency: string = 'SEK';
+  program: string = '';
+  generatedAt: string = '';
   bookingYears: SieBookingYear[] = [];
   vouchers: SieVoucher[] = [];
   accounts: Map<string, SieAccount> = new Map();
