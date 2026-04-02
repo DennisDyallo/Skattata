@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { splitLine } from '../../src/utils/lineParser.js';
+import { splitLine } from '../../src/internal/lineParser.js';
 
 describe('splitLine', () => {
   describe('basic tag splitting', () => {

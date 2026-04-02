@@ -3,7 +3,7 @@ import { existsSync, readdirSync } from 'fs';
 import { resolve, join, extname } from 'path';
 import { SieTagParser } from '../../src/parser/SieTagParser.js';
 import { SieXmlParser } from '../../src/parser/SieXmlParser.js';
-import { decodeSie4 } from '../../src/utils/encoding.js';
+import { decodeSie4 } from '../../src/internal/encoding.js';
 
 // Locate the SIE test files directory.
 // Try multiple candidate paths so the test works in the worktree and flow repo:

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'bun:test';
 import { SieTagParser } from '../../src/parser/SieTagParser.js';
 import { SieDocument } from '../../src/models/SieDocument.js';
-import { splitLine } from '../../src/utils/lineParser.js';
+import { splitLine } from '../../src/internal/lineParser.js';
 
 function parse(input: string): SieDocument {
   return new SieTagParser().parse(input);

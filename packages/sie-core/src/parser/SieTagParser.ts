@@ -6,8 +6,8 @@ import { SieDimension } from '../models/SieDimension.js';
 import { SieObject } from '../models/SieObject.js';
 import { SieBookingYear } from '../models/SieBookingYear.js';
 import { SiePeriodValue } from '../models/SiePeriodValue.js';
-import { decodeSie4 } from '../utils/encoding.js';
-import { splitLine } from '../utils/lineParser.js';
+import { decodeSie4 } from '../internal/encoding.js';
+import { splitLine } from '../internal/lineParser.js';
 import { SieXmlParser } from './SieXmlParser.js';
 import type { SieAccountType } from '../models/SieAccount.js';
 

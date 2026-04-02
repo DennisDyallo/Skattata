@@ -3,7 +3,7 @@ import { SieAccount } from '../models/SieAccount.js';
 import { SieVoucher } from '../models/SieVoucher.js';
 import { SieVoucherRow } from '../models/SieVoucherRow.js';
 import { SieObject } from '../models/SieObject.js';
-import { encodeSie4 } from '../utils/encoding.js';
+import { encodeSie4 } from '../internal/encoding.js';
 
 /**
  * Format a Date as yyyyMMdd string using local timezone,

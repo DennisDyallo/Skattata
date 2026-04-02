@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { decodeSie4, encodeSie4 } from '../../src/utils/encoding.js';
+import { decodeSie4, encodeSie4 } from '../../src/internal/encoding.js';
 
 describe('encoding', () => {
   describe('decodeSie4', () => {

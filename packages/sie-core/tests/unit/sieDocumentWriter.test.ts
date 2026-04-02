@@ -5,7 +5,7 @@ import { SieDocument } from '../../src/models/SieDocument.js';
 import { SieAccount } from '../../src/models/SieAccount.js';
 import { SieVoucher } from '../../src/models/SieVoucher.js';
 import { SieVoucherRow } from '../../src/models/SieVoucherRow.js';
-import { decodeSie4 } from '../../src/utils/encoding.js';
+import { decodeSie4 } from '../../src/internal/encoding.js';
 
 describe('quoteToken', () => {
   test('quotes empty string', () => {
