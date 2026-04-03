@@ -8,6 +8,9 @@ import { register as registerMoms }            from './commands/moms/index.js';
 import { register as registerSruReport }       from './commands/sru-report/index.js';
 import { register as registerFSkatt }          from './commands/f-skatt/index.js';
 import { register as registerTestAll }         from './commands/test-all/index.js';
+import { register as registerAccounts }        from './commands/accounts/index.js';
+import { register as registerRecalculate }     from './commands/recalculate/index.js';
+import { register as registerVoucher }         from './commands/voucher/index.js';
 
 const program = new Command();
 
@@ -23,12 +26,15 @@ program
 Commands at a glance:
   parse            Show what's in a SIE file (company, accounts, vouchers)
   validate         Confirm the parser and writer are lossless for a file
+  accounts         List and search accounts in a SIE file
   balance-sheet    Assets / equity / liabilities from closing balances
   income-statement Revenue and costs from period result values
   moms             VAT return fields (SKV 4700) from VAT accounts
   sru-report       Tax declaration lines (INK2R/NE) from #SRU account codes
   f-skatt          Preliminary tax estimate for enskild firma
   test-all         Batch parse every SIE file in a directory
+  voucher          Add and list vouchers: add sale expense transfer owner list
+  recalculate      Recompute closing balances from voucher transactions
 
 File formats accepted:  .se (SIE 1–4)  .si (SIE 4i import)  .sie (SIE 5 XML)
 
@@ -45,5 +51,8 @@ registerMoms(program);
 registerSruReport(program);
 registerFSkatt(program);
 registerTestAll(program);
+registerAccounts(program);
+registerRecalculate(program);
+registerVoucher(program);
 
 await program.parseAsync(process.argv);
