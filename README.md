@@ -37,6 +37,8 @@ Every command supports `--format table|json|csv` and `--help` for full options.
 
 Skattata is built for **Swedish sole proprietors (enskild firma)** who use BAS-standard bookkeeping software (Fortnox, Visma, etc.) and want to generate their tax filings from a SIE export. It produces the financial data and declaration files -- not a complete tax submission platform.
 
+**New to Skattata?** Read the [Getting Started guide](docs/getting-started.md) -- it walks through the full workflow from SIE export to Skatteverket upload.
+
 ## What Skattata does NOT do
 
 - **Submit to Skatteverket** -- Skattata generates .sru and XML files in the correct formats. You upload them to Skatteverket's portal yourself.
@@ -52,8 +54,14 @@ Skattata is built for **Swedish sole proprietors (enskild firma)** who use BAS-s
 |---|---|---|
 | `--tax-year <YYYY>` | f-skatt, income-statement, sru-report | Select tax year for rate calculations (default: latest supported) |
 | `--period <YYYYMM>` | balance-sheet, income-statement, moms | Filter to a single period using `#PSALDO` data |
+| `--form <form>` | sru-report | Declaration form: `ink2r` (aktiebolag), `ne` (enskild firma) |
+| `--output <file>` | sru-report | Write Skatteverket .sru flat-file + companion info.sru |
 | `--enskild-firma` | income-statement | Show egenavgifter, räntefördelning, expansionsfond estimates |
-| `--output-xml <file>` | moms | Write momsdeklaration XML (draft format) |
+| `--rantefordelning` | income-statement | Show räntefördelning calculation (requires `--enskild-firma`) |
+| `--expansionsfond` | income-statement | Show expansionsfond allocation potential (requires `--enskild-firma`) |
+| `--periodisering-reversal <amount>` | sru-report | Återföring av periodiseringsfond, R32/7608 (NE only) |
+| `--periodisering-allocate <amount>` | sru-report | Avsättning till periodiseringsfond, R34/7709 (NE only) |
+| `--output-xml <file>` | moms | Write momsdeklaration XML (eSKDUpload v6.0 format) |
 | `--sni <code>` | moms, sru-report | SNI industry code (5 digits) — included in XML/SRU output |
 
 ## Examples
@@ -77,12 +85,14 @@ bun run packages/cli/src/index.ts parse annual.se
 bun run packages/cli/src/index.ts moms annual.se
 ```
 ```
-┌──────┬─────────────────┬──────────────┐
-│ Code │ Label           │ Amount       │
-│ 10   │ Output VAT 25%  │ 21639695.57  │
-│ 48   │ Input VAT       │ 1137249.27   │
-│ 49   │ Net VAT payable │ -22777160.24 │
-└──────┴─────────────────┴──────────────┘
+┌──────┬─────────────────────┬───────────┐
+│ Code │ Label               │ Amount    │
+├──────┼─────────────────────┼───────────┤
+│ 05   │ Taxable sales       │ 100000.00 │
+│ 10   │ Output VAT 25%      │ 25000.00  │
+│ 48   │ Input VAT deduction │ 10000.00  │
+│ 49   │ VAT to pay/receive  │ 15000.00  │
+└──────┴─────────────────────┴───────────┘
 ```
 
 ```bash
