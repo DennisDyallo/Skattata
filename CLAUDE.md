@@ -65,16 +65,25 @@ Plans/                         # Approved implementation plans (read-only histor
 
 ```bash
 bun install                              # install all workspace deps
-bun test                                 # run all tests (180 unit + integration)
+bun test                                 # run all tests (259 unit + integration)
 bun test packages/sie-core               # library tests only
 bun test packages/cli                    # CLI tests only
-bun run packages/cli/src/index.ts --help                          # list all 7 commands
+bun run packages/cli/src/index.ts --help                          # list all 11 commands
 bun run packages/cli/src/index.ts parse <file>
 bun run packages/cli/src/index.ts validate <file>
 bun run packages/cli/src/index.ts balance-sheet <file> [--year -1]
-bun run packages/cli/src/index.ts income-statement <file>
+bun run packages/cli/src/index.ts income-statement <file> [--enskild-firma]
 bun run packages/cli/src/index.ts moms <file> [--period YYYYMM]
-bun run packages/cli/src/index.ts sru-report <file> [--output ink2r.sru]
+bun run packages/cli/src/index.ts sru-report <file> [--form ne] [--output ink2r.sru]
+bun run packages/cli/src/index.ts f-skatt <file> [--municipality-rate 0.3274]
+bun run packages/cli/src/index.ts accounts <file> [--search bank] [--type K] [--range 1000-1999]
+bun run packages/cli/src/index.ts recalculate <file> [--backup] [--output <file>]
+bun run packages/cli/src/index.ts voucher add <file> --date YYYY-MM-DD --text "..." --debit <acct> <amt> --credit <acct> <amt>
+bun run packages/cli/src/index.ts voucher sale <file> --date YYYY-MM-DD --text "..." --amount <n> --vat 25
+bun run packages/cli/src/index.ts voucher expense <file> --date YYYY-MM-DD --text "..." --amount <n> --account <acct> --vat 25
+bun run packages/cli/src/index.ts voucher transfer <file> --date YYYY-MM-DD --text "..." --amount <n> --from <acct> --to <acct>
+bun run packages/cli/src/index.ts voucher owner <file> --date YYYY-MM-DD --text "..." --withdrawal <n>
+bun run packages/cli/src/index.ts voucher list <file> [--series A] [--period YYYYMM]
 bun run packages/cli/src/index.ts test-all ./sie_test_files           # E2E: 127/127 must pass
 ```
 

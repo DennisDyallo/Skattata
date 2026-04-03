@@ -37,7 +37,66 @@ This round-trips the file (parse > write > re-parse) to confirm nothing is lost.
 
 ---
 
-## Step 2: Review your financials
+## Step 2: Add missing transactions (optional)
+
+If you're managing bookkeeping directly in Skattata — rather than exporting a complete file from SaaS — you can add vouchers before generating your reports.
+
+### Look up account numbers
+
+```bash
+# Search by name
+bun run packages/cli/src/index.ts accounts your-export.se --search bank
+
+# Browse by account range
+bun run packages/cli/src/index.ts accounts your-export.se --range 3000-3999
+```
+
+### Record a sale (VAT auto-split)
+
+```bash
+# 12,500 kr total including 25% VAT
+bun run packages/cli/src/index.ts voucher sale your-export.se \
+  --date 2024-03-15 --text "Faktura 1001" --amount 12500 --vat 25
+
+# VAT-exempt service (0%)
+bun run packages/cli/src/index.ts voucher sale your-export.se \
+  --date 2024-03-22 --text "Utbildning" --amount 5000 --vat 0
+```
+
+### Record a purchase
+
+```bash
+bun run packages/cli/src/index.ts voucher expense your-export.se \
+  --date 2024-03-20 --text "Kontorsmaterial" --amount 6250 --account 6110 --vat 25
+```
+
+### Other entry types
+
+```bash
+# Transfer between accounts
+bun run packages/cli/src/index.ts voucher transfer your-export.se \
+  --date 2024-03-22 --text "Uttag till handkassa" --amount 5000 --from 1930 --to 1910
+
+# Owner withdrawal
+bun run packages/cli/src/index.ts voucher owner your-export.se \
+  --date 2024-03-25 --text "Eget uttag mars" --withdrawal 10000
+
+# General double-entry (for anything else)
+bun run packages/cli/src/index.ts voucher add your-export.se \
+  --date 2024-03-28 --text "Korrigering" --debit 1930 500 --credit 2640 500
+```
+
+Each command shows a preview with account names and a balance check before writing. Add `-y` to skip the confirmation prompt.
+
+After adding transactions, recompute your closing balances:
+
+```bash
+bun run packages/cli/src/index.ts recalculate your-export.se --backup
+```
+
+---
+
+## Step 3: Review your financials
 
 ### Balance sheet
 
@@ -63,7 +122,7 @@ bun run packages/cli/src/index.ts income-statement your-export.se \
 
 ---
 
-## Step 3: Generate momsdeklaration
+## Step 4: Generate momsdeklaration
 
 ### Review VAT amounts
 
@@ -88,7 +147,7 @@ The XML follows Skatteverket's eSKDUpload version 6.0 format (ISO 8859-1 encodin
 
 ---
 
-## Step 4: Generate NE-bilaga (SRU file)
+## Step 5: Generate NE-bilaga (SRU file)
 
 The NE-bilaga is the tax form for enskild firma. Skattata generates the `.sru` file that Skatteverket accepts for electronic filing.
 
@@ -142,7 +201,7 @@ Upload both `ne-bilaga.sru` and `info.sru` together.
 
 ---
 
-## Step 5: Estimate F-skatt (preliminary tax)
+## Step 6: Estimate F-skatt (preliminary tax)
 
 ```bash
 bun run packages/cli/src/index.ts f-skatt your-export.se --municipality-rate 0.3274
@@ -178,8 +237,12 @@ If your SIE file has `#SRU` tags (most accounting software adds them), those map
 | Task | Command |
 |------|---------|
 | Check file contents | `parse your-export.se` |
+| Look up account numbers | `accounts your-export.se --search bank` |
 | Balance sheet | `balance-sheet your-export.se` |
 | Income statement (enskild firma) | `income-statement your-export.se --enskild-firma` |
+| Record a sale (25% VAT) | `voucher sale your-export.se --date YYYY-MM-DD --text "..." --amount 12500 --vat 25` |
+| Record a purchase | `voucher expense your-export.se --date YYYY-MM-DD --text "..." --amount 6250 --account 6110 --vat 25` |
+| Recompute closing balances | `recalculate your-export.se --backup` |
 | Momsdeklaration | `moms your-export.se` |
 | Moms XML for upload | `moms your-export.se --period 202401 --output-xml moms.xml` |
 | NE-bilaga SRU for upload | `sru-report your-export.se --form ne --output ne.sru` |

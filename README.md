@@ -1,6 +1,6 @@
 # Skattata
 
-CLI for reading Swedish SIE accounting files and generating tax reports.
+CLI for reading, writing, and reporting on Swedish SIE accounting files.
 
 ## Requirements
 
@@ -20,6 +20,8 @@ bun run packages/cli/src/index.ts <command> [file] [options]
 
 ## Commands
 
+### Read and report
+
 | Command | What it does |
 |---|---|
 | `parse <file>` | Show company name, org number, account count, voucher count |
@@ -29,7 +31,22 @@ bun run packages/cli/src/index.ts <command> [file] [options]
 | `moms <file>` | VAT return (momsdeklaration) with SKV 4700 field codes |
 | `sru-report <file>` | Tax declaration lines (INK2R / NE) from SRU codes in the file |
 | `f-skatt <file>` | Preliminary tax estimate (F-skatt) for enskild firma |
+| `accounts <file>` | Look up account numbers from the file's chart of accounts |
 | `test-all <dir>` | Parse every `.se` `.si` `.sie` file in a directory |
+
+### Write (bookkeeping)
+
+| Command | What it does |
+|---|---|
+| `voucher add <file>` | Add a general-purpose double-entry voucher |
+| `voucher sale <file>` | Record a customer sale with automatic VAT split |
+| `voucher expense <file>` | Record a purchase with automatic VAT split |
+| `voucher transfer <file>` | Transfer an amount between two accounts |
+| `voucher owner <file>` | Record an owner withdrawal or deposit |
+| `voucher list <file>` | List existing vouchers in the file |
+| `recalculate <file>` | Recompute closing balances from opening balances + vouchers |
+
+All write commands show a preview and confirm before modifying the file. Use `-y` to skip confirmation.
 
 Every command supports `--format table|json|csv` and `--help` for full options.
 
