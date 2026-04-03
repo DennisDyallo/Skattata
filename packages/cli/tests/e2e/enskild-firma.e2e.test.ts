@@ -241,3 +241,101 @@ describe('sru-report --form ne egenavgifter', () => {
     expect(stdout).not.toContain('#UPPGIFT 7714');
   });
 });
+
+describe('sru-report --form ne periodiseringsfond and result lines', () => {
+  test('periodiseringsfond reversal R32/7608 appears when provided', () => {
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ne', '--format', 'sru',
+      '--periodisering-reversal', '50000',
+      `${SYNTHETIC}/skattata-test-rantefordelning.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    const stdout = result.stdout.toString();
+    expect(stdout).toContain('#UPPGIFT 7608 50000');
+  });
+
+  test('periodiseringsfond allocation R34/7709 appears when provided', () => {
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ne', '--format', 'sru',
+      '--periodisering-allocate', '30000',
+      `${SYNTHETIC}/skattata-test-rantefordelning.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    const stdout = result.stdout.toString();
+    expect(stdout).toContain('#UPPGIFT 7709 30000');
+  });
+
+  test('R47/7630 surplus result when adjusted result positive', () => {
+    // skattata-test-ne-no-sru.se: netIncome=101000, schablonavdrag=25250, expansionsfondBase=30000
+    // adjustedResult = 101000 - 25250 - 30000 = 45750
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ne', '--format', 'sru',
+      `${SYNTHETIC}/skattata-test-ne-no-sru.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    const stdout = result.stdout.toString();
+    expect(stdout).toContain('#UPPGIFT 7630 45750');
+    expect(stdout).not.toContain('#UPPGIFT 7730');
+  });
+
+  test('R48/7730 deficit result when adjusted result negative', () => {
+    // skattata-test-rantefordelning.se: netIncome=300000, schablonavdrag=75000,
+    // rantefordelningPositive=15920, expansionsfondBase=300000
+    // adjustedResult = 300000 - 75000 - 15920 - 300000 = -90920
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ne', '--format', 'sru',
+      `${SYNTHETIC}/skattata-test-rantefordelning.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    const stdout = result.stdout.toString();
+    expect(stdout).toContain('#UPPGIFT 7730 90920');
+    expect(stdout).not.toContain('#UPPGIFT 7630');
+  });
+
+  test('R47 and R48 are mutually exclusive', () => {
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ne', '--format', 'sru',
+      `${SYNTHETIC}/skattata-test-ne-no-sru.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    const stdout = result.stdout.toString();
+    const has7630 = stdout.includes('#UPPGIFT 7630');
+    const has7730 = stdout.includes('#UPPGIFT 7730');
+    // Exactly one should be present (not both)
+    expect(has7630 !== has7730).toBe(true);
+  });
+
+  test('periodiseringsfond allocation creates deficit from surplus', () => {
+    // skattata-test-ne-no-sru.se: adjustedResult=45750
+    // With --periodisering-allocate 100000: 45750 - 100000 = -54250 → R48
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ne', '--format', 'sru',
+      '--periodisering-allocate', '100000',
+      `${SYNTHETIC}/skattata-test-ne-no-sru.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    const stdout = result.stdout.toString();
+    expect(stdout).toContain('#UPPGIFT 7709 100000');
+    expect(stdout).toContain('#UPPGIFT 7730 54250');
+    expect(stdout).not.toContain('#UPPGIFT 7630');
+  });
+
+  test('both periodiseringsfond reversal and allocation together', () => {
+    // skattata-test-rantefordelning.se: adjustedResult=-90920
+    // + reversal 50000 - allocation 30000 = -70920 → R48
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ne', '--format', 'sru',
+      '--periodisering-reversal', '50000', '--periodisering-allocate', '30000',
+      `${SYNTHETIC}/skattata-test-rantefordelning.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    const stdout = result.stdout.toString();
+    expect(stdout).toContain('#UPPGIFT 7608 50000');
+    expect(stdout).toContain('#UPPGIFT 7709 30000');
+    expect(stdout).toContain('#UPPGIFT 7730 70920');
+  });
+
+  test('invalid periodiseringsfond values rejected', () => {
+    const result = Bun.spawnSync(['bun', 'run', CLI, 'sru-report', '--form', 'ne', '--format', 'sru',
+      '--periodisering-reversal', '-5000',
+      `${SYNTHETIC}/skattata-test-ne-no-sru.se`], {
+      cwd: resolve(import.meta.dir, '../../../..'),
+    });
+    const stderr = result.stderr.toString();
+    expect(stderr).toContain('non-negative integer');
+    expect(result.exitCode).toBe(1);
+  });
+});

@@ -14,6 +14,7 @@ export interface NeTaxResult {
   expansionsfondTax: number;
   equityOpening: number;
   equityClosing: number;
+  adjustedResult: number;
 }
 
 export class NeTaxCalculator {
@@ -54,6 +55,17 @@ export class NeTaxCalculator {
     const expansionsfondTax = expansionsfondBase > 0
       ? Math.trunc(expansionsfondBase * rates.expansionsfondRate) : 0;
 
+    // NE-bilaga result (R47/R48): netIncome minus tax adjustments
+    // R41 (egenavgifter) excluded — informational for SKV, not part of result
+    // Periodiseringsfond applied externally (user input, not in NeTaxResult)
+    const adjustedResult = Math.trunc(
+      netIncome
+      - schablonavdrag
+      - rantefordelningPositive
+      + rantefordelningNegative
+      - Math.trunc(expansionsfondBase)
+    );
+
     return {
       netIncome,
       capitalBase: Math.trunc(capitalBase),
@@ -66,6 +78,7 @@ export class NeTaxCalculator {
       expansionsfondTax,
       equityOpening: Math.trunc(equityOpening),
       equityClosing: Math.trunc(equityClosing),
+      adjustedResult,
     };
   }
 }

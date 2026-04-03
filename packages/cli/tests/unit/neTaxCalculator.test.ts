@@ -168,4 +168,58 @@ describe('NeTaxCalculator', () => {
     // expansionsfond only 2000-2099: opening=100000, closing=200000
     expect(r.expansionsfondBase).toBe(100000);
   });
+
+  test('adjustedResult positive when income exceeds deductions', () => {
+    // netIncome=300000, schablonavdrag=75000, no rantefordelning, no expansionsfond
+    const doc = makeDoc([
+      { id: '3010', type: 'I', result: -300000 },
+    ]);
+    const r = calc.calculate(doc, 0, RATES_2025);
+    // adjustedResult = 300000 - 75000 - 0 + 0 - 0 = 225000
+    expect(r.adjustedResult).toBe(225000);
+  });
+
+  test('adjustedResult negative when deductions exceed income', () => {
+    // netIncome=100000, schablonavdrag=25000, rantefordelningPositive=7960 (capitalBase=100000),
+    // expansionsfondBase=200000
+    const doc = makeDoc([
+      { id: '3010', type: 'I', result: -100000 },
+      { id: '2081', type: 'S', openingBalance: -100000, closingBalance: -300000 },
+    ]);
+    const r = calc.calculate(doc, 0, RATES_2025);
+    // adjustedResult = 100000 - 25000 - 7960 + 0 - 200000 = -132960
+    expect(r.adjustedResult).toBe(-132960);
+  });
+
+  test('adjustedResult zero when netIncome is zero', () => {
+    const doc = makeDoc([
+      { id: '3010', type: 'I', result: -100000 },
+      { id: '4010', type: 'K', result: 100000 },
+    ]);
+    const r = calc.calculate(doc, 0, RATES_2025);
+    expect(r.adjustedResult).toBe(0);
+  });
+
+  test('adjustedResult excludes egenavgifter (R41)', () => {
+    // Verify R41 is NOT part of the adjusted result formula
+    const doc = makeDoc([
+      { id: '3010', type: 'I', result: -300000 },
+    ]);
+    const r = calc.calculate(doc, 0, RATES_2025);
+    // If R41 were included: 300000 + 86910 - 75000 = 311910
+    // Without R41: 300000 - 75000 = 225000
+    expect(r.adjustedResult).toBe(225000);
+    expect(r.egenavgifter).toBe(86910); // R41 exists but not in adjustedResult
+  });
+
+  test('adjustedResult includes rantefordelning', () => {
+    // Positive räntefördelning reduces result, negative increases it
+    const doc = makeDoc([
+      { id: '3010', type: 'I', result: -300000 },
+      { id: '2081', type: 'S', openingBalance: -200000, closingBalance: -200000 },
+    ]);
+    const r = calc.calculate(doc, 0, RATES_2025);
+    // adjustedResult = 300000 - 75000 - 15920 + 0 - 0 = 209080
+    expect(r.adjustedResult).toBe(209080);
+  });
 });

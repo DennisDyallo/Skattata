@@ -21,6 +21,8 @@ export function register(program: Command): void {
     .option('--org-number <value>', 'Override organisation number used in #IDENTITET line of .sru file')
     .option('--tax-year <YYYY>', 'Tax year for #TAXAR declaration (default: current year - 1)')
     .option('--sni <code>', 'SNI industry code (5 digits, e.g. 62010) — included in info.sru')
+    .option('--periodisering-reversal <amount>', 'Återföring av periodiseringsfond, R32/7608 (NE only)')
+    .option('--periodisering-allocate <amount>', 'Avsättning till periodiseringsfond, R34/7709 (NE only)')
     .addHelpText('after', `
 SRU (Standardiserade Räkenskapsutdrag) codes are assigned by your accounting
 software when it exports the SIE file (e.g. Fortnox, Visma). Each #SRU tag
@@ -55,12 +57,28 @@ Examples:
   $ skattata sru-report annual.se --output ink2r.sru
   $ skattata sru-report annual.se --form ne --output ne.sru
   $ skattata sru-report annual.se --org-number 5566547898 --output ink2r.sru
+  $ skattata sru-report annual.se --form ne --periodisering-reversal 50000 --output ne.sru
 `)
-    .action(async (file: string, options: { format: string; year: string; form: string; output?: string; orgNumber?: string; taxYear?: string; sni?: string }) => {
+    .action(async (file: string, options: { format: string; year: string; form: string; output?: string; orgNumber?: string; taxYear?: string; sni?: string; periodiseringReversal?: string; periodiseringAllocate?: string }) => {
       try {
         if (options.sni && !validateSniCode(options.sni)) {
           console.error('Error: --sni must be exactly 5 digits (e.g. 62010)');
           process.exit(1);
+        }
+
+        if (options.periodiseringReversal !== undefined) {
+          const val = parseInt(options.periodiseringReversal, 10);
+          if (isNaN(val) || val < 0) {
+            console.error('Error: --periodisering-reversal must be a non-negative integer');
+            process.exit(1);
+          }
+        }
+        if (options.periodiseringAllocate !== undefined) {
+          const val = parseInt(options.periodiseringAllocate, 10);
+          if (isNaN(val) || val < 0) {
+            console.error('Error: --periodisering-allocate must be a non-negative integer');
+            process.exit(1);
+          }
         }
 
         const doc = await parseFile(file);
@@ -175,6 +193,26 @@ Examples:
             // R36/7710: Ökning expansionsfond
             if (!alreadyHas('7710') && neTax.expansionsfondBase > 0) {
               computed.push({ sruCode: '7710', amount: neTax.expansionsfondBase });
+            }
+
+            // R32/7608: Återföring periodiseringsfond (user-provided)
+            const reversal = options.periodiseringReversal ? parseInt(options.periodiseringReversal, 10) : 0;
+            if (reversal > 0 && !alreadyHas('7608')) {
+              computed.push({ sruCode: '7608', amount: reversal });
+            }
+
+            // R34/7709: Avsättning periodiseringsfond (user-provided)
+            const allocation = options.periodiseringAllocate ? parseInt(options.periodiseringAllocate, 10) : 0;
+            if (allocation > 0 && !alreadyHas('7709')) {
+              computed.push({ sruCode: '7709', amount: allocation });
+            }
+
+            // R47/7630 (överskott) or R48/7730 (underskott)
+            const adjustedWithPeriodisering = neTax.adjustedResult + reversal - allocation;
+            if (adjustedWithPeriodisering > 0 && !alreadyHas('7630')) {
+              computed.push({ sruCode: '7630', amount: adjustedWithPeriodisering });
+            } else if (adjustedWithPeriodisering < 0 && !alreadyHas('7730')) {
+              computed.push({ sruCode: '7730', amount: Math.abs(adjustedWithPeriodisering) });
             }
 
             if (computed.length > 0) {
