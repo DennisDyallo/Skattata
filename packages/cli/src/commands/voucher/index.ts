@@ -5,6 +5,7 @@ import { register as registerExpense } from './expense.js';
 import { register as registerTransfer } from './transfer.js';
 import { register as registerOwner } from './owner.js';
 import { register as registerList } from './list.js';
+import { register as registerReverse } from './reverse.js';
 
 export function register(program: Command): void {
   const voucher = program
@@ -17,4 +18,5 @@ export function register(program: Command): void {
   registerTransfer(voucher);
   registerOwner(voucher);
   registerList(voucher);
+  registerReverse(voucher);
 }
