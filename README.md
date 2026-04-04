@@ -44,6 +44,7 @@ bun run packages/cli/src/index.ts <command> [file] [options]
 | `voucher transfer <file>` | Transfer an amount between two accounts |
 | `voucher owner <file>` | Record an owner withdrawal or deposit |
 | `voucher list <file>` | List existing vouchers in the file |
+| `voucher reverse <file>` | Create a counter-entry that cancels an existing voucher |
 | `recalculate <file>` | Recompute closing balances from opening balances + vouchers |
 
 All write commands show a preview and confirm before modifying the file. Use `-y` to skip confirmation.

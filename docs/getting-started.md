@@ -88,6 +88,25 @@ bun run packages/cli/src/index.ts voucher add your-export.se \
 
 Each command shows a preview with account names and a balance check before writing. Add `-y` to skip the confirmation prompt.
 
+### Correct a mistake (reverse a voucher)
+
+If you need to undo a voucher, use `voucher reverse`. It creates a new counter-entry with all amounts negated — preserving the full audit trail rather than deleting anything.
+
+```bash
+# Reverse voucher A-47 (date defaults to today)
+bun run packages/cli/src/index.ts voucher reverse your-export.se --voucher A-47
+
+# Reverse with a specific date
+bun run packages/cli/src/index.ts voucher reverse your-export.se \
+  --voucher A-47 --date 2024-04-01
+
+# Reverse into a different series, skip confirmation
+bun run packages/cli/src/index.ts voucher reverse your-export.se \
+  --voucher A-47 --series B --yes
+```
+
+The reversal text defaults to `Korrigering: <original text>`. Skattata blocks reversing a voucher that already starts with "Korrigering:" — use `--force` if you genuinely need to reverse a reversal.
+
 After adding transactions, recompute your closing balances:
 
 ```bash
@@ -242,6 +261,7 @@ If your SIE file has `#SRU` tags (most accounting software adds them), those map
 | Income statement (enskild firma) | `income-statement your-export.se --enskild-firma` |
 | Record a sale (25% VAT) | `voucher sale your-export.se --date YYYY-MM-DD --text "..." --amount 12500 --vat 25` |
 | Record a purchase | `voucher expense your-export.se --date YYYY-MM-DD --text "..." --amount 6250 --account 6110 --vat 25` |
+| Reverse (cancel) a voucher | `voucher reverse your-export.se --voucher A-47` |
 | Recompute closing balances | `recalculate your-export.se --backup` |
 | Momsdeklaration | `moms your-export.se` |
 | Moms XML for upload | `moms your-export.se --period 202401 --output-xml moms.xml` |
