@@ -1,9 +1,8 @@
 import type { Command } from 'commander';
 import { SieVoucher, SieVoucherRow, VoucherValidator } from '@skattata/sie-core';
 import { parseFile } from '../../shared/parseFile.js';
-import { writeSieFile } from '../../shared/writeFile.js';
 import { renderVoucherPreview } from '../../shared/voucherPreview.js';
-import { nextVoucherNumber, confirm } from '../../shared/voucherHelpers.js';
+import { nextVoucherNumber, confirm, commitVoucher } from '../../shared/voucherHelpers.js';
 
 function parseVoucherEntries(
   flag: string,
@@ -53,6 +52,7 @@ export function register(voucherCmd: Command): void {
     .option('--series <S>', 'Voucher series', 'A')
     .option('--output <file>', 'Write to a different file')
     .option('--backup', 'Create .bak before overwriting')
+    .option('--no-recalculate', 'Skip automatic balance recalculation (use for batch adds)')
     .option('-y, --yes', 'Skip confirmation')
     .addHelpText('after', `
 Examples:
@@ -67,6 +67,7 @@ Examples:
       series: string;
       output?: string;
       backup?: boolean;
+      recalculate: boolean;
       yes?: boolean;
     }) => {
       try {
@@ -122,12 +123,12 @@ Examples:
           if (!ok) { console.log('Aborted.'); process.exit(0); }
         }
 
-        doc.vouchers.push(voucher);
-        const writtenPath = await writeSieFile(doc, file, {
+        await commitVoucher(doc, voucher, {
+          file,
           outputPath: options.output,
           backup: options.backup,
+          recalculate: options.recalculate,
         });
-        console.log(`\u2713 Added verifikation ${series}-${number} to ${writtenPath}`);
       } catch (err) {
         console.error(`Error: ${(err as Error).message}`);
         process.exit(1);
