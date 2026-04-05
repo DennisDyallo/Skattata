@@ -108,6 +108,38 @@ The grundavdrag formula uses PBB-indexed brackets defined in inkomstskattelagen 
 
 ---
 
+## Skatteverket Test Endpoints
+
+Skatteverket has **no open developer sandbox or API** for tax filing. All electronic submission requires Swedish e-legitimation (BankID). Here is what exists:
+
+| Endpoint | Auth | Scope | Useful for us? |
+|---|---|---|---|
+| **Kontrolluppgifter (KU) test** | None | KU XML validation only | No (not moms/SRU) |
+| **Momsdeklaration e-service** | BankID | Upload eSKDUpload XML, review errors before signing | Yes — manual spot-check |
+| **Filoverforning (SRU)** | BankID | Upload SRU files, instant validation report | Yes — manual spot-check |
+| **E-transport** | Certificate | Machine-to-machine batch filing | No (not accepting new agreements) |
+| **REST APIs** | OAuth2 | Data retrieval only, not filing | No |
+
+### Manual validation workflow (annual)
+
+1. Generate moms XML and SRU files from a synthetic test file
+2. Log into Skatteverket with BankID
+3. Upload moms XML via "Lamna momsdeklaration" → review validation errors → do NOT sign
+4. Upload SRU files via Filoverforing → review validation report → do NOT submit
+5. Fix any errors found, update tests
+
+### Automated validation (in test suite)
+
+- **Moms XML**: `packages/cli/tests/e2e/moms-dtd-validation.e2e.test.ts` — validates generated XML against eSKDUpload v6.0 DTD using `xmllint` (5 tests)
+- **SRU format**: `packages/cli/tests/e2e/sru-format-validation.e2e.test.ts` — validates SKV 269 tag structure, ordering, field types, CRLF encoding, org number format (17 tests)
+
+### Test data
+
+- **Test personnummer**: Skatteverket publishes ~40,000 as open data (JSON/XLS) at skatteverket.se
+- **Test org numbers**: Not officially published; generate synthetic 10-digit numbers following Luhn checksum
+
+---
+
 ## Verification Cadence
 
 | Domain | Frequency | When | Triggered by |
