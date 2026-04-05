@@ -11,7 +11,7 @@ const RATES_2025: TaxRates = {
   rantefordelningNegative: 0.0296,
   expansionsfondRate: 0.206,
   pbb: 58800,
-  stateTaxThreshold: 613900,
+  stateTaxThreshold: 625800,
   stateTaxRate: 0.20,
 };
 

@@ -55,7 +55,7 @@ packages/
     tests/
       e2e/                     # Spawns CLI binary, asserts stdout/exit code
 sie_test_files/                # 142 test files: 127 real-world (SIE 1–5, various vendors) + 15 synthetic
-docs/                          # SIE format PDFs
+docs/                          # SIE format PDFs + SOURCES.md (authoritative source registry)
 Plans/                         # Approved implementation plans (read-only history)
 ```
 
@@ -385,7 +385,7 @@ Field mapping verified against official Skatteverket eSKDUpload_6p0.dtd.
 
 ## Tax Rates Module (`shared/taxRates.ts`)
 
-All yearly-changing Swedish tax constants are centralized here. No command file contains hardcoded rates.
+All yearly-changing Swedish tax constants are centralized here. No command file contains hardcoded rates. Every constant cites its authoritative source inline. Full source registry: `docs/SOURCES.md`. Automated verification: `/verify-compliance`.
 
 ```typescript
 getTaxRates(taxYear: number): TaxRates   // throws if unsupported year
@@ -402,7 +402,7 @@ getDefaultTaxYear(): number               // latest supported year (fallback whe
 | `rantefordelningNegative` | 0.0274 | 0.0296 | Statslåneräntan + 1% |
 | `expansionsfondRate` | 0.206 | 0.206 | Corporate tax rate |
 | `pbb` | 57300 | 58800 | SCB |
-| `stateTaxThreshold` | 598500 | 613900 | Skatteverket |
+| `stateTaxThreshold` | 598500 | 625800 | Skatteverket |
 | `stateTaxRate` | 0.20 | 0.20 | Since 2020 |
 
 **Consumers:** f-skatt, income-statement (enskild firma + räntefördelning + expansionsfond), sru-report (NE schablonavdrag).
